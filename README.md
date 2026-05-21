@@ -1,56 +1,61 @@
-# Welcome to your Expo app 👋
+# BIEL Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo (SDK 55) app using [Expo Router](https://docs.expo.dev/router/introduction/) with routes in `src/app/`.
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+- [Node.js](https://nodejs.org/)
+- [pnpm](https://pnpm.io/)
+- [Android platform tools](https://developer.android.com/tools/releases/platform-tools) (`adb` on your PATH)
+- [Expo Go](https://expo.dev/go) on your Android device (for development without a custom dev build)
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Install dependencies
 
 ```bash
-npm run reset-project
+pnpm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Run on Android (USB device)
 
-### Other setup steps
+Use this flow when your phone is connected over USB and you develop with **Expo Go**.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 1. Connect the device and forward Metro’s port
 
-## Learn more
+```bash
+adb devices
+adb reverse tcp:8081 tcp:8081
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+`adb reverse` lets the phone reach Metro on your PC at `127.0.0.1:8081`. Run it again after unplugging the device or rebooting the phone.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Verify the forward is active:
 
-## Join the community
+```bash
+adb reverse --list
+```
 
-Join our community of developers creating universal apps.
+You should see `tcp:8081 tcp:8081`.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 2. Start Metro and open the app on Android
+
+```bash
+pnpm start --android --localhost
+```
+
+**Use `--localhost`** for USB development. The terminal should show a URL like `exp://127.0.0.1:8081`, not a LAN address such as `exp://192.168.x.x:8081`.
+
+### 3. Wait for the first bundle
+
+The first Android bundle often takes **20–35 seconds**. Expo Go shows a spinner until Metro logs something like:
+
+```text
+Android Bundled ... node_modules/expo-router/entry.js
+```
+
+Later reloads are much faster. This is normal, not necessarily a hang.
+
+### 4. Reload after code changes
+
+- Shake the device → **Reload**, or
+- Press `r` in the Metro terminal
+
