@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
-import type { LanguageItem } from '@/data/languages';
 import { useTheme } from '@/hooks/use-theme';
+import type { LanguageItem } from '@/types/language';
 
 type LanguageCardRowProps = {
   language: LanguageItem;
@@ -11,7 +12,11 @@ type LanguageCardRowProps = {
   onDownloadPress?: () => void;
 };
 
-export function LanguageCardRow({ language, onPress, onDownloadPress }: LanguageCardRowProps) {
+export const LanguageCardRow = memo(function LanguageCardRow({
+  language,
+  onPress,
+  onDownloadPress,
+}: LanguageCardRowProps) {
   const theme = useTheme();
   const isDownloaded = language.downloadStatus === 'downloaded';
 
@@ -91,7 +96,7 @@ export function LanguageCardRow({ language, onPress, onDownloadPress }: Language
       </Pressable>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {
