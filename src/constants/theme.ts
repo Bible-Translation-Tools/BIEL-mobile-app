@@ -63,3 +63,17 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/** Splash screen (Figma node 469:6375) */
+export const Splash = {
+  background: '#208AEF',
+  logoOpacity: 0.5,
+} as const;
+
+export const SplashDesign = {
+  frameWidth: 412,
+  padding: 16,
+  bookSize: 214,
+  logoWidth: 87.632,
+  logoHeight: 26.41,
+} as const;
