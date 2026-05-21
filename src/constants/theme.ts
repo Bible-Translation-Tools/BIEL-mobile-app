@@ -9,19 +9,64 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
+    text: '#2c2c2c',
+    background: '#f2f7fd',
+    backgroundElement: '#ffffff',
     backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    textSecondary: '#767676',
+    textLabel: '#8b8b8b',
+    border: '#e7e7e7',
+    iconPrimary: '#2c2c2c',
+    iconTertiary: '#8b8b8b',
+    iconSuccess: '#22ac52',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
+    text: '#eaeaea',
+    background: '#2c2c2c',
+    backgroundElement: '#212121',
     backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    textSecondary: '#cacaca',
+    textLabel: '#cacaca',
+    border: '#373737',
+    iconPrimary: '#ffffff',
+    iconTertiary: '#767676',
+    iconSuccess: '#22ac52',
   },
+} as const;
+
+export const Typography = {
+  headingH4: {
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: '500' as const,
+  },
+  headingH6: {
+    fontSize: 20,
+    lineHeight: 24,
+    fontWeight: '600' as const,
+  },
+  bodyMdSemibold: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
+  bodySm: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400' as const,
+  },
+} as const;
+
+export const HomeLayout = {
+  padding: 16,
+  contentGap: 20,
+  headerGap: 8,
+  listGap: 16,
+  rowGap: 8,
+  cardRadius: 8,
+  cardPaddingH: 16,
+  cardPaddingV: 12,
+  downloadButtonSize: 70,
+  bookIconSize: 38,
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
