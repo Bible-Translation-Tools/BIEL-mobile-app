@@ -34,24 +34,32 @@ function pickRendering(
   return candidates[0] ?? null;
 }
 
-function parseContentRepo(contentName: string): { user: string; repo: string } {
-  const [namespacePart, resourcePart] = contentName.split('/');
-  const user =
-    namespacePart?.toLowerCase() === 'wa-catalog' ? 'WA-Catalog' : (namespacePart ?? 'WA-Catalog');
-  const repo = resourcePart ?? contentName;
+/** Read API always uses the WA-Catalog user; repo is the catalog resource id (e.g. en_ulb). */
+const READ_API_USER = 'WA-Catalog';
 
-  return { user, repo };
+function resolveRepo(contentName: string, languageCode: string): string {
+  const segments = contentName.split('/').filter(Boolean);
+  const lastSegment = segments[segments.length - 1] ?? contentName;
+
+  // Repo ids look like "en_ulb", "tl_udb", "es-419_ulb"
+  if (lastSegment.includes('_') || lastSegment.includes('-')) {
+    return lastSegment;
+  }
+
+  // e.g. "gu/ulb" -> "gu_ulb"
+  const langPrefix = languageCode.split('-')[0].toLowerCase();
+  return `${langPrefix}_${lastSegment}`;
 }
 
 function buildChapterHtmlApiUrl(
   contentName: string,
+  languageCode: string,
   bookSlug: string,
   chapter: number,
 ): string {
-  const { user, repo } = parseContentRepo(contentName);
   const params = new URLSearchParams({
-    user,
-    repo,
+    user: READ_API_USER,
+    repo: resolveRepo(contentName, languageCode),
     book: bookSlug.toUpperCase(),
     chapter: String(chapter),
   });
@@ -74,21 +82,63 @@ function stripTags(html: string): string {
   return decodeHtmlEntities(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
 }
 
-function parseVersesFromParagraph(paragraphHtml: string): ScriptureVerse[] {
+/** Strip empty <p></p> tags nested inside verses — they break naive paragraph matching. */
+function cleanChapterHtml(html: string): string {
+  return html.replace(/<p>\s*<\/p>/gi, '');
+}
+
+function parseAllVerses(html: string): ScriptureVerse[] {
+  const cleaned = cleanChapterHtml(html);
   const verses: ScriptureVerse[] = [];
   const verseRegex =
     /<span class="verse">\s*<sup class="versemarker">(\d+)<\/sup>\s*([\s\S]*?)<\/span>/gi;
 
-  let match = verseRegex.exec(paragraphHtml);
+  let match = verseRegex.exec(cleaned);
   while (match) {
     const text = stripTags(match[2]);
     if (text) {
       verses.push({ number: Number.parseInt(match[1], 10), text });
     }
-    match = verseRegex.exec(paragraphHtml);
+    match = verseRegex.exec(cleaned);
   }
 
   return verses;
+}
+
+function groupVersesIntoParagraphs(chapterHtml: string): ScriptureParagraph[] {
+  const cleaned = cleanChapterHtml(chapterHtml);
+  const chunks = cleaned.split(/<\/p>\s*<p(?:\s[^>]*)?>/i);
+  const paragraphs: ScriptureParagraph[] = [];
+
+  for (const chunk of chunks) {
+    const verses = parseAllVerses(chunk);
+    if (verses.length > 0) {
+      paragraphs.push({ verses });
+    }
+  }
+
+  if (paragraphs.length === 0) {
+    const verses = parseAllVerses(cleaned);
+    if (verses.length > 0) {
+      paragraphs.push({ verses });
+    }
+  }
+
+  return paragraphs;
+}
+
+function parseSectionHeadings(chapterHtml: string): string[] {
+  const headings: string[] = [];
+  const headingRegex = /<h[1-6](?:\s[^>]*)?>([\s\S]*?)<\/h[1-6]>/gi;
+
+  let match = headingRegex.exec(chapterHtml);
+  while (match) {
+    const heading = stripTags(match[1]);
+    if (heading) headings.push(heading);
+    match = headingRegex.exec(chapterHtml);
+  }
+
+  return headings;
 }
 
 export function parseChapterHtml(html: string): ScriptureSection[] {
@@ -96,50 +146,17 @@ export function parseChapterHtml(html: string): ScriptureSection[] {
   if (!chapterMatch) return [];
 
   const chapterHtml = chapterMatch[1];
-  const sections: ScriptureSection[] = [];
-  let currentSection: ScriptureSection = { paragraphs: [] };
+  const paragraphs = groupVersesIntoParagraphs(chapterHtml);
 
-  const blockRegex = /<(p|h[1-6])(?:\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
-  let blockMatch = blockRegex.exec(chapterHtml);
+  if (paragraphs.length === 0) return [];
 
-  while (blockMatch) {
-    const tag = blockMatch[1].toLowerCase();
-    const innerHtml = blockMatch[2];
-    const verses = parseVersesFromParagraph(innerHtml);
+  const headings = parseSectionHeadings(chapterHtml);
 
-    if (verses.length > 0) {
-      currentSection.paragraphs.push({ verses });
-    } else if (/^h[1-6]$/.test(tag)) {
-      const heading = stripTags(innerHtml);
-      if (heading) {
-        if (currentSection.paragraphs.length > 0 || currentSection.heading) {
-          sections.push(currentSection);
-          currentSection = { paragraphs: [] };
-        }
-        currentSection.heading = heading;
-      }
-    } else {
-      const text = stripTags(innerHtml);
-      if (text && !currentSection.heading) {
-        currentSection.heading = text;
-      }
-    }
-
-    blockMatch = blockRegex.exec(chapterHtml);
+  if (headings.length === 0) {
+    return [{ paragraphs }];
   }
 
-  if (currentSection.paragraphs.length > 0 || currentSection.heading) {
-    sections.push(currentSection);
-  }
-
-  if (sections.length === 0) {
-    const verses = parseVersesFromParagraph(chapterHtml);
-    if (verses.length > 0) {
-      sections.push({ paragraphs: [{ verses }] });
-    }
-  }
-
-  return sections;
+  return [{ heading: headings[0], paragraphs }];
 }
 
 export async function fetchChapterContent(
@@ -160,6 +177,7 @@ export async function fetchChapterContent(
 
   const apiUrl = buildChapterHtmlApiUrl(
     rendering.rendered_content.content.name,
+    languageCode,
     bookSlug,
     chapter,
   );
@@ -173,6 +191,7 @@ export async function fetchChapterContent(
   }
 
   const html = await response.text();
+
   const sections = parseChapterHtml(html);
 
   if (sections.every((section) => section.paragraphs.length === 0)) {

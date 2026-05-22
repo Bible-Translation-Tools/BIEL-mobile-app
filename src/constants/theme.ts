@@ -111,7 +111,13 @@ export const ReadingLayout = {
   padding: 16,
   contentGap: 24,
   sectionGap: 8,
+  /** Figma Navigation (479:7739): 44px tall, 16px horizontal / 8px vertical padding */
+  toolbarHeight: 44,
+  toolbarPaddingH: 16,
   toolbarPaddingV: 8,
+  toolbarIconSize: 28,
+  toolbarSettingsIconSize: 24,
+  toolbarTrailingGap: 16,
   playButtonSize: 54,
   playButtonBottom: 20,
   scrollBottomInset: 100,

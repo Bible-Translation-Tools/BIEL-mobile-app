@@ -1,13 +1,66 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
-import { type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+
+type MaterialIconName = keyof typeof MaterialIcons.glyphMap;
+
+/** Legacy underscore names used in the app → Material Icons glyph names. */
+const MATERIAL_ICON_ALIASES: Record<string, MaterialIconName> = {
+  arrow_back: 'arrow-back',
+  chevron_right: 'chevron-right',
+  download_done: 'download-done',
+  file_download: 'file-download',
+  format_align_left: 'format-align-left',
+  format_size: 'format-size',
+  keyboard_arrow_down: 'keyboard-arrow-down',
+  keyboard_arrow_right: 'keyboard-arrow-right',
+  keyboard_arrow_up: 'keyboard-arrow-up',
+  volume_up: 'volume-up',
+};
+
+export type IconSymbolName =
+  | string
+  | {
+      ios: string;
+      android: string;
+      web: string;
+    };
 
 type IconSymbolProps = {
-  name: SymbolViewProps['name'];
+  name: IconSymbolName;
   size?: number;
   color: string;
   style?: StyleProp<ViewStyle>;
 };
 
+function resolveMaterialName(name: IconSymbolName): MaterialIconName {
+  const raw = typeof name === 'object' ? (Platform.OS === 'web' ? name.web : name.android) : name;
+  return MATERIAL_ICON_ALIASES[raw] ?? (raw as MaterialIconName);
+}
+
+function resolveSymbolName(name: IconSymbolName): SymbolViewProps['name'] {
+  const raw = typeof name === 'object' ? name.ios : name;
+  return raw as SymbolViewProps['name'];
+}
+
 export function IconSymbol({ name, size = 24, color, style }: IconSymbolProps) {
-  return <SymbolView name={name} size={size} tintColor={color} style={style} />;
+  if (Platform.OS === 'ios') {
+    return (
+      <SymbolView
+        name={resolveSymbolName(name)}
+        size={size}
+        tintColor={color}
+        style={style}
+      />
+    );
+  }
+
+  return (
+    <MaterialIcons
+      name={resolveMaterialName(name)}
+      size={size}
+      color={color}
+      style={style as StyleProp<TextStyle>}
+    />
+  );
 }

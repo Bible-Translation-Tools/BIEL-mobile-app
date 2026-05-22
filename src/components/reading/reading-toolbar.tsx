@@ -17,8 +17,8 @@ export function ReadingToolbar() {
         accessibilityRole="button"
         accessibilityLabel="Go back">
         <IconSymbol
-          name="chevron.left"
-          size={28}
+          name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+          size={ReadingLayout.toolbarIconSize}
           color={theme.iconPrimary}
         />
       </Pressable>
@@ -28,19 +28,34 @@ export function ReadingToolbar() {
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
           accessibilityRole="button"
           accessibilityLabel="Text settings">
-          <IconSymbol name="textformat.size" size={28} color={theme.iconPrimary} />
+          <IconSymbol
+            name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
+            size={ReadingLayout.toolbarIconSize}
+            color={theme.iconPrimary}
+          />
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
           accessibilityRole="button"
           accessibilityLabel="Download chapter">
-          <IconSymbol name="arrow.down.circle" size={28} color={theme.iconPrimary} />
+          <IconSymbol
+            name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+            size={ReadingLayout.toolbarIconSize}
+            color={theme.iconPrimary}
+          />
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
+          style={({ pressed }) => [
+            styles.settingsButton,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Settings">
-          <IconSymbol name="gearshape" size={24} color={theme.iconPrimary} />
+          <IconSymbol
+            name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
+            size={ReadingLayout.toolbarSettingsIconSize}
+            color={theme.iconPrimary}
+          />
         </Pressable>
       </View>
     </View>
@@ -52,17 +67,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: ReadingLayout.padding,
+    height: ReadingLayout.toolbarHeight,
+    paddingHorizontal: ReadingLayout.toolbarPaddingH,
     paddingVertical: ReadingLayout.toolbarPaddingV,
   },
   trailing: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: ReadingLayout.toolbarTrailingGap,
   },
   iconButton: {
-    width: 28,
-    height: 28,
+    width: ReadingLayout.toolbarIconSize,
+    height: ReadingLayout.toolbarIconSize,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsButton: {
+    width: ReadingLayout.toolbarIconSize,
+    height: ReadingLayout.toolbarIconSize,
     alignItems: 'center',
     justifyContent: 'center',
   },

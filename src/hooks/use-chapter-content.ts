@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchChapterContent } from '@/services/reading';
+import { fetchChapterContent } from '@/services/reader';
 import type { ChapterContent } from '@/types/reading';
 
 export function useChapterContent(

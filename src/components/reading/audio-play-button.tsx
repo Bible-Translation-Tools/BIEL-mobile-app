@@ -23,7 +23,11 @@ export function AudioPlayButton() {
         ]}
         accessibilityRole="button"
         accessibilityLabel="Play audio">
-        <IconSymbol name="speaker.wave.2.fill" size={28} color={theme.iconPrimary} />
+        <IconSymbol
+          name={{ ios: 'speaker.wave.2.fill', android: 'volume_up', web: 'volume_up' }}
+          size={28}
+          color={theme.iconPrimary}
+        />
       </Pressable>
     </View>
   );
