@@ -1,6 +1,5 @@
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout, Typography } from '@/constants/theme';
@@ -13,21 +12,18 @@ type ReadingToolbarProps = {
 export function ReadingToolbar({ chapterTitle }: ReadingToolbarProps) {
   const theme = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const isElevated = chapterTitle != null;
 
   return (
     <View
       style={[
         styles.toolbar,
-        {
-          paddingTop: insets.top + ReadingLayout.toolbarPaddingV,
-          minHeight: insets.top + ReadingLayout.toolbarHeight,
-          backgroundColor: isElevated ? theme.backgroundAccent : theme.background,
-        },
         isElevated && [
           styles.toolbarElevated,
-          { shadowColor: '#000' },
+          {
+            backgroundColor: theme.backgroundAccent,
+            shadowColor: '#000',
+          },
         ],
       ]}>
       <View style={styles.leading}>
@@ -95,8 +91,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    height: ReadingLayout.toolbarHeight,
     paddingHorizontal: ReadingLayout.toolbarPaddingH,
-    paddingBottom: ReadingLayout.toolbarPaddingV,
+    paddingVertical: ReadingLayout.toolbarPaddingV,
   },
   toolbarElevated: {
     shadowOffset: { width: 0, height: 1 },

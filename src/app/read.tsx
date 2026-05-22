@@ -62,8 +62,9 @@ export default function ReadingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <ReadingToolbar chapterTitle={toolbarChapterTitle} />
-      <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <ReadingToolbar chapterTitle={toolbarChapterTitle} />
+
         {loading ? (
           <View style={styles.centered}>
             <ActivityIndicator size="large" color={theme.iconPrimary} />
