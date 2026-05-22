@@ -1,27 +1,55 @@
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ReadingLayout } from '@/constants/theme';
+import { ReadingLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export function ReadingToolbar() {
+type ReadingToolbarProps = {
+  chapterTitle?: string;
+};
+
+export function ReadingToolbar({ chapterTitle }: ReadingToolbarProps) {
   const theme = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const isElevated = chapterTitle != null;
 
   return (
-    <View style={styles.toolbar}>
-      <Pressable
-        style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
-        onPress={() => router.back()}
-        accessibilityRole="button"
-        accessibilityLabel="Go back">
-        <IconSymbol
-          name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-          size={ReadingLayout.toolbarIconSize}
-          color={theme.iconPrimary}
-        />
-      </Pressable>
+    <View
+      style={[
+        styles.toolbar,
+        {
+          paddingTop: insets.top + ReadingLayout.toolbarPaddingV,
+          minHeight: insets.top + ReadingLayout.toolbarHeight,
+          backgroundColor: isElevated ? theme.backgroundAccent : theme.background,
+        },
+        isElevated && [
+          styles.toolbarElevated,
+          { shadowColor: '#000' },
+        ],
+      ]}>
+      <View style={styles.leading}>
+        <Pressable
+          style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back">
+          <IconSymbol
+            name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+            size={ReadingLayout.toolbarIconSize}
+            color={theme.iconPrimary}
+          />
+        </Pressable>
+        {chapterTitle ? (
+          <Text
+            style={[styles.chapterTitle, { color: theme.text }]}
+            numberOfLines={1}>
+            {chapterTitle}
+          </Text>
+        ) : null}
+      </View>
 
       <View style={styles.trailing}>
         <Pressable
@@ -67,14 +95,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: ReadingLayout.toolbarHeight,
     paddingHorizontal: ReadingLayout.toolbarPaddingH,
-    paddingVertical: ReadingLayout.toolbarPaddingV,
+    paddingBottom: ReadingLayout.toolbarPaddingV,
+  },
+  toolbarElevated: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2.5,
+    elevation: 3,
+  },
+  leading: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ReadingLayout.toolbarLeadingGap,
+    minWidth: 0,
+  },
+  chapterTitle: {
+    ...Typography.headingH6,
+    flexShrink: 1,
   },
   trailing: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: ReadingLayout.toolbarTrailingGap,
+    flexShrink: 0,
   },
   iconButton: {
     width: ReadingLayout.toolbarIconSize,
