@@ -1,5 +1,5 @@
 const GRAPHQL_ENDPOINT = 'https://api.bibleineverylanguage.org/v1/graphql';
-const USER_AGENT = 'Mozilla/5.0';
+const USER_AGENT = 'Mozilla/5.0'; // required by the API
 
 type GraphQLResponse<T> = {
   data?: T;

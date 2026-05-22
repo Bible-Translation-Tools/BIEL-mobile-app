@@ -10,27 +10,39 @@ import { Platform } from 'react-native';
 export const Colors = {
   light: {
     text: '#2c2c2c',
+    textHeading: '#1d2a38',
     background: '#f2f7fd',
     backgroundElement: '#ffffff',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#767676',
     textLabel: '#8b8b8b',
+    textPlaceholder: '#999da2',
     border: '#e7e7e7',
+    borderSecondary: '#d5deeb',
+    tabActive: '#005bdd',
+    tabInactive: '#51607a',
     iconPrimary: '#2c2c2c',
     iconTertiary: '#8b8b8b',
     iconSuccess: '#22ac52',
+    iconDanger: '#d32f2f',
   },
   dark: {
     text: '#eaeaea',
+    textHeading: '#eaeaea',
     background: '#2c2c2c',
     backgroundElement: '#212121',
     backgroundSelected: '#2E3135',
     textSecondary: '#cacaca',
     textLabel: '#cacaca',
+    textPlaceholder: '#999da2',
     border: '#373737',
+    borderSecondary: '#373737',
+    tabActive: '#4084e5',
+    tabInactive: '#cacaca',
     iconPrimary: '#ffffff',
     iconTertiary: '#767676',
     iconSuccess: '#22ac52',
+    iconDanger: '#ef5350',
   },
 } as const;
 
@@ -67,6 +79,17 @@ export const HomeLayout = {
   cardPaddingV: 12,
   downloadButtonSize: 70,
   bookIconSize: 38,
+} as const;
+
+export const BookLayout = {
+  ...HomeLayout,
+  bookDownloadButtonSize: 60,
+  tabBorderWidth: 2,
+  chapterColumns: 6,
+  chapterGap: 6,
+  chapterCellRadius: 4,
+  chapterCellPadding: 10,
+  chapterCellMinHeight: 48,
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;

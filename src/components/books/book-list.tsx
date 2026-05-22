@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   type ListRenderItem,
@@ -10,49 +11,67 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { HomeLayout } from '@/constants/theme';
+import { BookLayout } from '@/constants/theme';
+import { useBookChapters } from '@/hooks/use-book-chapters';
 import { useTheme } from '@/hooks/use-theme';
-import type { LanguageItem } from '@/types/language';
+import type { BookItem } from '@/types/book';
 
-import { LanguageCardRow } from './language-card-row';
+import { BookCardRow } from './book-card-row';
 
-/** Row height (70px download card) + gap between rows */
-const ROW_HEIGHT = HomeLayout.downloadButtonSize;
-const ITEM_STRIDE = ROW_HEIGHT + HomeLayout.listGap;
-
-type LanguageListProps = {
-  languages: LanguageItem[];
+type BookListProps = {
+  books: BookItem[];
+  languageCode?: string;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
-  onLanguagePress?: (language: LanguageItem) => void;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
-export function LanguageList({
-  languages,
+export function BookList({
+  books,
+  languageCode,
   loading = false,
   error = null,
   onRetry,
-  onLanguagePress,
   ListHeaderComponent,
   contentContainerStyle,
-}: LanguageListProps) {
+}: BookListProps) {
   const theme = useTheme();
+  const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
+  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode);
 
-  const renderItem: ListRenderItem<LanguageItem> = useCallback(
-    ({ item }) => <LanguageCardRow language={item} onPress={() => onLanguagePress?.(item)} />,
-    [onLanguagePress],
-  );
+  const expandedBook = books.find((book) => book.id === expandedBookId);
 
-  const getItemLayout = useCallback(
-    (_data: ArrayLike<LanguageItem> | null | undefined, index: number) => ({
-      length: ITEM_STRIDE,
-      offset: ITEM_STRIDE * index,
-      index,
-    }),
-    [],
+  useEffect(() => {
+    setExpandedBookId(null);
+  }, [books]);
+
+  useEffect(() => {
+    if (expandedBook) {
+      loadChapters(expandedBook.slug);
+    }
+  }, [expandedBook, loadChapters]);
+
+  const handleToggleExpand = useCallback((bookId: string) => {
+    setExpandedBookId((current) => (current === bookId ? null : bookId));
+  }, []);
+
+  const renderItem: ListRenderItem<BookItem> = useCallback(
+    ({ item }) => {
+      const isExpanded = expandedBookId === item.id;
+
+      return (
+        <BookCardRow
+          book={item}
+          isExpanded={isExpanded}
+          chapters={getChapters(item.slug)}
+          chaptersLoading={isLoading(item.slug)}
+          onToggleExpand={() => handleToggleExpand(item.id)}
+        />
+      );
+    },
+    [expandedBookId, getChapters, handleToggleExpand, isLoading],
   );
 
   const ListEmpty = useCallback(() => {
@@ -79,25 +98,26 @@ export function LanguageList({
 
     return (
       <View style={styles.centered}>
-        <Text style={[styles.message, { color: theme.textSecondary }]}>No languages found</Text>
+        <Text style={[styles.message, { color: theme.textSecondary }]}>No books found</Text>
       </View>
     );
   }, [loading, error, onRetry, theme.iconPrimary, theme.text, theme.textSecondary]);
 
+  const listHeader = ListHeaderComponent;
+
   return (
     <FlatList
       style={styles.list}
-      data={languages}
+      data={books}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
-      getItemLayout={getItemLayout}
-      ListHeaderComponent={ListHeaderComponent}
+      extraData={expandedBookId}
+      ListHeaderComponent={listHeader}
       ListEmptyComponent={ListEmpty}
       ItemSeparatorComponent={ItemSeparator}
       contentContainerStyle={[styles.content, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      removeClippedSubviews
       initialNumToRender={12}
       maxToRenderPerBatch={16}
       windowSize={7}
@@ -115,11 +135,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: HomeLayout.padding,
+    paddingHorizontal: BookLayout.padding,
     paddingBottom: 40,
   },
   separator: {
-    height: HomeLayout.listGap,
+    height: BookLayout.listGap,
   },
   centered: {
     paddingVertical: 48,

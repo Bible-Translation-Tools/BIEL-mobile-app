@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,8 +11,10 @@ import { HomeLayout } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
+import type { LanguageItem } from '@/types/language';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +30,16 @@ export default function HomeScreen() {
         language.code.toLowerCase().includes(query),
     );
   }, [languages, searchQuery]);
+
+  const handleLanguagePress = useCallback(
+    (language: LanguageItem) => {
+      router.push({
+        pathname: '/books',
+        params: { languageCode: language.id, name: language.name },
+      });
+    },
+    [router],
+  );
 
   const listHeader = useMemo(
     () => (
@@ -47,6 +60,7 @@ export default function HomeScreen() {
           loading={loading}
           error={error}
           onRetry={refetch}
+          onLanguagePress={handleLanguagePress}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
         />
