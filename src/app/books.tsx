@@ -22,8 +22,8 @@ export default function BookSelectionScreen() {
     name?: string;
   }>();
 
-  const ietfCode = typeof languageCode === 'string' ? languageCode : undefined;
-  const languageName = typeof name === 'string' ? name : 'Language';
+  const ietfCode = languageCode;
+  const languageName = name ?? 'Language';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
