@@ -1,6 +1,6 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,9 +12,10 @@ import { BookLayout } from '@/constants/theme';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-import type { Testament } from '@/types/book';
+import type { BookItem, ChapterItem, Testament } from '@/types/book';
 
 export default function BookSelectionScreen() {
+  const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const { languageCode, name } = useLocalSearchParams<{
@@ -28,6 +29,21 @@ export default function BookSelectionScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
   const { books, loading, error, refetch } = useBooks(ietfCode);
+
+  const handleChapterPress = useCallback(
+    (book: BookItem, chapter: ChapterItem) => {
+      router.push({
+        pathname: '/read',
+        params: {
+          languageCode: ietfCode,
+          bookSlug: book.slug,
+          bookName: book.name,
+          chapter: String(chapter.number),
+        },
+      });
+    },
+    [router, ietfCode],
+  );
 
   const filteredBooks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -63,6 +79,7 @@ export default function BookSelectionScreen() {
           loading={loading}
           error={error}
           onRetry={refetch}
+          onChapterPress={handleChapterPress}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
         />

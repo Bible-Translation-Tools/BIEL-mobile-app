@@ -57,6 +57,21 @@ export const Typography = {
     lineHeight: 24,
     fontWeight: '600' as const,
   },
+  headingH7: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '500' as const,
+  },
+  bodyMd: {
+    fontSize: 16,
+    lineHeight: 32,
+    fontWeight: '400' as const,
+  },
+  verseNumber: {
+    fontSize: 10.32,
+    lineHeight: 32,
+    fontWeight: '400' as const,
+  },
   bodyMdSemibold: {
     fontSize: 16,
     fontWeight: '600' as const,
@@ -90,6 +105,16 @@ export const BookLayout = {
   chapterCellRadius: 4,
   chapterCellPadding: 10,
   chapterCellMinHeight: 48,
+} as const;
+
+export const ReadingLayout = {
+  padding: 16,
+  contentGap: 24,
+  sectionGap: 8,
+  toolbarPaddingV: 8,
+  playButtonSize: 54,
+  playButtonBottom: 20,
+  scrollBottomInset: 100,
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;

@@ -1,3 +1,34 @@
+export const CHAPTER_CONTENT_QUERY = `
+  query ChapterContent($languageCode: String!, $bookSlug: String!, $chapter: Int!) {
+    scriptural_rendering_metadata(
+      where: {
+        book_slug: { _eq: $bookSlug }
+        chapter: { _eq: $chapter }
+        is_whole_book: { _eq: false }
+        rendered_content: {
+          content: {
+            language: { ietf_code: { _eq: $languageCode } }
+            wa_content_metadata: {
+              show_on_biel: { _eq: true }
+              status: { _eq: "Primary" }
+            }
+          }
+        }
+      }
+    ) {
+      book_name
+      chapter
+      rendered_content {
+        url
+        content {
+          name
+          resource_type
+        }
+      }
+    }
+  }
+`;
+
 export const CHAPTERS_FOR_BOOK_QUERY = `
   query ChaptersForBook($languageCode: String!, $bookSlug: String!) {
     scriptural_rendering_metadata(

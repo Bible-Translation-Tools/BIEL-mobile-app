@@ -14,7 +14,7 @@ import {
 import { BookLayout } from '@/constants/theme';
 import { useBookChapters } from '@/hooks/use-book-chapters';
 import { useTheme } from '@/hooks/use-theme';
-import type { BookItem } from '@/types/book';
+import type { BookItem, ChapterItem } from '@/types/book';
 
 import { BookCardRow } from './book-card-row';
 
@@ -24,6 +24,7 @@ type BookListProps = {
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -34,6 +35,7 @@ export function BookList({
   loading = false,
   error = null,
   onRetry,
+  onChapterPress,
   ListHeaderComponent,
   contentContainerStyle,
 }: BookListProps) {
@@ -68,10 +70,13 @@ export function BookList({
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
           onToggleExpand={() => handleToggleExpand(item.id)}
+          onChapterPress={
+            onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
+          }
         />
       );
     },
-    [expandedBookId, getChapters, handleToggleExpand, isLoading],
+    [expandedBookId, getChapters, handleToggleExpand, isLoading, onChapterPress],
   );
 
   const ListEmpty = useCallback(() => {
