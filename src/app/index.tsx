@@ -24,18 +24,36 @@ export default function HomeScreen() {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return languages;
 
-    return languages.filter(
-      (language) =>
-        language.name.toLowerCase().includes(query) ||
-        language.code.toLowerCase().includes(query),
-    );
+    const exactMatch = languages.find((language) => language.code.toLowerCase() === query);
+
+    const scored: { language: LanguageItem; score: number; index: number }[] = [];
+    languages.forEach((language, index) => {
+      if (language === exactMatch) return;
+
+      const code = language.code.toLowerCase();
+      const nationalName = language.nationalName.toLowerCase();
+      const name = language.name.toLowerCase();
+
+      let score: number | null = null;
+      if (code.startsWith(query)) score = 0;
+      else if (nationalName.startsWith(query)) score = 1;
+      else if (name.startsWith(query)) score = 2;
+
+      if (score !== null) scored.push({ language, score, index });
+    });
+
+    const rest = scored
+      .sort((a, b) => a.score - b.score || a.index - b.index)
+      .map((entry) => entry.language);
+
+    return exactMatch ? [exactMatch, ...rest] : rest;
   }, [languages, searchQuery]);
 
   const handleLanguagePress = useCallback(
     (language: LanguageItem) => {
       router.push({
         pathname: '/books',
-        params: { languageCode: language.id, name: language.name },
+        params: { languageCode: language.code, name: language.name },
       });
     },
     [router],

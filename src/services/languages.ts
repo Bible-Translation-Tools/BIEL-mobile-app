@@ -20,20 +20,15 @@ const TEXT_RESOURCE_TYPES = new Set([
 /** Resource types that may include audio (e.g. Open Bible Stories) */
 const AUDIO_RESOURCE_TYPES = new Set(['obs']);
 
-function formatLanguageCode(language: ApiLanguage): string {
-  const label = language.national_name?.trim() || language.english_name;
-  return `${language.ietf_code} - ${label}`;
-}
-
 export function mapApiLanguageToItem(language: ApiLanguage): LanguageItem {
   const resourceTypes = new Set(
     language.contents.map((c) => c.resource_type).filter((t): t is string => Boolean(t)),
   );
 
   return {
-    id: language.ietf_code,
+    code: language.ietf_code,
     name: language.english_name,
-    code: formatLanguageCode(language),
+    nationalName: language.national_name || language.english_name,
     hasText: [...TEXT_RESOURCE_TYPES].some((type) => resourceTypes.has(type)),
     hasAudio: [...AUDIO_RESOURCE_TYPES].some((type) => resourceTypes.has(type)),
     downloadStatus: 'pending',

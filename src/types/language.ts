@@ -1,9 +1,9 @@
 export type DownloadStatus = 'pending' | 'downloaded';
 
 export type LanguageItem = {
-  id: string;
-  name: string;
   code: string;
+  name: string;
+  nationalName: string;
   hasAudio: boolean;
   hasText: boolean;
   downloadStatus: DownloadStatus;

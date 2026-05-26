@@ -89,7 +89,7 @@ export function LanguageList({
       style={styles.list}
       data={languages}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item.code}
       getItemLayout={getItemLayout}
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={ListEmpty}

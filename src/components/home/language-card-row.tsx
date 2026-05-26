@@ -39,7 +39,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         <View style={styles.mainContent}>
           <View style={styles.titleLine}>
             <Text style={[styles.languageName, { color: theme.text }]} numberOfLines={1}>
-              {language.name}
+              {language.nationalName}
             </Text>
             <View style={styles.mediaIcons}>
               {language.hasAudio && (
@@ -63,7 +63,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
             </View>
           </View>
           <Text style={[styles.languageCode, { color: theme.textSecondary }]} numberOfLines={1}>
-            {language.code}
+            {`${language.code} - ${language.name}`}
           </Text>
         </View>
         <IconSymbol
