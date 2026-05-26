@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { BookHeaderIcon } from '@/components/icons/book-header-icon';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -41,6 +41,19 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
           style={[styles.searchInput, { color: theme.text }]}
           accessibilityLabel="Search languages"
         />
+        {searchQuery.length > 0 && (
+          <Pressable
+            onPress={() => onSearchChange('')}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search">
+            <IconSymbol
+              name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
+              size={20}
+              color={theme.iconTertiary}
+            />
+          </Pressable>
+        )}
       </View>
     </View>
   );
