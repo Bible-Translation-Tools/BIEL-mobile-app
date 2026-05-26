@@ -1,18 +1,8 @@
-import { useState } from 'react';
-import {
-  ActivityIndicator,
-  type GestureResponderEvent,
-  type LayoutChangeEvent,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MediaPlayerLayout } from '@/constants/theme';
-import { useSystemVolume } from '@/hooks/use-system-volume';
 import { useTheme } from '@/hooks/use-theme';
 
 type MediaPlayerPanelProps = {
@@ -20,6 +10,8 @@ type MediaPlayerPanelProps = {
   isPlaying?: boolean;
   isLoading?: boolean;
   error?: string | null;
+  /** Whether verse-step controls have timing data available. */
+  canStepVerse?: boolean;
   onClose: () => void;
   onTogglePlay?: () => void;
   onPreviousVerse?: () => void;
@@ -31,6 +23,7 @@ export function MediaPlayerPanel({
   isPlaying = false,
   isLoading = false,
   error,
+  canStepVerse = false,
   onClose,
   onTogglePlay,
   onPreviousVerse,
@@ -38,19 +31,6 @@ export function MediaPlayerPanel({
 }: MediaPlayerPanelProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { volume, setVolume } = useSystemVolume();
-  const [trackWidth, setTrackWidth] = useState(0);
-
-  const handleTrackLayout = (event: LayoutChangeEvent) => {
-    setTrackWidth(event.nativeEvent.layout.width);
-  };
-
-  const handleTrackPress = (event: GestureResponderEvent) => {
-    if (trackWidth <= 0) return;
-    const x = event.nativeEvent.locationX;
-    const ratio = Math.max(0, Math.min(1, x / trackWidth));
-    setVolume(ratio);
-  };
 
   const playDisabled = isLoading || Boolean(error);
 
@@ -150,28 +130,23 @@ export function MediaPlayerPanel({
           </Text>
         ) : null}
 
-        <View style={styles.volumeRow}>
+        <View
+          style={styles.volumeRow}
+          accessibilityRole="adjustable"
+          accessibilityLabel="Volume">
           <IconSymbol
             name={{ ios: 'speaker.wave.1.fill', android: 'volume-mute', web: 'volume-mute' }}
             size={16}
             color={theme.iconPrimary}
           />
-          <Pressable
-            style={styles.volumeTrackPress}
-            onLayout={handleTrackLayout}
-            onPress={handleTrackPress}
-            accessibilityRole="adjustable"
-            accessibilityLabel="Volume"
-            accessibilityValue={{ min: 0, max: 100, now: Math.round(volume * 100) }}>
-            <View style={[styles.volumeTrack, { backgroundColor: theme.background }]}>
-              <View
-                style={[
-                  styles.volumeFill,
-                  { backgroundColor: theme.tabActive, width: `${volume * 100}%` },
-                ]}
-              />
-            </View>
-          </Pressable>
+          <View style={[styles.volumeTrack, { backgroundColor: theme.background }]}>
+            <View
+              style={[
+                styles.volumeFill,
+                { backgroundColor: theme.tabActive, width: `${VOLUME_PLACEHOLDER * 100}%` },
+              ]}
+            />
+          </View>
           <IconSymbol
             name={{ ios: 'speaker.wave.3.fill', android: 'volume-up', web: 'volume-up' }}
             size={16}
@@ -182,6 +157,8 @@ export function MediaPlayerPanel({
     </View>
   );
 }
+
+const VOLUME_PLACEHOLDER = 0.5;
 
 const styles = StyleSheet.create({
   container: {
@@ -248,11 +225,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  volumeTrackPress: {
-    flex: 1,
-    paddingVertical: 10,
-  },
   volumeTrack: {
+    flex: 1,
     height: 4,
     borderRadius: 5,
     overflow: 'hidden',

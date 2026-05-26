@@ -45,8 +45,11 @@ export function AudioPlayButton({
         isPlaying={audio.isPlaying}
         isLoading={audio.isFetching}
         error={audio.error}
+        canStepVerse={audio.hasVerseTimings}
         onClose={closePanel}
         onTogglePlay={audio.togglePlay}
+        onPreviousVerse={audio.seekToPreviousVerse}
+        onNextVerse={audio.seekToNextVerse}
       />
     );
   }

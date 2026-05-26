@@ -1,7 +1,8 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { fetchChapterAudioUrl } from '@/services/audio';
+import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/services/audio';
+import type { VerseTiming } from '@/types/audio';
 
 type UseChapterAudioParams = {
   languageCode?: string;
@@ -10,6 +11,11 @@ type UseChapterAudioParams = {
   /** Defer the URL fetch until needed (e.g. when the audio panel opens). */
   enabled?: boolean;
 };
+
+/** Seconds back into the current verse before "previous" restarts it instead of stepping back. */
+const PREVIOUS_VERSE_RESTART_THRESHOLD = 3;
+/** Small tolerance so we don't get stuck on the current marker when tapping "next". */
+const VERSE_BOUNDARY_EPSILON = 0.1;
 
 export function useChapterAudio({
   languageCode,
@@ -20,9 +26,15 @@ export function useChapterAudio({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verseTimings, setVerseTimings] = useState<VerseTiming[]>([]);
 
   const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
+
+  const currentTimeRef = useRef(0);
+  useEffect(() => {
+    currentTimeRef.current = status.currentTime ?? 0;
+  }, [status.currentTime]);
 
   useEffect(() => {
     if (!enabled || !languageCode || !bookSlug || !chapter) return;
@@ -31,6 +43,7 @@ export function useChapterAudio({
     setIsFetching(true);
     setError(null);
     setAudioUrl(null);
+    setVerseTimings([]);
 
     fetchChapterAudioUrl(languageCode, bookSlug, chapter)
       .then((url) => {
@@ -54,6 +67,16 @@ export function useChapterAudio({
       })
       .finally(() => {
         if (!cancelled) setIsFetching(false);
+      });
+
+    fetchChapterVerseTimings(languageCode, bookSlug, chapter)
+      .then((timings) => {
+        if (cancelled) return;
+        setVerseTimings(timings);
+      })
+      .catch((err: unknown) => {
+        // Timings are optional; log and continue without verse stepping.
+        console.warn('[audio] failed to load verse timings', err);
       });
 
     return () => {
@@ -84,6 +107,38 @@ export function useChapterAudio({
     [player],
   );
 
+  const seekToNextVerse = useCallback(() => {
+    if (verseTimings.length === 0) return;
+    const now = currentTimeRef.current;
+    const next = verseTimings.find((t) => t.time > now + VERSE_BOUNDARY_EPSILON);
+    if (next) player.seekTo(next.time);
+  }, [verseTimings, player]);
+
+  const seekToPreviousVerse = useCallback(() => {
+    if (verseTimings.length === 0) return;
+    const now = currentTimeRef.current;
+
+    let currentIdx = -1;
+    for (let i = verseTimings.length - 1; i >= 0; i -= 1) {
+      if (verseTimings[i].time <= now + VERSE_BOUNDARY_EPSILON) {
+        currentIdx = i;
+        break;
+      }
+    }
+
+    if (currentIdx <= 0) {
+      player.seekTo(verseTimings[0]?.time ?? 0);
+      return;
+    }
+
+    const offsetIntoVerse = now - verseTimings[currentIdx].time;
+    const target =
+      offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD
+        ? verseTimings[currentIdx]
+        : verseTimings[currentIdx - 1];
+    player.seekTo(target.time);
+  }, [verseTimings, player]);
+
   return {
     audioUrl,
     isFetching,
@@ -91,8 +146,11 @@ export function useChapterAudio({
     isPlaying: status.playing,
     currentTime: status.currentTime ?? 0,
     duration: status.duration ?? 0,
+    hasVerseTimings: verseTimings.length > 0,
     togglePlay,
     pause,
     seekTo,
+    seekToNextVerse,
+    seekToPreviousVerse,
   };
 }
