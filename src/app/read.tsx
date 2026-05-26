@@ -188,7 +188,14 @@ export default function ReadingScreen() {
           />
         ) : null}
 
-        {chapters.length > 0 ? <AudioPlayButton /> : null}
+        {chapters.length > 0 ? (
+          <AudioPlayButton
+            languageCode={languageCode}
+            bookSlug={bookSlug}
+            chapter={Number.isFinite(chapterNumber) ? chapterNumber : undefined}
+            passage={`${displayBookName} ${chapterNumber}`}
+          />
+        ) : null}
       </SafeAreaView>
     </View>
   );

@@ -131,6 +131,17 @@ export const ReadingLayout = {
   scrollBottomInset: 100,
 } as const;
 
+export const MediaPlayerLayout = {
+  topRadius: 20,
+  paddingH: 16,
+  paddingV: 20,
+  playBarPaddingH: 20,
+  playBarGap: 20,
+  controlsGap: 36,
+  playButtonSize: 48,
+  closeHitArea: 60,
+} as const;
+
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({

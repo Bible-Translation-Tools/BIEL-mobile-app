@@ -1,3 +1,29 @@
+export const CHAPTER_AUDIO_QUERY = `
+  query ChapterAudio($languageCode: String!, $bookSlug: String!, $chapter: Int!) {
+    content(
+      where: {
+        type: { _eq: "audio" }
+        language: { ietf_code: { _eq: $languageCode } }
+      }
+    ) {
+      rendered_contents(
+        where: {
+          scriptural_rendering_metadata: {
+            book_slug: { _eq: $bookSlug }
+            chapter: { _eq: $chapter }
+            is_whole_book: { _eq: false }
+          }
+          file_type: { _eq: "mp3" }
+        }
+      ) {
+        url
+        file_type
+        file_size_bytes
+      }
+    }
+  }
+`;
+
 export const CHAPTER_CONTENT_QUERY = `
   query ChapterContent($languageCode: String!, $bookSlug: String!, $chapter: Int!) {
     scriptural_rendering_metadata(

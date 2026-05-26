@@ -1,13 +1,55 @@
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MediaPlayerPanel } from '@/components/reading/media-player-panel';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout } from '@/constants/theme';
+import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useTheme } from '@/hooks/use-theme';
 
-export function AudioPlayButton() {
+type AudioPlayButtonProps = {
+  languageCode?: string;
+  bookSlug?: string;
+  chapter?: number;
+  passage?: string;
+};
+
+export function AudioPlayButton({
+  languageCode,
+  bookSlug,
+  chapter,
+  passage,
+}: AudioPlayButtonProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  const audio = useChapterAudio({
+    languageCode,
+    bookSlug,
+    chapter,
+    enabled: isPanelOpen,
+  });
+
+  const openPanel = useCallback(() => setIsPanelOpen(true), []);
+  const closePanel = useCallback(() => {
+    audio.pause();
+    setIsPanelOpen(false);
+  }, [audio]);
+
+  if (isPanelOpen) {
+    return (
+      <MediaPlayerPanel
+        passage={passage}
+        isPlaying={audio.isPlaying}
+        isLoading={audio.isFetching}
+        error={audio.error}
+        onClose={closePanel}
+        onTogglePlay={audio.togglePlay}
+      />
+    );
+  }
 
   return (
     <View
@@ -21,10 +63,11 @@ export function AudioPlayButton() {
             opacity: pressed ? 0.9 : 1,
           },
         ]}
+        onPress={openPanel}
         accessibilityRole="button"
-        accessibilityLabel="Play audio">
+        accessibilityLabel="Open audio player">
         <IconSymbol
-          name={{ ios: 'speaker.wave.2.fill', android: 'volume_up', web: 'volume_up' }}
+          name={{ ios: 'speaker.wave.2.fill', android: 'volume-up', web: 'volume-up' }}
           size={28}
           color={theme.iconPrimary}
         />
