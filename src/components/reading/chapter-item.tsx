@@ -33,7 +33,8 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
                 key={`paragraph-${chapter.chapter}-${sectionIndex}-${paragraphIndex}`}
                 style={[styles.paragraph, { color: theme.text }]}>
                 {paragraph.verses.map((verse, verseIndex) => (
-                  <Text key={`verse-${chapter.chapter}-${verse.number}`}>
+                  <Text
+                    key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}>
                     <Text style={styles.verseNumber}>{verse.number}</Text>
                     {verseIndex < paragraph.verses.length - 1 ? ' ' : ''}
                     {verse.text}

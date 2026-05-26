@@ -9,8 +9,7 @@ import type {
   ScriptureVerse,
 } from '@/types/reading';
 
-const CHAPTER_HTML_API = 'https://read.bibleineverylanguage.org/api/getHtmlForChap';
-const RESOURCE_PRIORITY = ['udb', 'ulb', 'reg'] as const;
+const RESOURCE_PRIORITY = ['ulb', 'udb', 'reg'] as const;
 const EXCLUDED_RESOURCE_TYPES = new Set(['tq', 'tn']);
 
 function pickRendering(
@@ -32,39 +31,6 @@ function pickRendering(
   }
 
   return candidates[0] ?? null;
-}
-
-/** Read API always uses the WA-Catalog user; repo is the catalog resource id (e.g. en_ulb). */
-const READ_API_USER = 'WA-Catalog';
-
-function resolveRepo(contentName: string, languageCode: string): string {
-  const segments = contentName.split('/').filter(Boolean);
-  const lastSegment = segments[segments.length - 1] ?? contentName;
-
-  // Repo ids look like "en_ulb", "tl_udb", "es-419_ulb"
-  if (lastSegment.includes('_') || lastSegment.includes('-')) {
-    return lastSegment;
-  }
-
-  // e.g. "gu/ulb" -> "gu_ulb"
-  const langPrefix = languageCode.split('-')[0].toLowerCase();
-  return `${langPrefix}_${lastSegment}`;
-}
-
-function buildChapterHtmlApiUrl(
-  contentName: string,
-  languageCode: string,
-  bookSlug: string,
-  chapter: number,
-): string {
-  const params = new URLSearchParams({
-    user: READ_API_USER,
-    repo: resolveRepo(contentName, languageCode),
-    book: bookSlug.toUpperCase(),
-    chapter: String(chapter),
-  });
-
-  return `${CHAPTER_HTML_API}?${params.toString()}`;
 }
 
 function decodeHtmlEntities(text: string): string {
@@ -175,18 +141,23 @@ export async function fetchChapterContent(
     throw new Error('Chapter not found');
   }
 
-  const apiUrl = buildChapterHtmlApiUrl(
-    rendering.rendered_content.content.name,
-    languageCode,
-    bookSlug,
-    chapter,
-  );
+  const apiUrl = rendering.rendered_content.url;
+  if (!apiUrl) {
+    throw new Error('Chapter rendered URL is missing');
+  }
 
   const response = await fetch(apiUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'text/html' },
+    headers: { Accept: 'text/html' },
   });
 
   if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
+    console.warn('[reader] chapter fetch failed', {
+      apiUrl,
+      status: response.status,
+      statusText: response.statusText,
+      bodyPreview: errorBody.slice(0, 300),
+    });
     throw new Error(`Failed to load chapter (${response.status})`);
   }
 
