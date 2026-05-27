@@ -24,6 +24,7 @@ export function useChapterAudio({
   enabled = true,
 }: UseChapterAudioParams) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [loadedChapter, setLoadedChapter] = useState<number | undefined>(undefined);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verseTimings, setVerseTimings] = useState<VerseTiming[]>([]);
@@ -43,6 +44,7 @@ export function useChapterAudio({
     setIsFetching(true);
     setError(null);
     setAudioUrl(null);
+    setLoadedChapter(undefined);
     setVerseTimings([]);
 
     fetchChapterAudioUrl(languageCode, bookSlug, chapter)
@@ -52,9 +54,10 @@ export function useChapterAudio({
           setError('No audio available for this chapter');
           return;
         }
-        setAudioUrl(url);
         try {
           player.replace(url);
+          setAudioUrl(url);
+          setLoadedChapter(chapter);
         } catch (err) {
           console.warn('[audio] failed to set source', err);
           setError('Failed to load audio');
@@ -84,12 +87,6 @@ export function useChapterAudio({
     };
   }, [enabled, languageCode, bookSlug, chapter, player]);
 
-  useEffect(() => {
-    if (status.didJustFinish) {
-      player.seekTo(0);
-    }
-  }, [status.didJustFinish, player]);
-
   const togglePlay = useCallback(() => {
     if (!audioUrl) return;
     if (status.playing) player.pause();
@@ -99,6 +96,11 @@ export function useChapterAudio({
   const pause = useCallback(() => {
     player.pause();
   }, [player]);
+
+  const play = useCallback(() => {
+    if (!audioUrl) return;
+    player.play();
+  }, [audioUrl, player]);
 
   const seekTo = useCallback(
     (seconds: number) => {
@@ -157,14 +159,17 @@ export function useChapterAudio({
 
   return {
     audioUrl,
+    loadedChapter,
     isFetching,
     error,
     isPlaying: status.playing,
+    didJustFinish: status.didJustFinish,
     currentTime: status.currentTime ?? 0,
     duration: status.duration ?? 0,
     currentVerse,
     hasVerseTimings: verseTimings.length > 0,
     togglePlay,
+    play,
     pause,
     seekTo,
     seekToNextVerse,

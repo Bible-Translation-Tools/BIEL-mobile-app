@@ -70,8 +70,18 @@ export default function ReadingScreen() {
   const chapterViewRefsRef = useRef<Map<number, View>>(new Map());
   const verseLayoutsRef = useRef<Map<number, Map<number, number>>>(new Map());
   const audioPanelHeightRef = useRef(0);
+  const chaptersRef = useRef<ChapterContent[]>([]);
+  const hasMoreRef = useRef(false);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
+
+  useEffect(() => {
+    chaptersRef.current = chapters;
+  }, [chapters]);
+
+  useEffect(() => {
+    hasMoreRef.current = hasMore;
+  }, [hasMore]);
 
   const getChapterRefSetter = useMemo(() => {
     const cache = new Map<number, (node: View | null) => void>();
@@ -191,6 +201,32 @@ export default function ReadingScreen() {
     [visibleChapter, chapterNumber],
   );
 
+  const getNextChapterForAudio = useCallback(
+    async (currentChapter: number) => {
+      const currentChapters = chaptersRef.current;
+      if (currentChapters.length === 0) return undefined;
+
+      const sorted = [...currentChapters].sort((a, b) => a.chapter - b.chapter);
+      const currentIdx = sorted.findIndex((item) => item.chapter === currentChapter);
+      if (currentIdx !== -1 && currentIdx < sorted.length - 1) {
+        return sorted[currentIdx + 1]?.chapter;
+      }
+
+      if (!hasMoreRef.current) return undefined;
+
+      await loadMore();
+
+      const afterLoad = [...chaptersRef.current].sort((a, b) => a.chapter - b.chapter);
+      const afterIdx = afterLoad.findIndex((item) => item.chapter === currentChapter);
+      if (afterIdx !== -1 && afterIdx < afterLoad.length - 1) {
+        return afterLoad[afterIdx + 1]?.chapter;
+      }
+
+      return undefined;
+    },
+    [loadMore],
+  );
+
   const renderItem = useCallback(
     ({ item, index }: { item: ChapterContent; index: number }) => (
       <ChapterItem
@@ -270,6 +306,7 @@ export default function ReadingScreen() {
             bookSlug={bookSlug}
             passageBookName={displayBookName}
             getCurrentChapter={getCurrentChapterForAudio}
+            getNextChapter={getNextChapterForAudio}
             onCurrentVerseChange={setCurrentPlayingVerse}
             onCurrentChapterChange={setCurrentPlayingChapter}
             onPanelHeightChange={(height) => {

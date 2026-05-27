@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
   Modal,
@@ -56,7 +56,7 @@ function toSuperscript(value: number): string {
 // parsing line text from onTextLayout.
 const VERSE_NUMBER_MARKER = '⁠';
 
-export function ChapterItem({
+export const ChapterItem = memo(function ChapterItem({
   bookName,
   chapter,
   isFirst = false,
@@ -263,7 +263,7 @@ export function ChapterItem({
       </Modal>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   chapterBlock: {
