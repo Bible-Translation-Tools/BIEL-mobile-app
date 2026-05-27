@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  type LayoutChangeEvent,
+  Modal,
+  type NativeSyntheticEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  type TextLayoutEventData,
+  View,
+} from 'react-native';
 
 import { ReadingLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -10,6 +19,8 @@ type ChapterItemProps = {
   chapter: ChapterContent;
   isFirst?: boolean;
   highlightedVerse?: number | null;
+  onRootRef?: (node: View | null) => void;
+  onVerseLayout?: (chapterNumber: number, verseToY: Map<number, number>) => void;
 };
 
 const SUPERSCRIPT_DIGITS: Record<string, string> = {
@@ -40,11 +51,18 @@ function toSuperscript(value: number): string {
   return String(value);
 }
 
+// Word Joiner (U+2060) — zero-width, no line break. Prepended to verse number
+// superscripts so we can distinguish them from footnote superscripts when
+// parsing line text from onTextLayout.
+const VERSE_NUMBER_MARKER = '⁠';
+
 export function ChapterItem({
   bookName,
   chapter,
   isFirst = false,
   highlightedVerse = null,
+  onRootRef,
+  onVerseLayout,
 }: ChapterItemProps) {
   const theme = useTheme();
   const [activeFootnoteId, setActiveFootnoteId] = useState<string | null>(null);
@@ -53,6 +71,112 @@ export function ChapterItem({
     [chapter.footnotes],
   );
   const activeFootnote = activeFootnoteId ? footnoteMap.get(activeFootnoteId) : undefined;
+
+  const sectionsContainerYRef = useRef(0);
+  const sectionYsRef = useRef<Map<number, number>>(new Map());
+  const paragraphYsRef = useRef<Map<string, number>>(new Map());
+  // Per-paragraph map from verse number to its y offset within the paragraph
+  // (i.e. the y of the line where the verse starts). Populated by onTextLayout.
+  const verseLineYsRef = useRef<Map<string, Map<number, number>>>(new Map());
+
+  const handleRootRef = useCallback(
+    (node: View | null) => {
+      onRootRef?.(node);
+    },
+    [onRootRef],
+  );
+
+  const reportVerseLayouts = useCallback(() => {
+    if (!onVerseLayout) return;
+    const verseToY = new Map<number, number>();
+    chapter.sections.forEach((section, sectionIndex) => {
+      const sectionY = sectionYsRef.current.get(sectionIndex) ?? 0;
+      section.paragraphs.forEach((paragraph, paragraphIndex) => {
+        const key = `${sectionIndex}-${paragraphIndex}`;
+        const paragraphY = paragraphYsRef.current.get(key) ?? 0;
+        const paragraphTop = sectionsContainerYRef.current + sectionY + paragraphY;
+        const verseLineYs = verseLineYsRef.current.get(key);
+        paragraph.verses.forEach((verse) => {
+          const lineY = verseLineYs?.get(verse.number) ?? 0;
+          verseToY.set(verse.number, paragraphTop + lineY);
+        });
+      });
+    });
+    onVerseLayout(chapter.chapter, verseToY);
+  }, [chapter, onVerseLayout]);
+
+  const handleParagraphTextLayout = useCallback(
+    (
+      sectionIndex: number,
+      paragraphIndex: number,
+      event: NativeSyntheticEvent<TextLayoutEventData>,
+    ) => {
+      const lines = event.nativeEvent.lines;
+      if (!lines || lines.length === 0) return;
+
+      const paragraph = chapter.sections[sectionIndex]?.paragraphs[paragraphIndex];
+      if (!paragraph) return;
+
+      const verseToLineY = new Map<number, number>();
+      let searchLineIdx = 0;
+      let searchCharIdx = 0;
+
+      for (const verse of paragraph.verses) {
+        const needle = `${VERSE_NUMBER_MARKER}${toSuperscript(verse.number)}`;
+        let foundLineIdx = -1;
+        let foundCharIdx = -1;
+
+        for (let i = searchLineIdx; i < lines.length; i += 1) {
+          const startAt = i === searchLineIdx ? searchCharIdx : 0;
+          const idx = lines[i].text.indexOf(needle, startAt);
+          if (idx !== -1) {
+            foundLineIdx = i;
+            foundCharIdx = idx;
+            break;
+          }
+        }
+
+        if (foundLineIdx === -1) {
+          // Fallback: assume verse starts at the previous match's line so we
+          // don't lose track of subsequent verses.
+          verseToLineY.set(verse.number, lines[searchLineIdx]?.y ?? 0);
+          continue;
+        }
+
+        verseToLineY.set(verse.number, lines[foundLineIdx].y);
+        searchLineIdx = foundLineIdx;
+        searchCharIdx = foundCharIdx + needle.length;
+      }
+
+      verseLineYsRef.current.set(`${sectionIndex}-${paragraphIndex}`, verseToLineY);
+      reportVerseLayouts();
+    },
+    [chapter, reportVerseLayouts],
+  );
+
+  const handleSectionsLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      sectionsContainerYRef.current = event.nativeEvent.layout.y;
+      reportVerseLayouts();
+    },
+    [reportVerseLayouts],
+  );
+
+  const handleSectionLayout = useCallback(
+    (sectionIndex: number, event: LayoutChangeEvent) => {
+      sectionYsRef.current.set(sectionIndex, event.nativeEvent.layout.y);
+      reportVerseLayouts();
+    },
+    [reportVerseLayouts],
+  );
+
+  const handleParagraphLayout = useCallback(
+    (key: string, event: LayoutChangeEvent) => {
+      paragraphYsRef.current.set(key, event.nativeEvent.layout.y);
+      reportVerseLayouts();
+    },
+    [reportVerseLayouts],
+  );
 
   const renderLineParts = (parts: ScriptureInlinePart[], verseKey: string) =>
     parts.map((part, partIndex) => {
@@ -81,14 +205,19 @@ export function ChapterItem({
   );
 
   return (
-    <View style={[styles.chapterBlock, !isFirst && styles.chapterBlockSpaced]}>
+    <View
+      ref={handleRootRef}
+      style={[styles.chapterBlock, !isFirst && styles.chapterBlockSpaced]}>
       <Text style={[styles.chapterTitle, { color: theme.text }]}>
         {bookName} {chapter.chapter}
       </Text>
 
-      <View style={styles.sections}>
+      <View style={styles.sections} onLayout={handleSectionsLayout}>
         {chapter.sections.map((section, sectionIndex) => (
-          <View key={`section-${chapter.chapter}-${sectionIndex}`} style={styles.section}>
+          <View
+            key={`section-${chapter.chapter}-${sectionIndex}`}
+            style={styles.section}
+            onLayout={(event) => handleSectionLayout(sectionIndex, event)}>
             {section.heading ? (
               <Text style={[styles.sectionHeading, { color: theme.text }]}>
                 {section.heading}
@@ -98,13 +227,22 @@ export function ChapterItem({
             {section.paragraphs.map((paragraph, paragraphIndex) => (
               <Text
                 key={`paragraph-${chapter.chapter}-${sectionIndex}-${paragraphIndex}`}
-                style={[styles.paragraph, { color: theme.text }]}>
+                style={[styles.paragraph, { color: theme.text }]}
+                onLayout={(event) =>
+                  handleParagraphLayout(`${sectionIndex}-${paragraphIndex}`, event)
+                }
+                onTextLayout={(event) =>
+                  handleParagraphTextLayout(sectionIndex, paragraphIndex, event)
+                }>
                 {paragraph.verses.map((verse, verseIndex) => (
                   <Text
                     key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}
                     style={verse.number === highlightedVerse ? styles.highlightedVerse : undefined}>
                     {verseIndex > 0 ? (verse.startsOnNewLine ? '\n' : ' ') : ''}
-                    <Text style={styles.verseNumber}>{toSuperscript(verse.number)}</Text>
+                    <Text style={styles.verseNumber}>
+                      {VERSE_NUMBER_MARKER}
+                      {toSuperscript(verse.number)}
+                    </Text>
                     {verse.startsOnNewLine ? '' : ' '}
                     {verse.lines.map((line, lineIndex) =>
                       renderVerseLine(

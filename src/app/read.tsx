@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -66,7 +66,32 @@ export default function ReadingScreen() {
   const didInitialScrollRef = useRef(false);
   const viewportHeightRef = useRef(0);
   const contentHeightRef = useRef(0);
+  const scrollYRef = useRef(0);
+  const chapterViewRefsRef = useRef<Map<number, View>>(new Map());
+  const verseLayoutsRef = useRef<Map<number, Map<number, number>>>(new Map());
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
+
+  const getChapterRefSetter = useMemo(() => {
+    const cache = new Map<number, (node: View | null) => void>();
+    return (chapterValue: number) => {
+      let setter = cache.get(chapterValue);
+      if (!setter) {
+        setter = (node: View | null) => {
+          if (node) chapterViewRefsRef.current.set(chapterValue, node);
+          else chapterViewRefsRef.current.delete(chapterValue);
+        };
+        cache.set(chapterValue, setter);
+      }
+      return setter;
+    };
+  }, []);
+
+  const handleVerseLayout = useCallback(
+    (chapterValue: number, verseToY: Map<number, number>) => {
+      verseLayoutsRef.current.set(chapterValue, verseToY);
+    },
+    [],
+  );
 
   useEffect(() => {
     didInitialScrollRef.current = false;
@@ -119,9 +144,47 @@ export default function ReadingScreen() {
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize } = event.nativeEvent;
     contentHeightRef.current = contentSize.height;
+    scrollYRef.current = contentOffset.y;
     updateScrollY(contentOffset.y);
     handleScroll(contentOffset.y);
   };
+
+  useEffect(() => {
+    if (currentPlayingVerse == null) return;
+    if (!Number.isFinite(chapterNumber)) return;
+
+    const chapterView = chapterViewRefsRef.current.get(chapterNumber);
+    const verseY = verseLayoutsRef.current.get(chapterNumber)?.get(currentPlayingVerse);
+    if (!chapterView || verseY == null) return;
+
+    const scrollRef = listRef.current?.getNativeScrollRef?.();
+    if (!scrollRef) return;
+
+    requestAnimationFrame(() => {
+      chapterView.measureLayout(
+        scrollRef as unknown as Parameters<View['measureLayout']>[0],
+        (_x, chapterY) => {
+          const viewportH = viewportHeightRef.current;
+          if (viewportH <= 0) return;
+
+          const verseAbsoluteY = chapterY + verseY;
+          const currentScroll = scrollYRef.current;
+          const TOP_PAD = 60;
+          const BOTTOM_PAD = 220;
+          const visibleTop = currentScroll + TOP_PAD;
+          const visibleBottom = currentScroll + viewportH - BOTTOM_PAD;
+
+          if (verseAbsoluteY < visibleTop || verseAbsoluteY > visibleBottom) {
+            listRef.current?.scrollToOffset({
+              offset: Math.max(0, verseAbsoluteY - TOP_PAD),
+              animated: true,
+            });
+          }
+        },
+        () => {},
+      );
+    });
+  }, [currentPlayingVerse, chapterNumber]);
 
   const onEndReached = useCallback(() => {
     if (hasMore) {
@@ -136,9 +199,11 @@ export default function ReadingScreen() {
         chapter={item}
         isFirst={index === 0}
         highlightedVerse={item.chapter === chapterNumber ? currentPlayingVerse : null}
+        onRootRef={getChapterRefSetter(item.chapter)}
+        onVerseLayout={handleVerseLayout}
       />
     ),
-    [displayBookName, chapterNumber, currentPlayingVerse],
+    [displayBookName, chapterNumber, currentPlayingVerse, getChapterRefSetter, handleVerseLayout],
   );
 
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
