@@ -39,20 +39,14 @@ function toSuperscript(value: number): string {
   return String(value);
 }
 
-function normalizeFootnoteId(value: string): string {
-  return value.trim().replace(/^#/, '');
-}
-
 export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemProps) {
   const theme = useTheme();
   const [activeFootnoteId, setActiveFootnoteId] = useState<string | null>(null);
   const footnoteMap = useMemo(
-    () => new Map(chapter.footnotes.map((note) => [normalizeFootnoteId(note.id), note])),
+    () => new Map(chapter.footnotes.map((note) => [note.id, note])),
     [chapter.footnotes],
   );
-  const activeFootnote = activeFootnoteId
-    ? footnoteMap.get(normalizeFootnoteId(activeFootnoteId))
-    : undefined;
+  const activeFootnote = activeFootnoteId ? footnoteMap.get(activeFootnoteId) : undefined;
 
   const renderLineParts = (parts: ScriptureInlinePart[], verseKey: string) =>
     parts.map((part, partIndex) => {
@@ -65,7 +59,7 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
         <Text
           key={partKey}
           style={[styles.footnoteMarker, { color: theme.tabActive }]}
-          onPress={() => setActiveFootnoteId(normalizeFootnoteId(part.targetId))}>
+          onPress={() => setActiveFootnoteId(part.targetId)}>
           {toSuperscript(Number.parseInt(part.label, 10) || 0)}
         </Text>
       );
@@ -74,7 +68,7 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
   const renderVerseLine = (line: ScriptureLine, verseKey: string, lineIndex: number) => (
     <Text key={`${verseKey}-line-${lineIndex}`}>
       {lineIndex > 0 ? '\n' : ''}
-      {line.indentLevel > 0 ? ' '.repeat(line.indentLevel * 4) : ''}
+      {line.indentLevel > 0 ? ' '.repeat(line.indentLevel * 8) : ''}
       {renderLineParts(line.parts, `${verseKey}-line-${lineIndex}`)}
     </Text>
   );
@@ -95,51 +89,24 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
             ) : null}
 
             {section.paragraphs.map((paragraph, paragraphIndex) => (
-              // Poetry paragraphs render in block layout so markers can be absolutely positioned.
-              paragraph.verses.some((verse) => verse.startsOnNewLine) ? (
-                <View
-                  key={`paragraph-${chapter.chapter}-${sectionIndex}-${paragraphIndex}`}
-                  style={styles.poetryParagraph}>
-                  {paragraph.verses.map((verse, verseIndex) => (
-                    <View
-                      key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}
-                      style={styles.poetryVerseBlock}>
-                      <Text style={[styles.verseNumber, styles.verseNumberAnchored]}>
-                        {toSuperscript(verse.number)}
-                      </Text>
-                      <Text style={[styles.paragraph, styles.poetryVerseText, { color: theme.text }]}>
-                        {verse.lines.map((line, lineIndex) =>
-                          renderVerseLine(
-                            line,
-                            `verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`,
-                            lineIndex,
-                          ),
-                        )}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              ) : (
-                // Prose paragraphs keep inline text flow with inline verse markers.
-                <Text
-                  key={`paragraph-${chapter.chapter}-${sectionIndex}-${paragraphIndex}`}
-                  style={[styles.paragraph, { color: theme.text }]}>
-                  {paragraph.verses.map((verse, verseIndex) => (
-                    <Text
-                      key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}>
-                      {verseIndex > 0 ? ' ' : ''}
-                      <Text style={styles.verseNumber}>{toSuperscript(verse.number)}</Text>{' '}
-                      {verse.lines.map((line, lineIndex) =>
-                        renderVerseLine(
-                          line,
-                          `verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`,
-                          lineIndex,
-                        ),
-                      )}
-                    </Text>
-                  ))}
-                </Text>
-              )
+              <Text
+                key={`paragraph-${chapter.chapter}-${sectionIndex}-${paragraphIndex}`}
+                style={[styles.paragraph, { color: theme.text }]}>
+                {paragraph.verses.map((verse, verseIndex) => (
+                  <Text
+                    key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}>
+                    {verseIndex > 0 ? (verse.startsOnNewLine ? '\n' : ' ') : ''}
+                    <Text style={styles.verseNumber}>{toSuperscript(verse.number)}</Text>
+                    {verse.lines.map((line, lineIndex) =>
+                      renderVerseLine(
+                        line,
+                        `verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`,
+                        lineIndex,
+                      ),
+                    )}
+                  </Text>
+                ))}
+              </Text>
             ))}
           </View>
         ))}
@@ -147,20 +114,21 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
 
       <Modal
         transparent
-        visible={activeFootnoteId != null}
+        visible={activeFootnote != null}
         animationType="fade"
         onRequestClose={() => setActiveFootnoteId(null)}>
-        <View style={styles.footnoteBackdrop}>
-          <Pressable style={styles.footnoteBackdropTapZone} onPress={() => setActiveFootnoteId(null)} />
-          <View style={[styles.footnoteTooltip, { backgroundColor: theme.backgroundElement }]}>
+        <Pressable style={styles.footnoteBackdrop} onPress={() => setActiveFootnoteId(null)}>
+          <Pressable
+            style={[styles.footnoteTooltip, { backgroundColor: theme.backgroundElement }]}
+            onPress={(event) => event.stopPropagation()}>
             <Text style={[styles.footnoteLabel, { color: theme.text }]}>
               Footnote {activeFootnote?.label}
             </Text>
             <Text style={[styles.footnoteText, { color: theme.text }]}>
-              {activeFootnote?.text ?? 'No footnote content found for this marker.'}
+              {activeFootnote?.text ?? ''}
             </Text>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -200,26 +168,8 @@ const styles = StyleSheet.create({
     ...Typography.verseNumber,
     fontSize: 18,
   },
-  poetryParagraph: {
-    marginBottom: 16,
-    gap: 4,
-  },
-  poetryVerseBlock: {
-    position: 'relative',
-  },
-  verseNumberAnchored: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    zIndex: 1,
-  },
-  poetryVerseText: {
-    marginBottom: 0,
-    paddingLeft: 20,
-  },
   footnoteMarker: {
     ...Typography.verseNumber,
-    fontSize: 22,
   },
   footnoteBackdrop: {
     flex: 1,
@@ -227,9 +177,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: ReadingLayout.padding,
-  },
-  footnoteBackdropTapZone: {
-    ...StyleSheet.absoluteFillObject,
   },
   footnoteTooltip: {
     width: '100%',

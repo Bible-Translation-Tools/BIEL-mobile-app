@@ -69,7 +69,7 @@ function parseAllVerses(html: string): ScriptureVerse[] {
   let match = verseRegex.exec(cleaned);
   while (match) {
     const verseBody = match[2];
-    const lines = parseVerseLines(match[2]);
+    const lines = parseVerseLines(verseBody);
     if (lines.length > 0) {
       verses.push({
         number: Number.parseInt(match[1], 10),
@@ -90,7 +90,7 @@ function parseLineParts(lineText: string): ScriptureInlinePart[] {
   let match = footnoteRegex.exec(lineText);
 
   while (match) {
-    const textBefore = lineText.slice(lastIndex, match.index);
+    const textBefore = lineText.slice(lastIndex, match.index).trim();
     if (textBefore) {
       parts.push({ type: 'text', text: textBefore });
     }
@@ -104,7 +104,7 @@ function parseLineParts(lineText: string): ScriptureInlinePart[] {
     match = footnoteRegex.exec(lineText);
   }
 
-  const trailingText = lineText.slice(lastIndex);
+  const trailingText = lineText.slice(lastIndex).trim();
   if (trailingText) {
     parts.push({ type: 'text', text: trailingText });
   }
@@ -142,7 +142,7 @@ function extractLinesFromSegment(segmentHtml: string, indentLevel: number): Scri
       lines[lines.length - 1] != null;
 
     if (isFootnoteOnly) {
-      // Some renderings put caller markers on their own line; keep markers inline with prior text.
+      // Keep standalone caller markers attached to the previous rendered text line.
       lines[lines.length - 1].parts.push(...parts);
       continue;
     }
