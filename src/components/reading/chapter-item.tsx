@@ -60,6 +60,7 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
           key={partKey}
           style={[styles.footnoteMarker, { color: theme.tabActive }]}
           onPress={() => setActiveFootnoteId(part.targetId)}>
+          {' '}
           {toSuperscript(Number.parseInt(part.label, 10) || 0)}
         </Text>
       );
@@ -170,6 +171,7 @@ const styles = StyleSheet.create({
   },
   footnoteMarker: {
     ...Typography.verseNumber,
+    fontSize: 20,
   },
   footnoteBackdrop: {
     flex: 1,

@@ -3,10 +3,10 @@ import { CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import type {
   ApiChapterRendering,
   ChapterContent,
-  ScriptureInlinePart,
-  ScriptureLine,
   ChapterContentQueryResult,
   ScriptureFootnote,
+  ScriptureInlinePart,
+  ScriptureLine,
   ScriptureParagraph,
   ScriptureSection,
   ScriptureVerse,
