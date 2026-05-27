@@ -9,6 +9,7 @@ type ChapterItemProps = {
   bookName: string;
   chapter: ChapterContent;
   isFirst?: boolean;
+  highlightedVerse?: number | null;
 };
 
 const SUPERSCRIPT_DIGITS: Record<string, string> = {
@@ -39,7 +40,12 @@ function toSuperscript(value: number): string {
   return String(value);
 }
 
-export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemProps) {
+export function ChapterItem({
+  bookName,
+  chapter,
+  isFirst = false,
+  highlightedVerse = null,
+}: ChapterItemProps) {
   const theme = useTheme();
   const [activeFootnoteId, setActiveFootnoteId] = useState<string | null>(null);
   const footnoteMap = useMemo(
@@ -95,7 +101,8 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
                 style={[styles.paragraph, { color: theme.text }]}>
                 {paragraph.verses.map((verse, verseIndex) => (
                   <Text
-                    key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}>
+                    key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}
+                    style={verse.number === highlightedVerse ? styles.highlightedVerse : undefined}>
                     {verseIndex > 0 ? (verse.startsOnNewLine ? '\n' : ' ') : ''}
                     <Text style={styles.verseNumber}>{toSuperscript(verse.number)}</Text>
                     {verse.startsOnNewLine ? '' : ' '}
@@ -169,6 +176,9 @@ const styles = StyleSheet.create({
   verseNumber: {
     ...Typography.verseNumber,
     fontSize: 18,
+  },
+  highlightedVerse: {
+    backgroundColor: 'rgba(0, 91, 221, 0.12)',
   },
   footnoteMarker: {
     ...Typography.verseNumber,

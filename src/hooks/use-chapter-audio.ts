@@ -1,5 +1,5 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/api/services/audio';
 import type { VerseTiming } from '@/types/audio';
@@ -139,6 +139,22 @@ export function useChapterAudio({
     player.seekTo(target.time);
   }, [verseTimings, player]);
 
+  const currentVerse = useMemo(() => {
+    if (verseTimings.length === 0) return null;
+    const now = status.currentTime ?? 0;
+
+    let activeVerse: number | null = null;
+    for (let i = 0; i < verseTimings.length; i += 1) {
+      if (verseTimings[i].time <= now + VERSE_BOUNDARY_EPSILON) {
+        activeVerse = verseTimings[i].verse;
+      } else {
+        break;
+      }
+    }
+
+    return activeVerse;
+  }, [verseTimings, status.currentTime]);
+
   return {
     audioUrl,
     isFetching,
@@ -146,6 +162,7 @@ export function useChapterAudio({
     isPlaying: status.playing,
     currentTime: status.currentTime ?? 0,
     duration: status.duration ?? 0,
+    currentVerse,
     hasVerseTimings: verseTimings.length > 0,
     togglePlay,
     pause,

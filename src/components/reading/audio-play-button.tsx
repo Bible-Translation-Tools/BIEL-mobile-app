@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ type AudioPlayButtonProps = {
   bookSlug?: string;
   chapter?: number;
   passage?: string;
+  onCurrentVerseChange?: (verse: number | null) => void;
 };
 
 export function AudioPlayButton({
@@ -20,6 +21,7 @@ export function AudioPlayButton({
   bookSlug,
   chapter,
   passage,
+  onCurrentVerseChange,
 }: AudioPlayButtonProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -31,6 +33,10 @@ export function AudioPlayButton({
     chapter,
     enabled: isPanelOpen,
   });
+
+  useEffect(() => {
+    onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
+  }, [audio.currentVerse, isPanelOpen, onCurrentVerseChange]);
 
   const openPanel = useCallback(() => setIsPanelOpen(true), []);
   const closePanel = useCallback(() => {

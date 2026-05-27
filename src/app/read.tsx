@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -66,9 +66,14 @@ export default function ReadingScreen() {
   const didInitialScrollRef = useRef(false);
   const viewportHeightRef = useRef(0);
   const contentHeightRef = useRef(0);
+  const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
 
   useEffect(() => {
     didInitialScrollRef.current = false;
+  }, [languageCode, bookSlug, chapterNumber]);
+
+  useEffect(() => {
+    setCurrentPlayingVerse(null);
   }, [languageCode, bookSlug, chapterNumber]);
 
   const scrollToInitialChapter = useCallback(
@@ -126,9 +131,14 @@ export default function ReadingScreen() {
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChapterContent; index: number }) => (
-      <ChapterItem bookName={displayBookName} chapter={item} isFirst={index === 0} />
+      <ChapterItem
+        bookName={displayBookName}
+        chapter={item}
+        isFirst={index === 0}
+        highlightedVerse={item.chapter === chapterNumber ? currentPlayingVerse : null}
+      />
     ),
-    [displayBookName],
+    [displayBookName, chapterNumber, currentPlayingVerse],
   );
 
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
@@ -194,6 +204,7 @@ export default function ReadingScreen() {
             bookSlug={bookSlug}
             chapter={Number.isFinite(chapterNumber) ? chapterNumber : undefined}
             passage={`${displayBookName} ${chapterNumber}`}
+            onCurrentVerseChange={setCurrentPlayingVerse}
           />
         ) : null}
       </SafeAreaView>
