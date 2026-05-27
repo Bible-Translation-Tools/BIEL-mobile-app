@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
   Modal,
@@ -40,7 +40,7 @@ const SUPERSCRIPT_NUMBERS = Array.from({ length: 200 }, (_, value) =>
   String(value)
     .split('')
     .map((digit) => SUPERSCRIPT_DIGITS[digit] ?? digit)
-    .join('')
+    .join(''),
 );
 
 function toSuperscript(value: number): string {
@@ -78,16 +78,12 @@ export function ChapterItem({
   // Per-paragraph map from verse number to its y offset within the paragraph
   // (i.e. the y of the line where the verse starts). Populated by onTextLayout.
   const verseLineYsRef = useRef<Map<string, Map<number, number>>>(new Map());
+  const onVerseLayoutRef = useRef(onVerseLayout);
+  onVerseLayoutRef.current = onVerseLayout;
 
-  const handleRootRef = useCallback(
-    (node: View | null) => {
-      onRootRef?.(node);
-    },
-    [onRootRef],
-  );
-
-  const reportVerseLayouts = useCallback(() => {
-    if (!onVerseLayout) return;
+  const reportVerseLayouts = () => {
+    const report = onVerseLayoutRef.current;
+    if (!report) return;
     const verseToY = new Map<number, number>();
     chapter.sections.forEach((section, sectionIndex) => {
       const sectionY = sectionYsRef.current.get(sectionIndex) ?? 0;
@@ -102,81 +98,69 @@ export function ChapterItem({
         });
       });
     });
-    onVerseLayout(chapter.chapter, verseToY);
-  }, [chapter, onVerseLayout]);
+    report(chapter.chapter, verseToY);
+  };
 
-  const handleParagraphTextLayout = useCallback(
-    (
-      sectionIndex: number,
-      paragraphIndex: number,
-      event: NativeSyntheticEvent<TextLayoutEventData>,
-    ) => {
-      const lines = event.nativeEvent.lines;
-      if (!lines || lines.length === 0) return;
+  const handleParagraphTextLayout = (
+    sectionIndex: number,
+    paragraphIndex: number,
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const lines = event.nativeEvent.lines;
+    if (!lines || lines.length === 0) return;
 
-      const paragraph = chapter.sections[sectionIndex]?.paragraphs[paragraphIndex];
-      if (!paragraph) return;
+    const paragraph = chapter.sections[sectionIndex]?.paragraphs[paragraphIndex];
+    if (!paragraph) return;
 
-      const verseToLineY = new Map<number, number>();
-      let searchLineIdx = 0;
-      let searchCharIdx = 0;
+    const verseToLineY = new Map<number, number>();
+    let searchLineIdx = 0;
+    let searchCharIdx = 0;
 
-      for (const verse of paragraph.verses) {
-        const needle = `${VERSE_NUMBER_MARKER}${toSuperscript(verse.number)}`;
-        let foundLineIdx = -1;
-        let foundCharIdx = -1;
+    for (const verse of paragraph.verses) {
+      const needle = `${VERSE_NUMBER_MARKER}${toSuperscript(verse.number)}`;
+      let foundLineIdx = -1;
+      let foundCharIdx = -1;
 
-        for (let i = searchLineIdx; i < lines.length; i += 1) {
-          const startAt = i === searchLineIdx ? searchCharIdx : 0;
-          const idx = lines[i].text.indexOf(needle, startAt);
-          if (idx !== -1) {
-            foundLineIdx = i;
-            foundCharIdx = idx;
-            break;
-          }
+      for (let i = searchLineIdx; i < lines.length; i += 1) {
+        const startAt = i === searchLineIdx ? searchCharIdx : 0;
+        const idx = lines[i].text.indexOf(needle, startAt);
+        if (idx !== -1) {
+          foundLineIdx = i;
+          foundCharIdx = idx;
+          break;
         }
-
-        if (foundLineIdx === -1) {
-          // Fallback: assume verse starts at the previous match's line so we
-          // don't lose track of subsequent verses.
-          verseToLineY.set(verse.number, lines[searchLineIdx]?.y ?? 0);
-          continue;
-        }
-
-        verseToLineY.set(verse.number, lines[foundLineIdx].y);
-        searchLineIdx = foundLineIdx;
-        searchCharIdx = foundCharIdx + needle.length;
       }
 
-      verseLineYsRef.current.set(`${sectionIndex}-${paragraphIndex}`, verseToLineY);
-      reportVerseLayouts();
-    },
-    [chapter, reportVerseLayouts],
-  );
+      if (foundLineIdx === -1) {
+        // Fallback: assume verse starts at the previous match's line so we
+        // don't lose track of subsequent verses.
+        verseToLineY.set(verse.number, lines[searchLineIdx]?.y ?? 0);
+        continue;
+      }
 
-  const handleSectionsLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      sectionsContainerYRef.current = event.nativeEvent.layout.y;
-      reportVerseLayouts();
-    },
-    [reportVerseLayouts],
-  );
+      verseToLineY.set(verse.number, lines[foundLineIdx].y);
+      searchLineIdx = foundLineIdx;
+      searchCharIdx = foundCharIdx + needle.length;
+    }
 
-  const handleSectionLayout = useCallback(
-    (sectionIndex: number, event: LayoutChangeEvent) => {
-      sectionYsRef.current.set(sectionIndex, event.nativeEvent.layout.y);
-      reportVerseLayouts();
-    },
-    [reportVerseLayouts],
-  );
+    verseLineYsRef.current.set(`${sectionIndex}-${paragraphIndex}`, verseToLineY);
+    reportVerseLayouts();
+  };
 
-  const handleParagraphLayout = useCallback(
-    (key: string, event: LayoutChangeEvent) => {
-      paragraphYsRef.current.set(key, event.nativeEvent.layout.y);
-      reportVerseLayouts();
-    },
-    [reportVerseLayouts],
-  );
+  const handleSectionsLayout = (event: LayoutChangeEvent) => {
+    sectionsContainerYRef.current = event.nativeEvent.layout.y;
+    reportVerseLayouts();
+  };
+
+  const handleSectionLayout = (sectionIndex: number, event: LayoutChangeEvent) => {
+    sectionYsRef.current.set(sectionIndex, event.nativeEvent.layout.y);
+    reportVerseLayouts();
+  };
+
+  const handleParagraphLayout = (key: string, event: LayoutChangeEvent) => {
+    paragraphYsRef.current.set(key, event.nativeEvent.layout.y);
+    reportVerseLayouts();
+  };
 
   const renderLineParts = (parts: ScriptureInlinePart[], verseKey: string) =>
     parts.map((part, partIndex) => {
@@ -206,7 +190,7 @@ export function ChapterItem({
 
   return (
     <View
-      ref={handleRootRef}
+      ref={onRootRef}
       style={[styles.chapterBlock, !isFirst && styles.chapterBlockSpaced]}>
       <Text style={[styles.chapterTitle, { color: theme.text }]}>
         {bookName} {chapter.chapter}

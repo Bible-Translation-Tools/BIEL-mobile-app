@@ -30,6 +30,43 @@ type LanguageListProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
+type LanguageListEmptyProps = {
+  loading: boolean;
+  error: string | null;
+  onRetry?: () => void;
+};
+
+function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) {
+  const theme = useTheme();
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.iconPrimary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
+        {onRetry ? (
+          <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
+            Tap to retry
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.centered}>
+      <Text style={[styles.message, { color: theme.textSecondary }]}>No languages found</Text>
+    </View>
+  );
+}
+
 export function LanguageList({
   languages,
   loading = false,
@@ -39,8 +76,6 @@ export function LanguageList({
   ListHeaderComponent,
   contentContainerStyle,
 }: LanguageListProps) {
-  const theme = useTheme();
-
   const renderItem: ListRenderItem<LanguageItem> = useCallback(
     ({ item }) => <LanguageCardRow language={item} onPress={() => onLanguagePress?.(item)} />,
     [onLanguagePress],
@@ -55,35 +90,6 @@ export function LanguageList({
     [],
   );
 
-  const ListEmpty = useCallback(() => {
-    if (loading) {
-      return (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.iconPrimary} />
-        </View>
-      );
-    }
-
-    if (error) {
-      return (
-        <View style={styles.centered}>
-          <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
-          {onRetry ? (
-            <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-              Tap to retry
-            </Text>
-          ) : null}
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.centered}>
-        <Text style={[styles.message, { color: theme.textSecondary }]}>No languages found</Text>
-      </View>
-    );
-  }, [loading, error, onRetry, theme.iconPrimary, theme.text, theme.textSecondary]);
-
   return (
     <FlatList
       style={styles.list}
@@ -92,7 +98,9 @@ export function LanguageList({
       keyExtractor={(item) => item.code}
       getItemLayout={getItemLayout}
       ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={ListEmpty}
+      ListEmptyComponent={
+        <LanguageListEmpty loading={loading} error={error} onRetry={onRetry} />
+      }
       ItemSeparatorComponent={ItemSeparator}
       contentContainerStyle={[styles.content, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"

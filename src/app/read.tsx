@@ -72,10 +72,6 @@ export default function ReadingScreen() {
   const audioPanelHeightRef = useRef(0);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
 
-  const handlePanelHeightChange = useCallback((height: number) => {
-    audioPanelHeightRef.current = height;
-  }, []);
-
   const getChapterRefSetter = useMemo(() => {
     const cache = new Map<number, (node: View | null) => void>();
     return (chapterValue: number) => {
@@ -142,10 +138,6 @@ export default function ReadingScreen() {
     [scrollToInitialChapter],
   );
 
-  const tryLoadMoreIfContentFits = useCallback(() => {
-    checkFillViewport(viewportHeightRef.current, contentHeightRef.current);
-  }, [checkFillViewport]);
-
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize } = event.nativeEvent;
     contentHeightRef.current = contentSize.height;
@@ -191,12 +183,6 @@ export default function ReadingScreen() {
       );
     });
   }, [currentPlayingVerse, chapterNumber]);
-
-  const onEndReached = useCallback(() => {
-    if (hasMore) {
-      loadMore();
-    }
-  }, [hasMore, loadMore]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChapterContent; index: number }) => (
@@ -252,18 +238,20 @@ export default function ReadingScreen() {
             }}
             onScroll={onScroll}
             scrollEventThrottle={16}
-            onEndReached={onEndReached}
+            onEndReached={() => {
+              if (hasMore) loadMore();
+            }}
             onEndReachedThreshold={0.3}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
             onScrollToIndexFailed={onScrollToIndexFailed}
             onLayout={(event) => {
               viewportHeightRef.current = event.nativeEvent.layout.height;
-              tryLoadMoreIfContentFits();
+              checkFillViewport(viewportHeightRef.current, contentHeightRef.current);
             }}
             onContentSizeChange={(_, height) => {
               contentHeightRef.current = height;
-              tryLoadMoreIfContentFits();
+              checkFillViewport(viewportHeightRef.current, contentHeightRef.current);
             }}
             ListFooterComponent={ListFooter}
           />
@@ -276,7 +264,9 @@ export default function ReadingScreen() {
             chapter={Number.isFinite(chapterNumber) ? chapterNumber : undefined}
             passage={`${displayBookName} ${chapterNumber}`}
             onCurrentVerseChange={setCurrentPlayingVerse}
-            onPanelHeightChange={handlePanelHeightChange}
+            onPanelHeightChange={(height) => {
+              audioPanelHeightRef.current = height;
+            }}
           />
         ) : null}
       </SafeAreaView>

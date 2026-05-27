@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   StyleSheet,
   Text,
   type ListRenderItem,
@@ -29,6 +28,43 @@ type BookListProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
+type BookListEmptyProps = {
+  loading: boolean;
+  error: string | null;
+  onRetry?: () => void;
+};
+
+function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
+  const theme = useTheme();
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.iconPrimary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
+        {onRetry ? (
+          <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
+            Tap to retry
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.centered}>
+      <Text style={[styles.message, { color: theme.textSecondary }]}>No books found</Text>
+    </View>
+  );
+}
+
 export function BookList({
   books,
   languageCode,
@@ -39,7 +75,6 @@ export function BookList({
   ListHeaderComponent,
   contentContainerStyle,
 }: BookListProps) {
-  const theme = useTheme();
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
   const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode);
 
@@ -55,10 +90,6 @@ export function BookList({
     }
   }, [expandedBook, loadChapters]);
 
-  const handleToggleExpand = useCallback((bookId: string) => {
-    setExpandedBookId((current) => (current === bookId ? null : bookId));
-  }, []);
-
   const renderItem: ListRenderItem<BookItem> = useCallback(
     ({ item }) => {
       const isExpanded = expandedBookId === item.id;
@@ -69,44 +100,17 @@ export function BookList({
           isExpanded={isExpanded}
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
-          onToggleExpand={() => handleToggleExpand(item.id)}
+          onToggleExpand={() =>
+            setExpandedBookId((current) => (current === item.id ? null : item.id))
+          }
           onChapterPress={
             onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
           }
         />
       );
     },
-    [expandedBookId, getChapters, handleToggleExpand, isLoading, onChapterPress],
+    [expandedBookId, getChapters, isLoading, onChapterPress],
   );
-
-  const ListEmpty = useCallback(() => {
-    if (loading) {
-      return (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.iconPrimary} />
-        </View>
-      );
-    }
-
-    if (error) {
-      return (
-        <View style={styles.centered}>
-          <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
-          {onRetry ? (
-            <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-              Tap to retry
-            </Text>
-          ) : null}
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.centered}>
-        <Text style={[styles.message, { color: theme.textSecondary }]}>No books found</Text>
-      </View>
-    );
-  }, [loading, error, onRetry, theme.iconPrimary, theme.text, theme.textSecondary]);
 
   const listHeader = ListHeaderComponent;
 
@@ -118,7 +122,9 @@ export function BookList({
       keyExtractor={(item) => item.id}
       extraData={expandedBookId}
       ListHeaderComponent={listHeader}
-      ListEmptyComponent={ListEmpty}
+      ListEmptyComponent={
+        <BookListEmpty loading={loading} error={error} onRetry={onRetry} />
+      }
       ItemSeparatorComponent={ItemSeparator}
       contentContainerStyle={[styles.content, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   LayoutChangeEvent,
@@ -28,13 +28,6 @@ export function ChapterGrid({ chapters, loading = false, onChapterPress }: Chapt
   const theme = useTheme();
   const [gridWidth, setGridWidth] = useState(0);
 
-  const handleGridLayout = useCallback((event: LayoutChangeEvent) => {
-    const width = event.nativeEvent.layout.width;
-    if (width > 0) {
-      setGridWidth(width);
-    }
-  }, []);
-
   const cellSize = gridWidth > 0 ? getCellSize(gridWidth) : 0;
 
   if (loading) {
@@ -52,7 +45,10 @@ export function ChapterGrid({ chapters, loading = false, onChapterPress }: Chapt
   return (
     <View
       style={[styles.grid, { gap: BookLayout.chapterGap }]}
-      onLayout={handleGridLayout}>
+      onLayout={(event) => {
+        const width = event.nativeEvent.layout.width;
+        if (width > 0) setGridWidth(width);
+      }}>
       {cellSize > 0
         ? chapters.map((chapter) => (
             <Pressable

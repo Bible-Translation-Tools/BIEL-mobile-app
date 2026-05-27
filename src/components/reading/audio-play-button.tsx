@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -40,12 +40,11 @@ export function AudioPlayButton({
     onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
   }, [audio.currentVerse, isPanelOpen, onCurrentVerseChange]);
 
-  const openPanel = useCallback(() => setIsPanelOpen(true), []);
-  const closePanel = useCallback(() => {
+  const closePanel = () => {
     audio.pause();
     setIsPanelOpen(false);
     onPanelHeightChange?.(0);
-  }, [audio, onPanelHeightChange]);
+  };
 
   if (isPanelOpen) {
     return (
@@ -76,7 +75,7 @@ export function AudioPlayButton({
             opacity: pressed ? 0.9 : 1,
           },
         ]}
-        onPress={openPanel}
+        onPress={() => setIsPanelOpen(true)}
         accessibilityRole="button"
         accessibilityLabel="Open audio player">
         <IconSymbol
