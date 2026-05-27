@@ -1,6 +1,23 @@
 export type ScriptureVerse = {
   number: number;
-  text: string;
+  lines: ScriptureLine[];
+  startsOnNewLine?: boolean;
+};
+
+export type ScriptureInlinePart =
+  | {
+      type: 'text';
+      text: string;
+    }
+  | {
+      type: 'footnote';
+      targetId: string;
+      label: string;
+    };
+
+export type ScriptureLine = {
+  indentLevel: number;
+  parts: ScriptureInlinePart[];
 };
 
 export type ScriptureParagraph = {
@@ -16,6 +33,13 @@ export type ChapterContent = {
   bookName: string;
   chapter: number;
   sections: ScriptureSection[];
+  footnotes: ScriptureFootnote[];
+};
+
+export type ScriptureFootnote = {
+  id: string;
+  label: string;
+  text: string;
 };
 
 export type ApiChapterRendering = {

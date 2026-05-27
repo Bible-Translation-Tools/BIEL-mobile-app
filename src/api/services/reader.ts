@@ -3,7 +3,10 @@ import { CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import type {
   ApiChapterRendering,
   ChapterContent,
+  ScriptureInlinePart,
+  ScriptureLine,
   ChapterContentQueryResult,
+  ScriptureFootnote,
   ScriptureParagraph,
   ScriptureSection,
   ScriptureVerse,
@@ -41,7 +44,11 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'");
+    .replace(/&apos;/g, "'")
+    .replace(/&ldquo;/g, '"')
+    .replace(/&rdquo;/g, '"')
+    .replace(/&lsquo;/g, "'")
+    .replace(/&rsquo;/g, "'");
 }
 
 function stripTags(html: string): string {
@@ -61,14 +68,118 @@ function parseAllVerses(html: string): ScriptureVerse[] {
 
   let match = verseRegex.exec(cleaned);
   while (match) {
-    const text = stripTags(match[2]);
-    if (text) {
-      verses.push({ number: Number.parseInt(match[1], 10), text });
+    const verseBody = match[2];
+    const lines = parseVerseLines(match[2]);
+    if (lines.length > 0) {
+      verses.push({
+        number: Number.parseInt(match[1], 10),
+        lines,
+        startsOnNewLine: /class="poetry-\d+"/i.test(verseBody),
+      });
     }
     match = verseRegex.exec(cleaned);
   }
 
   return verses;
+}
+
+function parseLineParts(lineText: string): ScriptureInlinePart[] {
+  const parts: ScriptureInlinePart[] = [];
+  const footnoteRegex = /\[\[FN:([^:]+):([^\]]+)\]\]/g;
+  let lastIndex = 0;
+  let match = footnoteRegex.exec(lineText);
+
+  while (match) {
+    const textBefore = lineText.slice(lastIndex, match.index);
+    if (textBefore) {
+      parts.push({ type: 'text', text: textBefore });
+    }
+
+    parts.push({
+      type: 'footnote',
+      targetId: match[1],
+      label: match[2],
+    });
+    lastIndex = match.index + match[0].length;
+    match = footnoteRegex.exec(lineText);
+  }
+
+  const trailingText = lineText.slice(lastIndex);
+  if (trailingText) {
+    parts.push({ type: 'text', text: trailingText });
+  }
+
+  return parts;
+}
+
+function extractLinesFromSegment(segmentHtml: string, indentLevel: number): ScriptureLine[] {
+  if (!segmentHtml.trim()) return [];
+
+  const normalized = segmentHtml
+    .replace(/<\/div>\s*<div(?:\s[^>]*)?>/gi, '\n')
+    .replace(/<div(?:\s[^>]*)?>/gi, '\n')
+    .replace(/<\/div>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(
+      /<sup[^>]*class="caller"[^>]*>\s*<a[^>]*href="#([^"]+)"[^>]*>([^<]+)<\/a>\s*<\/sup>/gi,
+      ' [[FN:$1:$2]] ',
+    );
+
+  const rawLines = normalized.split('\n');
+  const lines: ScriptureLine[] = [];
+
+  for (const rawLine of rawLines) {
+    const text = decodeHtmlEntities(rawLine.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+    if (!text) continue;
+
+    const parts = parseLineParts(text);
+    if (parts.length === 0) continue;
+
+    const isFootnoteOnly =
+      parts.length > 0 &&
+      parts.every((part) => part.type === 'footnote') &&
+      lines.length > 0 &&
+      lines[lines.length - 1] != null;
+
+    if (isFootnoteOnly) {
+      // Some renderings put caller markers on their own line; keep markers inline with prior text.
+      lines[lines.length - 1].parts.push(...parts);
+      continue;
+    }
+
+    lines.push({ indentLevel, parts });
+  }
+
+  return lines;
+}
+
+function parseVerseLines(verseHtml: string): ScriptureLine[] {
+  const lines: ScriptureLine[] = [];
+  const poetryRegex = /<div class="poetry-(\d+)">([\s\S]*?)<\/div>/gi;
+  const hasPoetryContent = /class="poetry-\d+"/i.test(verseHtml);
+  const baseIndentLevel = hasPoetryContent ? 1 : 0;
+  let lastIndex = 0;
+  let match = poetryRegex.exec(verseHtml);
+
+  while (match) {
+    const plainBefore = verseHtml.slice(lastIndex, match.index);
+    lines.push(...extractLinesFromSegment(plainBefore, baseIndentLevel));
+
+    const indentLevel = Number.parseInt(match[1], 10);
+    lines.push(
+      ...extractLinesFromSegment(
+        match[2],
+        Number.isNaN(indentLevel) ? baseIndentLevel + 1 : baseIndentLevel + indentLevel,
+      ),
+    );
+    lastIndex = match.index + match[0].length;
+    match = poetryRegex.exec(verseHtml);
+  }
+
+  const trailing = verseHtml.slice(lastIndex);
+  lines.push(...extractLinesFromSegment(trailing, baseIndentLevel));
+
+  return lines;
 }
 
 function groupVersesIntoParagraphs(chapterHtml: string): ScriptureParagraph[] {
@@ -105,6 +216,37 @@ function parseSectionHeadings(chapterHtml: string): string[] {
   }
 
   return headings;
+}
+
+function parseFootnotes(chapterHtml: string): ScriptureFootnote[] {
+  const notes: ScriptureFootnote[] = [];
+  const footnoteRegex = /<div class="footnotes">\s*([\s\S]*?)<\/div>/gi;
+
+  let match = footnoteRegex.exec(chapterHtml);
+  while (match) {
+    const footnoteBlock = match[1];
+    const markerMatch = footnoteBlock.match(
+      /<sup[^>]*id="([^"]+)"[^>]*class="caller"[^>]*>\s*<a[^>]*>([^<]+)<\/a>\s*<\/sup>/i,
+    );
+
+    if (!markerMatch) {
+      match = footnoteRegex.exec(chapterHtml);
+      continue;
+    }
+
+    const noteText = stripTags(footnoteBlock.replace(markerMatch[0], ''));
+    if (noteText) {
+      notes.push({
+        id: markerMatch[1],
+        label: markerMatch[2],
+        text: noteText,
+      });
+    }
+
+    match = footnoteRegex.exec(chapterHtml);
+  }
+
+  return notes;
 }
 
 export function parseChapterHtml(html: string): ScriptureSection[] {
@@ -164,6 +306,7 @@ export async function fetchChapterContent(
   const html = await response.text();
 
   const sections = parseChapterHtml(html);
+  const footnotes = parseFootnotes(html);
 
   if (sections.every((section) => section.paragraphs.length === 0)) {
     throw new Error('Chapter content is empty');
@@ -173,5 +316,6 @@ export async function fetchChapterContent(
     bookName: rendering.book_name,
     chapter: rendering.chapter,
     sections,
+    footnotes,
   };
 }
