@@ -34,6 +34,7 @@ export function useReaderToolbar(bookName: string) {
 
   return {
     toolbarChapterTitle,
+    visibleChapter,
     updateScrollY,
     onViewableItemsChanged,
     viewabilityConfig,

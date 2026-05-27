@@ -59,7 +59,7 @@ export default function ReadingScreen() {
     bookName ??
     bookSlug;
 
-  const { toolbarChapterTitle, updateScrollY, onViewableItemsChanged, viewabilityConfig } =
+  const { toolbarChapterTitle, visibleChapter, updateScrollY, onViewableItemsChanged, viewabilityConfig } =
     useReaderToolbar(displayBookName);
 
   const listRef = useRef<FlatListType<ChapterContent>>(null);
@@ -71,6 +71,7 @@ export default function ReadingScreen() {
   const verseLayoutsRef = useRef<Map<number, Map<number, number>>>(new Map());
   const audioPanelHeightRef = useRef(0);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
+  const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
 
   const getChapterRefSetter = useMemo(() => {
     const cache = new Map<number, (node: View | null) => void>();
@@ -100,6 +101,7 @@ export default function ReadingScreen() {
 
   useEffect(() => {
     setCurrentPlayingVerse(null);
+    setCurrentPlayingChapter(null);
   }, [languageCode, bookSlug, chapterNumber]);
 
   const scrollToInitialChapter = useCallback(
@@ -148,10 +150,10 @@ export default function ReadingScreen() {
 
   useEffect(() => {
     if (currentPlayingVerse == null) return;
-    if (!Number.isFinite(chapterNumber)) return;
+    if (currentPlayingChapter == null) return;
 
-    const chapterView = chapterViewRefsRef.current.get(chapterNumber);
-    const verseY = verseLayoutsRef.current.get(chapterNumber)?.get(currentPlayingVerse);
+    const chapterView = chapterViewRefsRef.current.get(currentPlayingChapter);
+    const verseY = verseLayoutsRef.current.get(currentPlayingChapter)?.get(currentPlayingVerse);
     if (!chapterView || verseY == null) return;
 
     const scrollRef = listRef.current?.getNativeScrollRef?.();
@@ -182,7 +184,12 @@ export default function ReadingScreen() {
         () => {},
       );
     });
-  }, [currentPlayingVerse, chapterNumber]);
+  }, [currentPlayingVerse, currentPlayingChapter]);
+
+  const getCurrentChapterForAudio = useCallback(
+    () => visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined),
+    [visibleChapter, chapterNumber],
+  );
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChapterContent; index: number }) => (
@@ -190,12 +197,12 @@ export default function ReadingScreen() {
         bookName={displayBookName}
         chapter={item}
         isFirst={index === 0}
-        highlightedVerse={item.chapter === chapterNumber ? currentPlayingVerse : null}
+        highlightedVerse={item.chapter === currentPlayingChapter ? currentPlayingVerse : null}
         onRootRef={getChapterRefSetter(item.chapter)}
         onVerseLayout={handleVerseLayout}
       />
     ),
-    [displayBookName, chapterNumber, currentPlayingVerse, getChapterRefSetter, handleVerseLayout],
+    [displayBookName, currentPlayingChapter, currentPlayingVerse, getChapterRefSetter, handleVerseLayout],
   );
 
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
@@ -261,9 +268,10 @@ export default function ReadingScreen() {
           <AudioPlayButton
             languageCode={languageCode}
             bookSlug={bookSlug}
-            chapter={Number.isFinite(chapterNumber) ? chapterNumber : undefined}
-            passage={`${displayBookName} ${chapterNumber}`}
+            passageBookName={displayBookName}
+            getCurrentChapter={getCurrentChapterForAudio}
             onCurrentVerseChange={setCurrentPlayingVerse}
+            onCurrentChapterChange={setCurrentPlayingChapter}
             onPanelHeightChange={(height) => {
               audioPanelHeightRef.current = height;
             }}

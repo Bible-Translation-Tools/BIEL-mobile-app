@@ -11,28 +11,31 @@ import { useTheme } from '@/hooks/use-theme';
 type AudioPlayButtonProps = {
   languageCode?: string;
   bookSlug?: string;
-  chapter?: number;
-  passage?: string;
+  passageBookName?: string;
+  getCurrentChapter?: () => number | undefined;
   onCurrentVerseChange?: (verse: number | null) => void;
+  onCurrentChapterChange?: (chapter: number | null) => void;
   onPanelHeightChange?: (height: number) => void;
 };
 
 export function AudioPlayButton({
   languageCode,
   bookSlug,
-  chapter,
-  passage,
+  passageBookName,
+  getCurrentChapter,
   onCurrentVerseChange,
+  onCurrentChapterChange,
   onPanelHeightChange,
 }: AudioPlayButtonProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [activeChapter, setActiveChapter] = useState<number | undefined>(undefined);
 
   const audio = useChapterAudio({
     languageCode,
     bookSlug,
-    chapter,
+    chapter: activeChapter,
     enabled: isPanelOpen,
   });
 
@@ -43,13 +46,14 @@ export function AudioPlayButton({
   const closePanel = () => {
     audio.pause();
     setIsPanelOpen(false);
+    onCurrentChapterChange?.(null);
     onPanelHeightChange?.(0);
   };
 
   if (isPanelOpen) {
     return (
       <MediaPlayerPanel
-        passage={passage}
+        passage={activeChapter != null ? `${passageBookName ?? ''} ${activeChapter}`.trim() : undefined}
         isPlaying={audio.isPlaying}
         isLoading={audio.isFetching}
         error={audio.error}
@@ -75,7 +79,12 @@ export function AudioPlayButton({
             opacity: pressed ? 0.9 : 1,
           },
         ]}
-        onPress={() => setIsPanelOpen(true)}
+        onPress={() => {
+          const chapterToPlay = getCurrentChapter?.();
+          setActiveChapter(chapterToPlay);
+          setIsPanelOpen(true);
+          onCurrentChapterChange?.(chapterToPlay ?? null);
+        }}
         accessibilityRole="button"
         accessibilityLabel="Open audio player">
         <IconSymbol
