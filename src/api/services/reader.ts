@@ -127,6 +127,7 @@ function extractLinesFromSegment(segmentHtml: string, indentLevel: number): Scri
 
   const rawLines = normalized.split('\n');
   const lines: ScriptureLine[] = [];
+  let shouldMergeNextTextIntoPrevious = false;
 
   for (const rawLine of rawLines) {
     const text = decodeHtmlEntities(rawLine.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
@@ -144,10 +145,20 @@ function extractLinesFromSegment(segmentHtml: string, indentLevel: number): Scri
     if (isFootnoteOnly) {
       // Keep standalone caller markers attached to the previous rendered text line.
       lines[lines.length - 1].parts.push(...parts);
+      shouldMergeNextTextIntoPrevious = true;
+      continue;
+    }
+
+    if (shouldMergeNextTextIntoPrevious && lines.length > 0) {
+      // Some renderings break right after a footnote marker even when sentence continues.
+      lines[lines.length - 1].parts.push({ type: 'text', text: ' ' });
+      lines[lines.length - 1].parts.push(...parts);
+      shouldMergeNextTextIntoPrevious = false;
       continue;
     }
 
     lines.push({ indentLevel, parts });
+    shouldMergeNextTextIntoPrevious = false;
   }
 
   return lines;

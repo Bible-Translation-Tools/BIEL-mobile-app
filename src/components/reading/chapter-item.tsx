@@ -98,6 +98,7 @@ export function ChapterItem({ bookName, chapter, isFirst = false }: ChapterItemP
                     key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}>
                     {verseIndex > 0 ? (verse.startsOnNewLine ? '\n' : ' ') : ''}
                     <Text style={styles.verseNumber}>{toSuperscript(verse.number)}</Text>
+                    {verse.startsOnNewLine ? '' : ' '}
                     {verse.lines.map((line, lineIndex) =>
                       renderVerseLine(
                         line,
