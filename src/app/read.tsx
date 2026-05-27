@@ -69,7 +69,12 @@ export default function ReadingScreen() {
   const scrollYRef = useRef(0);
   const chapterViewRefsRef = useRef<Map<number, View>>(new Map());
   const verseLayoutsRef = useRef<Map<number, Map<number, number>>>(new Map());
+  const audioPanelHeightRef = useRef(0);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
+
+  const handlePanelHeightChange = useCallback((height: number) => {
+    audioPanelHeightRef.current = height;
+  }, []);
 
   const getChapterRefSetter = useMemo(() => {
     const cache = new Map<number, (node: View | null) => void>();
@@ -170,9 +175,10 @@ export default function ReadingScreen() {
           const verseAbsoluteY = chapterY + verseY;
           const currentScroll = scrollYRef.current;
           const TOP_PAD = 60;
-          const BOTTOM_PAD = 220;
+          const PANEL_BUFFER = 150;
+          const bottomPad = audioPanelHeightRef.current + PANEL_BUFFER;
           const visibleTop = currentScroll + TOP_PAD;
-          const visibleBottom = currentScroll + viewportH - BOTTOM_PAD;
+          const visibleBottom = currentScroll + viewportH - bottomPad;
 
           if (verseAbsoluteY < visibleTop || verseAbsoluteY > visibleBottom) {
             listRef.current?.scrollToOffset({
@@ -270,6 +276,7 @@ export default function ReadingScreen() {
             chapter={Number.isFinite(chapterNumber) ? chapterNumber : undefined}
             passage={`${displayBookName} ${chapterNumber}`}
             onCurrentVerseChange={setCurrentPlayingVerse}
+            onPanelHeightChange={handlePanelHeightChange}
           />
         ) : null}
       </SafeAreaView>

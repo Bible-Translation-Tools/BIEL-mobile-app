@@ -16,6 +16,7 @@ type MediaPlayerPanelProps = {
   onTogglePlay?: () => void;
   onPreviousVerse?: () => void;
   onNextVerse?: () => void;
+  onHeightChange?: (height: number) => void;
 };
 
 export function MediaPlayerPanel({
@@ -28,6 +29,7 @@ export function MediaPlayerPanel({
   onTogglePlay,
   onPreviousVerse,
   onNextVerse,
+  onHeightChange,
 }: MediaPlayerPanelProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -44,6 +46,7 @@ export function MediaPlayerPanel({
           paddingBottom: MediaPlayerLayout.paddingV + insets.bottom,
         },
       ]}
+      onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
       accessibilityRole="toolbar"
       accessibilityLabel="Audio player">
       <Pressable
@@ -165,7 +168,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
+    // Avoid sub-pixel seam where content can peek under the panel.
+    bottom: -1,
     borderTopWidth: 1,
     borderTopLeftRadius: MediaPlayerLayout.topRadius,
     borderTopRightRadius: MediaPlayerLayout.topRadius,

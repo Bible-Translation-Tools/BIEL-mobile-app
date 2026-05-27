@@ -14,6 +14,7 @@ type AudioPlayButtonProps = {
   chapter?: number;
   passage?: string;
   onCurrentVerseChange?: (verse: number | null) => void;
+  onPanelHeightChange?: (height: number) => void;
 };
 
 export function AudioPlayButton({
@@ -22,6 +23,7 @@ export function AudioPlayButton({
   chapter,
   passage,
   onCurrentVerseChange,
+  onPanelHeightChange,
 }: AudioPlayButtonProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -42,7 +44,8 @@ export function AudioPlayButton({
   const closePanel = useCallback(() => {
     audio.pause();
     setIsPanelOpen(false);
-  }, [audio]);
+    onPanelHeightChange?.(0);
+  }, [audio, onPanelHeightChange]);
 
   if (isPanelOpen) {
     return (
@@ -56,6 +59,7 @@ export function AudioPlayButton({
         onTogglePlay={audio.togglePlay}
         onPreviousVerse={audio.seekToPreviousVerse}
         onNextVerse={audio.seekToNextVerse}
+        onHeightChange={onPanelHeightChange}
       />
     );
   }
