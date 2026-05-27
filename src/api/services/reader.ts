@@ -1,5 +1,5 @@
-import { graphqlRequest } from '@/lib/graphql/client';
-import { CHAPTER_CONTENT_QUERY } from '@/lib/graphql/queries';
+import { graphqlRequest } from '@/api/graphql/client';
+import { CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import type {
   ApiChapterRendering,
   ChapterContent,

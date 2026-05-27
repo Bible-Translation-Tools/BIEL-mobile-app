@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import { fetchChaptersForBook } from '@/services/chapters';
+import { fetchChaptersForBook } from '@/api/services/chapters';
 import type { ChapterItem } from '@/types/book';
 
 export function useBookChapters(languageCode: string | undefined) {

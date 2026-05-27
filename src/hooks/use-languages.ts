@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchLanguages } from '@/services/languages';
+import { fetchLanguages } from '@/api/services/languages';
 import type { LanguageItem } from '@/types/language';
 
 export function useLanguages() {

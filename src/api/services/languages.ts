@@ -1,5 +1,5 @@
-import { graphqlRequest } from '@/lib/graphql/client';
-import { LANGUAGES_QUERY } from '@/lib/graphql/queries';
+import { graphqlRequest } from '@/api/graphql/client';
+import { LANGUAGES_QUERY } from '@/api/graphql/queries';
 import type { ApiLanguage, LanguageItem, LanguagesQueryResult } from '@/types/language';
 
 /** Resource types that represent readable scripture / text content */

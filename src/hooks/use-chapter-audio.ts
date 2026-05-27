@@ -1,7 +1,7 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/services/audio';
+import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/api/services/audio';
 import type { VerseTiming } from '@/types/audio';
 
 type UseChapterAudioParams = {

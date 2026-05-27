@@ -1,6 +1,6 @@
-import { graphqlRequest } from '@/lib/graphql/client';
-import { CHAPTER_AUDIO_FILE_QUERY } from '@/lib/graphql/queries';
-import { parseCueVerseTimings } from '@/services/audio-parsing';
+import { graphqlRequest } from '@/api/graphql/client';
+import { CHAPTER_AUDIO_FILE_QUERY } from '@/api/graphql/queries';
+import { parseCueVerseTimings } from '@/api/services/audio-timing-utils';
 import type { ChapterAudioQueryResult, VerseTiming } from '@/types/audio';
 
 export async function fetchChapterAudioUrl(

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { fetchChaptersForBook } from '@/services/chapters';
-import { fetchChapterContent } from '@/services/reader';
+import { fetchChaptersForBook } from '@/api/services/chapters';
+import { fetchChapterContent } from '@/api/services/reader';
 import type { ChapterContent } from '@/types/reading';
 
 const SCROLL_LOAD_THRESHOLD = 240;

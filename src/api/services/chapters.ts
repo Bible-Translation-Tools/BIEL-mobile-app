@@ -1,5 +1,5 @@
-import { graphqlRequest } from '@/lib/graphql/client';
-import { CHAPTERS_FOR_BOOK_QUERY } from '@/lib/graphql/queries';
+import { graphqlRequest } from '@/api/graphql/client';
+import { CHAPTERS_FOR_BOOK_QUERY } from '@/api/graphql/queries';
 import type { ChapterItem, ChaptersQueryResult } from '@/types/book';
 
 export async function fetchChaptersForBook(

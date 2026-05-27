@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchBooksForLanguage } from '@/services/books';
+import { fetchBooksForLanguage } from '@/api/services/books';
 import type { BookItem } from '@/types/book';
 
 export function useBooks(languageCode: string | undefined) {

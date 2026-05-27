@@ -1,6 +1,6 @@
 import { BOOK_SLUG_ORDER, isOldTestament } from '@/constants/bible-books';
-import { graphqlRequest } from '@/lib/graphql/client';
-import { BOOKS_FOR_LANGUAGE_QUERY } from '@/lib/graphql/queries';
+import { graphqlRequest } from '@/api/graphql/client';
+import { BOOKS_FOR_LANGUAGE_QUERY } from '@/api/graphql/queries';
 import type { ApiBookMetadata, BookItem, BooksQueryResult } from '@/types/book';
 
 function mapApiBookToItem(book: ApiBookMetadata): BookItem | null {
