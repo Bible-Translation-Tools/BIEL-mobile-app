@@ -44,7 +44,7 @@ const SUPERSCRIPT_NUMBERS = Array.from({ length: 200 }, (_, value) =>
 );
 
 function toSuperscript(value: number): string {
-  if (value >= 0 && value <= 160) {
+  if (value >= 0 && value <= 200) {
     return SUPERSCRIPT_NUMBERS[value];
   }
 
