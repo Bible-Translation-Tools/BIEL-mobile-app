@@ -253,6 +253,7 @@ export function useReaderScroll(
     hasMore,
     hasPrevious,
     loadMore,
+    loadPrevious,
     handleScroll,
     checkFillViewport,
     initialScrollIndex,

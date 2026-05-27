@@ -41,7 +41,9 @@ export default function ReadingScreen() {
     loadingMore,
     error,
     hasMore,
+    hasPrevious,
     loadMore,
+    loadPrevious,
     handleScroll,
     checkFillViewport,
     initialScrollIndex,
@@ -72,6 +74,7 @@ export default function ReadingScreen() {
   const audioPanelHeightRef = useRef(0);
   const chaptersRef = useRef<ChapterContent[]>([]);
   const hasMoreRef = useRef(false);
+  const hasPreviousRef = useRef(false);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
 
@@ -82,6 +85,10 @@ export default function ReadingScreen() {
   useEffect(() => {
     hasMoreRef.current = hasMore;
   }, [hasMore]);
+
+  useEffect(() => {
+    hasPreviousRef.current = hasPrevious;
+  }, [hasPrevious]);
 
   const getChapterRefSetter = useMemo(() => {
     const cache = new Map<number, (node: View | null) => void>();
@@ -201,30 +208,49 @@ export default function ReadingScreen() {
     [visibleChapter, chapterNumber],
   );
 
-  const getNextChapterForAudio = useCallback(
-    async (currentChapter: number) => {
+  const getAdjacentChapterForAudio = useCallback(
+    async (currentChapter: number, direction: 'next' | 'prev') => {
       const currentChapters = chaptersRef.current;
       if (currentChapters.length === 0) return undefined;
 
       const sorted = [...currentChapters].sort((a, b) => a.chapter - b.chapter);
       const currentIdx = sorted.findIndex((item) => item.chapter === currentChapter);
-      if (currentIdx !== -1 && currentIdx < sorted.length - 1) {
-        return sorted[currentIdx + 1]?.chapter;
+      const adjacentIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
+
+      if (currentIdx !== -1 && adjacentIdx >= 0 && adjacentIdx < sorted.length) {
+        return sorted[adjacentIdx]?.chapter;
       }
 
-      if (!hasMoreRef.current) return undefined;
+      const canLoadMore = direction === 'next' ? hasMoreRef.current : hasPreviousRef.current;
+      if (!canLoadMore) return undefined;
 
-      await loadMore();
+      if (direction === 'next') {
+        await loadMore();
+      } else {
+        await loadPrevious();
+      }
 
       const afterLoad = [...chaptersRef.current].sort((a, b) => a.chapter - b.chapter);
       const afterIdx = afterLoad.findIndex((item) => item.chapter === currentChapter);
-      if (afterIdx !== -1 && afterIdx < afterLoad.length - 1) {
-        return afterLoad[afterIdx + 1]?.chapter;
+      const afterAdjacentIdx = direction === 'next' ? afterIdx + 1 : afterIdx - 1;
+
+      if (afterIdx !== -1 && afterAdjacentIdx >= 0 && afterAdjacentIdx < afterLoad.length) {
+        return afterLoad[afterAdjacentIdx]?.chapter;
       }
 
       return undefined;
     },
-    [loadMore],
+    [loadMore, loadPrevious],
+  );
+
+  const getNextChapterForAudio = useCallback(
+    (currentChapter: number) => getAdjacentChapterForAudio(currentChapter, 'next'),
+    [getAdjacentChapterForAudio],
+  );
+
+  const getPreviousChapterForAudio = useCallback(
+    (currentChapter: number) => getAdjacentChapterForAudio(currentChapter, 'prev'),
+    [getAdjacentChapterForAudio],
   );
 
   const renderItem = useCallback(
@@ -307,6 +333,7 @@ export default function ReadingScreen() {
             passageBookName={displayBookName}
             getCurrentChapter={getCurrentChapterForAudio}
             getNextChapter={getNextChapterForAudio}
+            getPreviousChapter={getPreviousChapterForAudio}
             onCurrentVerseChange={setCurrentPlayingVerse}
             onCurrentChapterChange={setCurrentPlayingChapter}
             onPanelHeightChange={(height) => {

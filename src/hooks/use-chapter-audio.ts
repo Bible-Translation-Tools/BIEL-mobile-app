@@ -107,15 +107,32 @@ export function useChapterAudio({
     [player],
   );
 
-  const seekToNextVerse = useCallback(() => {
-    if (verseTimings.length === 0) return;
-    const now = currentTimeRef.current;
-    const next = verseTimings.find((t) => t.time > now + VERSE_BOUNDARY_EPSILON);
-    if (next) player.seekTo(next.time);
+  const seekToFirstVerse = useCallback(() => {
+    player.seekTo(verseTimings[0]?.time ?? 0);
   }, [verseTimings, player]);
 
-  const seekToPreviousVerse = useCallback(() => {
-    if (verseTimings.length === 0) return;
+  const seekToLastVerse = useCallback(() => {
+    if (verseTimings.length > 0) {
+      player.seekTo(verseTimings[verseTimings.length - 1].time);
+      return;
+    }
+    const duration = status.duration ?? 0;
+    if (duration > 0) player.seekTo(Math.max(0, duration - 1));
+  }, [verseTimings, player, status.duration]);
+
+  /** Returns true when seek stayed in the current chapter. */
+  const seekToNextVerse = useCallback((): boolean => {
+    if (verseTimings.length === 0) return false;
+    const now = currentTimeRef.current;
+    const next = verseTimings.find((t) => t.time > now + VERSE_BOUNDARY_EPSILON);
+    if (!next) return false;
+    player.seekTo(next.time);
+    return true;
+  }, [verseTimings, player]);
+
+  /** Returns true when seek stayed in the current chapter. */
+  const seekToPreviousVerse = useCallback((): boolean => {
+    if (verseTimings.length === 0) return false;
     const now = currentTimeRef.current;
 
     let currentIdx = -1;
@@ -127,8 +144,13 @@ export function useChapterAudio({
     }
 
     if (currentIdx <= 0) {
-      player.seekTo(verseTimings[0]?.time ?? 0);
-      return;
+      const firstVerseTime = verseTimings[0]?.time ?? 0;
+      const offsetIntoVerse = now - firstVerseTime;
+      if (offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD) {
+        player.seekTo(firstVerseTime);
+        return true;
+      }
+      return false;
     }
 
     const offsetIntoVerse = now - verseTimings[currentIdx].time;
@@ -137,6 +159,7 @@ export function useChapterAudio({
         ? verseTimings[currentIdx]
         : verseTimings[currentIdx - 1];
     player.seekTo(target.time);
+    return true;
   }, [verseTimings, player]);
 
   const currentVerse = useMemo(() => {
@@ -168,6 +191,8 @@ export function useChapterAudio({
     togglePlay,
     pause,
     seekTo,
+    seekToFirstVerse,
+    seekToLastVerse,
     seekToNextVerse,
     seekToPreviousVerse,
   };
