@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -11,12 +12,15 @@ type BooksHeaderProps = {
 
 export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
   const theme = useTheme();
+  const searchInputRef = useRef<TextInput>(null);
 
   return (
     <View style={styles.header}>
       <Text style={[styles.title, { color: theme.textHeading }]}>Bible</Text>
 
-      <View
+      <Pressable
+        accessible={false}
+        onPress={() => searchInputRef.current?.focus()}
         style={[
           styles.searchBar,
           {
@@ -30,6 +34,7 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
           color={theme.iconTertiary}
         />
         <TextInput
+          ref={searchInputRef}
           value={searchQuery}
           onChangeText={onSearchChange}
           placeholder="Search book here..."
@@ -39,7 +44,10 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
         />
         {searchQuery.length > 0 && (
           <Pressable
-            onPress={() => onSearchChange('')}
+            onPress={(event) => {
+              event.stopPropagation();
+              onSearchChange('');
+            }}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Clear search">
@@ -50,7 +58,7 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
             />
           </Pressable>
         )}
-      </View>
+      </Pressable>
     </View>
   );
 }

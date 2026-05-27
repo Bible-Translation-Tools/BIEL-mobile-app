@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { BookHeaderIcon } from '@/components/icons/book-header-icon';
@@ -12,6 +13,7 @@ type HomeHeaderProps = {
 
 export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
   const theme = useTheme();
+  const searchInputRef = useRef<TextInput>(null);
 
   return (
     <View style={styles.header}>
@@ -20,7 +22,9 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
         <Text style={[styles.title, { color: theme.text }]}>Browse the Bible</Text>
       </View>
 
-      <View
+      <Pressable
+        accessible={false}
+        onPress={() => searchInputRef.current?.focus()}
         style={[
           styles.searchBar,
           {
@@ -34,6 +38,7 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
           color={theme.iconTertiary}
         />
         <TextInput
+          ref={searchInputRef}
           value={searchQuery}
           onChangeText={onSearchChange}
           placeholder="Search language here..."
@@ -43,7 +48,10 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
         />
         {searchQuery.length > 0 && (
           <Pressable
-            onPress={() => onSearchChange('')}
+            onPress={(event) => {
+              event.stopPropagation();
+              onSearchChange('');
+            }}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Clear search">
@@ -54,7 +62,7 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
             />
           </Pressable>
         )}
-      </View>
+      </Pressable>
     </View>
   );
 }
