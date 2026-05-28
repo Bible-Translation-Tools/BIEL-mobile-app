@@ -8,7 +8,7 @@ import { ReadingLayout } from '@/constants/theme';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useTheme } from '@/hooks/use-theme';
 
-type PendingSeek = {
+type SeekTarget = {
   chapter: number;
   position: 'start' | 'end' | number;
 };
@@ -45,7 +45,7 @@ export function AudioPlayButton({
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [activeChapter, setActiveChapter] = useState<number | undefined>(undefined);
   const [shouldAutoPlayNextChapter, setShouldAutoPlayNextChapter] = useState(false);
-  const [pendingSeek, setPendingSeek] = useState<PendingSeek | null>(null);
+  const [seekTarget, setSeekTarget] = useState<SeekTarget | null>(null);
   const isAdvancingRef = useRef(false);
 
   const audio = useChapterAudio({
@@ -60,11 +60,11 @@ export function AudioPlayButton({
   }, [audio.currentVerse, isPanelOpen, onCurrentVerseChange]);
 
   useEffect(() => {
-    if (!isPanelOpen || !pendingSeek || !activeChapter) return;
-    if (pendingSeek.chapter !== activeChapter) return;
+    if (!isPanelOpen || !seekTarget || !activeChapter) return;
+    if (seekTarget.chapter !== activeChapter) return;
     if (audio.loadedChapter !== activeChapter || audio.isFetching || !audio.audioUrl) return;
 
-    const { position } = pendingSeek;
+    const { position } = seekTarget;
     let seekDone = false;
 
     if (typeof position === 'number') {
@@ -81,7 +81,7 @@ export function AudioPlayButton({
 
     if (!seekDone) return;
 
-    setPendingSeek(null);
+    setSeekTarget(null);
 
     if (!shouldAutoPlayNextChapter) return;
     if (audio.isPlaying) {
@@ -104,7 +104,7 @@ export function AudioPlayButton({
     audio.seekToVerse,
     audio.togglePlay,
     isPanelOpen,
-    pendingSeek,
+    seekTarget,
     shouldAutoPlayNextChapter,
   ]);
 
@@ -135,7 +135,7 @@ export function AudioPlayButton({
     (chapter: number, position: 'start' | 'end' | number, resumePlayback: boolean) => {
       setActiveChapter(chapter);
       onCurrentChapterChange?.(chapter);
-      setPendingSeek({ chapter, position });
+      setSeekTarget({ chapter, position });
       if (resumePlayback) setShouldAutoPlayNextChapter(true);
     },
     [onCurrentChapterChange],
@@ -204,7 +204,7 @@ export function AudioPlayButton({
     audio.pause();
     setIsPanelOpen(false);
     setShouldAutoPlayNextChapter(false);
-    setPendingSeek(null);
+    setSeekTarget(null);
     onCurrentChapterChange?.(null);
     onPanelHeightChange?.(0);
   };
