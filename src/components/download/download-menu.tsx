@@ -4,14 +4,21 @@ import { StyleSheet, Text, View } from 'react-native';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { DownloadStatusOption } from './download-status-option';
+import { DownloadStatusOption, type DownloadStatusState } from './download-status-option';
 
-const DOWNLOAD_OPTIONS = [
-  { title: 'All Scripture', fileSize: '150 KB' },
-  { title: 'All Audio', fileSize: '50 MB' },
-] as const;
+type DownloadMenuProps = {
+  scriptureFileSize?: string;
+  scriptureState?: DownloadStatusState;
+  scriptureProgress?: number;
+  onScripturePress?: () => void;
+};
 
-export const DownloadMenu = memo(function DownloadMenu() {
+export const DownloadMenu = memo(function DownloadMenu({
+  scriptureFileSize = '—',
+  scriptureState = 'default',
+  scriptureProgress = 0,
+  onScripturePress,
+}: DownloadMenuProps) {
   const theme = useTheme();
 
   return (
@@ -25,13 +32,14 @@ export const DownloadMenu = memo(function DownloadMenu() {
         styles.menuShadow,
       ]}>
       <Text style={[styles.title, { color: theme.textSecondary }]}>Download</Text>
-      {DOWNLOAD_OPTIONS.map((option) => (
-        <DownloadStatusOption
-          key={option.title}
-          title={option.title}
-          fileSize={option.fileSize}
-        />
-      ))}
+      <DownloadStatusOption
+        title="All Scripture"
+        fileSize={scriptureFileSize}
+        state={scriptureState}
+        progress={scriptureProgress}
+        onActionPress={onScripturePress}
+      />
+      <DownloadStatusOption title="All Audio" fileSize="—" />
     </View>
   );
 });

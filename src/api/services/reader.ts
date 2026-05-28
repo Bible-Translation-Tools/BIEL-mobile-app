@@ -1,7 +1,9 @@
 import { graphqlRequest } from '@/api/graphql/client';
 import { CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
+import { fetchRenderedContent } from '@/api/services/content-fetch';
+import { getOfflineChapterHtml } from '@/api/services/offline-books';
+import { pickRendering } from '@/api/services/resource-selection';
 import type {
-  ApiChapterRendering,
   ChapterContent,
   ChapterContentQueryResult,
   ScriptureFootnote,
@@ -11,30 +13,6 @@ import type {
   ScriptureSection,
   ScriptureVerse,
 } from '@/types/reading';
-
-const RESOURCE_PRIORITY = ['ulb', 'udb', 'reg'] as const;
-const EXCLUDED_RESOURCE_TYPES = new Set(['tq', 'tn']);
-
-function pickRendering(
-  renderings: ApiChapterRendering[],
-): ApiChapterRendering | null {
-  const candidates = renderings.filter(
-    (item) =>
-      item.chapter != null &&
-      !EXCLUDED_RESOURCE_TYPES.has(item.rendered_content.content.resource_type),
-  );
-
-  if (candidates.length === 0) return null;
-
-  for (const resourceType of RESOURCE_PRIORITY) {
-    const match = candidates.find(
-      (item) => item.rendered_content.content.resource_type === resourceType,
-    );
-    if (match) return match;
-  }
-
-  return candidates[0] ?? null;
-}
 
 function decodeHtmlEntities(text: string): string {
   return text
@@ -260,6 +238,26 @@ function parseFootnotes(chapterHtml: string): ScriptureFootnote[] {
   return notes;
 }
 
+export function buildChapterContentFromHtml(
+  html: string,
+  bookName: string,
+  chapter: number,
+): ChapterContent {
+  const sections = parseChapterHtml(html);
+  const footnotes = parseFootnotes(html);
+
+  if (sections.every((section) => section.paragraphs.length === 0)) {
+    throw new Error('Chapter content is empty');
+  }
+
+  return {
+    bookName,
+    chapter,
+    sections,
+    footnotes,
+  };
+}
+
 export function parseChapterHtml(html: string): ScriptureSection[] {
   const chapterMatch = html.match(/class="chapter"[^>]*>([\s\S]*)/i);
   if (!chapterMatch) return [];
@@ -283,13 +281,21 @@ export async function fetchChapterContent(
   bookSlug: string,
   chapter: number,
 ): Promise<ChapterContent> {
+  const offline = await getOfflineChapterHtml(languageCode, bookSlug, chapter);
+  if (offline) {
+    return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
+  }
+
   const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
     languageCode,
     bookSlug,
     chapter,
   });
 
-  const rendering = pickRendering(data.scriptural_rendering_metadata);
+  const rendering = pickRendering(data.scriptural_rendering_metadata, {
+    bookSlug,
+    requireChapter: true,
+  });
   if (!rendering?.chapter) {
     throw new Error('Chapter not found');
   }
@@ -299,9 +305,7 @@ export async function fetchChapterContent(
     throw new Error('Chapter rendered URL is missing');
   }
 
-  const response = await fetch(apiUrl, {
-    headers: { Accept: 'text/html' },
-  });
+  const response = await fetchRenderedContent(apiUrl);
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');
@@ -315,18 +319,5 @@ export async function fetchChapterContent(
   }
 
   const html = await response.text();
-
-  const sections = parseChapterHtml(html);
-  const footnotes = parseFootnotes(html);
-
-  if (sections.every((section) => section.paragraphs.length === 0)) {
-    throw new Error('Chapter content is empty');
-  }
-
-  return {
-    bookName: rendering.book_name,
-    chapter: rendering.chapter,
-    sections,
-    footnotes,
-  };
+  return buildChapterContentFromHtml(html, rendering.book_name, rendering.chapter);
 }

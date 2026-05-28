@@ -13,22 +13,23 @@ import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
+import { normalizeRouteParam } from '@/utils/route-params';
 
 export default function BookSelectionScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const { languageCode, name } = useLocalSearchParams<{
-    languageCode: string;
-    name?: string;
+    languageCode: string | string[];
+    name?: string | string[];
   }>();
 
-  const ietfCode = languageCode;
-  const languageName = name ?? 'Language';
+  const ietfCode = normalizeRouteParam(languageCode);
+  const languageName = normalizeRouteParam(name) ?? 'Language';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
-  const { books, loading, error, refetch } = useBooks(ietfCode);
+  const { books, loading, error, refetch, refreshDownloadStatus } = useBooks(ietfCode);
 
   const handleChapterPress = useCallback(
     (book: BookItem, chapter: ChapterItem) => {
@@ -80,6 +81,7 @@ export default function BookSelectionScreen() {
           error={error}
           onRetry={refetch}
           onChapterPress={handleChapterPress}
+          onDownloadStatusChange={refreshDownloadStatus}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
         />

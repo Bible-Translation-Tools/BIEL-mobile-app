@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { SplashScreenView } from '@/components/splash-screen';
+import { ensureOfflineRootExists } from '@/constants/offline-storage';
+import { initDatabase } from '@/db';
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -15,6 +17,8 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
+        await initDatabase();
+        await ensureOfflineRootExists();
         // Hold splash briefly so the native splash transitions into the in-app splash.
         await new Promise((resolve) => setTimeout(resolve, 300));
       } finally {

@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -7,6 +7,7 @@ import {
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
+import { useBookDownload } from '@/hooks/use-book-download';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
 
@@ -14,28 +15,37 @@ import { ChapterGrid } from './chapter-grid';
 
 type BookCardRowProps = {
   book: BookItem;
+  languageCode?: string;
   isExpanded?: boolean;
   chapters?: ChapterItem[];
   chaptersLoading?: boolean;
   onToggleExpand?: () => void;
   onChapterPress?: (chapter: ChapterItem) => void;
-  onDownloadPress?: () => void;
+  onDownloadStatusChange?: () => void;
 };
 
 export const BookCardRow = memo(function BookCardRow({
   book,
+  languageCode,
   isExpanded = false,
   chapters = [],
   chaptersLoading = false,
   onToggleExpand,
   onChapterPress,
-  onDownloadPress,
+  onDownloadStatusChange,
 }: BookCardRowProps) {
   const theme = useTheme();
   const isDownloaded = book.downloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+
+  const { isDownloading, progress, fileSizeLabel, startDownload, cancelDownload, deleteDownload } =
+    useBookDownload({
+      languageCode,
+      bookSlug: book.slug,
+      onComplete: onDownloadStatusChange,
+    });
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -48,6 +58,37 @@ export const BookCardRow = memo(function BookCardRow({
     setMenuVisible(false);
     setMenuAnchor(null);
   }, []);
+
+  const handleDeletePress = useCallback(async () => {
+    try {
+      await deleteDownload();
+    } catch (err) {
+      Alert.alert(
+        'Delete failed',
+        err instanceof Error ? err.message : 'Could not remove downloaded book',
+      );
+    }
+  }, [deleteDownload]);
+
+  const handleScripturePress = useCallback(async () => {
+    if (isDownloading) {
+      cancelDownload();
+      return;
+    }
+
+    try {
+      await startDownload();
+      closeDownloadMenu();
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      Alert.alert(
+        'Download failed',
+        err instanceof Error ? err.message : 'Could not download book',
+      );
+    }
+  }, [cancelDownload, closeDownloadMenu, isDownloading, startDownload]);
 
   const cardStyle = [
     styles.card,
@@ -133,7 +174,7 @@ export const BookCardRow = memo(function BookCardRow({
             styles.downloadCard,
             { opacity: pressed ? 0.9 : 1 },
           ]}
-          onPress={isDownloaded ? onDownloadPress : openDownloadMenu}
+          onPress={isDownloaded ? handleDeletePress : openDownloadMenu}
           accessibilityRole="button"
           accessibilityLabel={
             isDownloaded ? `Delete ${book.name}` : `Download ${book.name}`
@@ -162,6 +203,12 @@ export const BookCardRow = memo(function BookCardRow({
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        menuProps={{
+          scriptureFileSize: fileSizeLabel ?? '—',
+          scriptureState: isDownloading ? 'downloading' : 'default',
+          scriptureProgress: progress,
+          onScripturePress: handleScripturePress,
+        }}
       />
     </View>
   );

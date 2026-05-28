@@ -24,6 +24,7 @@ type BookListProps = {
   error?: string | null;
   onRetry?: () => void;
   onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
+  onDownloadStatusChange?: () => void;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -72,6 +73,7 @@ export function BookList({
   error = null,
   onRetry,
   onChapterPress,
+  onDownloadStatusChange,
   ListHeaderComponent,
   contentContainerStyle,
 }: BookListProps) {
@@ -97,6 +99,7 @@ export function BookList({
       return (
         <BookCardRow
           book={item}
+          languageCode={languageCode}
           isExpanded={isExpanded}
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
@@ -106,10 +109,11 @@ export function BookList({
           onChapterPress={
             onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
           }
+          onDownloadStatusChange={onDownloadStatusChange}
         />
       );
     },
-    [expandedBookId, getChapters, isLoading, onChapterPress],
+    [expandedBookId, getChapters, isLoading, languageCode, onChapterPress, onDownloadStatusChange],
   );
 
   const listHeader = ListHeaderComponent;

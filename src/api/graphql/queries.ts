@@ -1,3 +1,35 @@
+export const BOOK_CONTENT_QUERY = `
+  query BookContent($languageCode: String!, $bookSlug: String!) {
+    scriptural_rendering_metadata(
+      where: {
+        book_slug: { _eq: $bookSlug }
+        is_whole_book: { _eq: true }
+        rendered_content: {
+          content: {
+            language: { ietf_code: { _eq: $languageCode } }
+            wa_content_metadata: {
+              show_on_biel: { _eq: true }
+              status: { _eq: "Primary" }
+            }
+          }
+          file_type: { _eq: "json" }
+        }
+      }
+    ) {
+      book_name
+      book_slug
+      rendered_content {
+        url
+        content {
+          name
+          resource_type
+        }
+        file_size_bytes
+      }
+    }
+  }
+`;
+
 export const CHAPTER_AUDIO_FILE_QUERY = `
   query ChapterAudioFile($languageCode: String!, $bookSlug: String!, $chapter: Int!, $fileType: String!) {
     content(

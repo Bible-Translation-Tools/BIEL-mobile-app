@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type ComponentProps } from 'react';
 import {
   Dimensions,
   Modal,
@@ -18,6 +18,7 @@ type DownloadMenuPopoverProps = {
   visible: boolean;
   anchor: DownloadMenuAnchor | null;
   onClose: () => void;
+  menuProps?: ComponentProps<typeof DownloadMenu>;
 };
 
 const MENU_ESTIMATED_HEIGHT = 231;
@@ -61,6 +62,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
   visible,
   anchor,
   onClose,
+  menuProps,
 }: DownloadMenuPopoverProps) {
   if (!visible || anchor == null) {
     return null;
@@ -91,7 +93,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
               width: position.width,
             },
           ]}>
-          <DownloadMenu />
+          <DownloadMenu {...menuProps} />
         </View>
       </View>
     </Modal>
