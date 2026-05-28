@@ -21,6 +21,7 @@ type ChapterItemProps = {
   highlightedVerse?: number | null;
   onRootRef?: (node: View | null) => void;
   onVerseLayout?: (chapterNumber: number, verseToY: Map<number, number>) => void;
+  onVersePress?: (verse: number) => void;
 };
 
 const SUPERSCRIPT_DIGITS: Record<string, string> = {
@@ -63,6 +64,7 @@ export const ChapterItem = memo(function ChapterItem({
   highlightedVerse = null,
   onRootRef,
   onVerseLayout,
+  onVersePress,
 }: ChapterItemProps) {
   const theme = useTheme();
   const [activeFootnoteId, setActiveFootnoteId] = useState<string | null>(null);
@@ -228,13 +230,19 @@ export const ChapterItem = memo(function ChapterItem({
                       {toSuperscript(verse.number)}
                     </Text>
                     {verse.startsOnNewLine ? '' : ' '}
-                    {verse.lines.map((line, lineIndex) =>
-                      renderVerseLine(
-                        line,
-                        `verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`,
-                        lineIndex,
-                      ),
-                    )}
+                    <Text
+                      onPress={
+                        onVersePress ? () => onVersePress(verse.number) : undefined
+                      }
+                      suppressHighlighting={onVersePress == null}>
+                      {verse.lines.map((line, lineIndex) =>
+                        renderVerseLine(
+                          line,
+                          `verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`,
+                          lineIndex,
+                        ),
+                      )}
+                    </Text>
                   </Text>
                 ))}
               </Text>

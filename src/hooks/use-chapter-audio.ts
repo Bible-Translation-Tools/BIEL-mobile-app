@@ -27,6 +27,8 @@ export function useChapterAudio({
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verseTimings, setVerseTimings] = useState<VerseTiming[]>([]);
+  /** Chapter whose audio URL is currently loaded; null while switching or fetching. */
+  const [loadedChapter, setLoadedChapter] = useState<number | null>(null);
 
   const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
@@ -44,6 +46,7 @@ export function useChapterAudio({
     setError(null);
     setAudioUrl(null);
     setVerseTimings([]);
+    setLoadedChapter(null);
 
     fetchChapterAudioUrl(languageCode, bookSlug, chapter)
       .then((url) => {
@@ -53,6 +56,7 @@ export function useChapterAudio({
           return;
         }
         setAudioUrl(url);
+        setLoadedChapter(chapter);
         try {
           player.replace(url);
         } catch (err) {
@@ -107,6 +111,16 @@ export function useChapterAudio({
     [player],
   );
 
+  const seekToVerse = useCallback(
+    (verse: number): boolean => {
+      const timing = verseTimings.find((t) => t.verse === verse);
+      if (!timing) return false;
+      player.seekTo(timing.time);
+      return true;
+    },
+    [verseTimings, player],
+  );
+
   const seekToFirstVerse = useCallback(() => {
     player.seekTo(verseTimings[0]?.time ?? 0);
   }, [verseTimings, player]);
@@ -133,11 +147,11 @@ export function useChapterAudio({
   /** Returns true when seek stayed in the current chapter. */
   const seekToPreviousVerse = useCallback((): boolean => {
     if (verseTimings.length === 0) return false;
-    const now = currentTimeRef.current;
+    const playbackPosition = currentTimeRef.current;
 
     let currentIdx = -1;
     for (let i = verseTimings.length - 1; i >= 0; i -= 1) {
-      if (verseTimings[i].time <= now + VERSE_BOUNDARY_EPSILON) {
+      if (verseTimings[i].time <= playbackPosition + VERSE_BOUNDARY_EPSILON) {
         currentIdx = i;
         break;
       }
@@ -145,7 +159,7 @@ export function useChapterAudio({
 
     if (currentIdx <= 0) {
       const firstVerseTime = verseTimings[0]?.time ?? 0;
-      const offsetIntoVerse = now - firstVerseTime;
+      const offsetIntoVerse = playbackPosition - firstVerseTime;
       if (offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD) {
         player.seekTo(firstVerseTime);
         return true;
@@ -153,7 +167,7 @@ export function useChapterAudio({
       return false;
     }
 
-    const offsetIntoVerse = now - verseTimings[currentIdx].time;
+    const offsetIntoVerse = playbackPosition - verseTimings[currentIdx].time;
     const target =
       offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD
         ? verseTimings[currentIdx]
@@ -164,11 +178,11 @@ export function useChapterAudio({
 
   const currentVerse = useMemo(() => {
     if (verseTimings.length === 0) return null;
-    const now = status.currentTime ?? 0;
+    const playbackPosition = status.currentTime ?? 0;
 
     let activeVerse: number | null = null;
     for (let i = 0; i < verseTimings.length; i += 1) {
-      if (verseTimings[i].time <= now + VERSE_BOUNDARY_EPSILON) {
+      if (verseTimings[i].time <= playbackPosition + VERSE_BOUNDARY_EPSILON) {
         activeVerse = verseTimings[i].verse;
       } else {
         break;
@@ -181,6 +195,7 @@ export function useChapterAudio({
   return {
     audioUrl,
     isFetching,
+    loadedChapter,
     error,
     isPlaying: status.playing,
     didJustFinish: status.didJustFinish,
@@ -191,6 +206,7 @@ export function useChapterAudio({
     togglePlay,
     pause,
     seekTo,
+    seekToVerse,
     seekToFirstVerse,
     seekToLastVerse,
     seekToNextVerse,

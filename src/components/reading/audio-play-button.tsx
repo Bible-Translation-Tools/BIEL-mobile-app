@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,6 +7,11 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout } from '@/constants/theme';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useTheme } from '@/hooks/use-theme';
+
+type PendingSeek = {
+  chapter: number;
+  position: 'start' | 'end' | number;
+};
 
 type AudioPlayButtonProps = {
   languageCode?: string;
@@ -18,6 +23,8 @@ type AudioPlayButtonProps = {
   onCurrentVerseChange?: (verse: number | null) => void;
   onCurrentChapterChange?: (chapter: number | null) => void;
   onPanelHeightChange?: (height: number) => void;
+  onPanelOpenChange?: (open: boolean) => void;
+  playVerseAtRef?: MutableRefObject<((chapter: number, verse: number) => void) | undefined>;
 };
 
 export function AudioPlayButton({
@@ -30,13 +37,15 @@ export function AudioPlayButton({
   onCurrentVerseChange,
   onCurrentChapterChange,
   onPanelHeightChange,
+  onPanelOpenChange,
+  playVerseAtRef,
 }: AudioPlayButtonProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [activeChapter, setActiveChapter] = useState<number | undefined>(undefined);
   const [shouldAutoPlayNextChapter, setShouldAutoPlayNextChapter] = useState(false);
-  const [pendingSeek, setPendingSeek] = useState<'start' | 'end' | null>(null);
+  const [pendingSeek, setPendingSeek] = useState<PendingSeek | null>(null);
   const isAdvancingRef = useRef(false);
 
   const audio = useChapterAudio({
@@ -51,17 +60,28 @@ export function AudioPlayButton({
   }, [audio.currentVerse, isPanelOpen, onCurrentVerseChange]);
 
   useEffect(() => {
-    if (!isPanelOpen) return;
-    if (audio.isFetching || !audio.audioUrl) return;
+    if (!isPanelOpen || !pendingSeek || !activeChapter) return;
+    if (pendingSeek.chapter !== activeChapter) return;
+    if (audio.loadedChapter !== activeChapter || audio.isFetching || !audio.audioUrl) return;
 
-    if (pendingSeek === 'start') {
+    const { position } = pendingSeek;
+    let seekDone = false;
+
+    if (typeof position === 'number') {
+      if (!audio.hasVerseTimings) return;
+      seekDone = audio.seekToVerse(position);
+    } else if (position === 'start') {
       audio.seekToFirstVerse();
-      setPendingSeek(null);
-    } else if (pendingSeek === 'end') {
+      seekDone = true;
+    } else if (position === 'end') {
       if (!audio.hasVerseTimings && (audio.duration ?? 0) <= 0) return;
       audio.seekToLastVerse();
-      setPendingSeek(null);
+      seekDone = true;
     }
+
+    if (!seekDone) return;
+
+    setPendingSeek(null);
 
     if (!shouldAutoPlayNextChapter) return;
     if (audio.isPlaying) {
@@ -72,13 +92,16 @@ export function AudioPlayButton({
     audio.togglePlay();
     setShouldAutoPlayNextChapter(false);
   }, [
+    activeChapter,
     audio.audioUrl,
     audio.duration,
     audio.hasVerseTimings,
     audio.isFetching,
     audio.isPlaying,
+    audio.loadedChapter,
     audio.seekToFirstVerse,
     audio.seekToLastVerse,
+    audio.seekToVerse,
     audio.togglePlay,
     isPanelOpen,
     pendingSeek,
@@ -109,14 +132,41 @@ export function AudioPlayButton({
   }, [activeChapter, audio.didJustFinish, getNextChapter, isPanelOpen, onCurrentChapterChange]);
 
   const changeChapter = useCallback(
-    (chapter: number, seek: 'start' | 'end', resumePlayback: boolean) => {
+    (chapter: number, position: 'start' | 'end' | number, resumePlayback: boolean) => {
       setActiveChapter(chapter);
       onCurrentChapterChange?.(chapter);
-      setPendingSeek(seek);
+      setPendingSeek({ chapter, position });
       if (resumePlayback) setShouldAutoPlayNextChapter(true);
     },
     [onCurrentChapterChange],
   );
+
+  const playVerseAt = useCallback(
+    (chapter: number, verse: number) => {
+      if (!isPanelOpen) return;
+
+      if (chapter === activeChapter) {
+        if (!audio.seekToVerse(verse)) return;
+        if (!audio.isPlaying) audio.togglePlay();
+        return;
+      }
+
+      changeChapter(chapter, verse, false);
+    },
+    [activeChapter, audio, changeChapter, isPanelOpen],
+  );
+
+  useEffect(() => {
+    if (!playVerseAtRef) return;
+    playVerseAtRef.current = playVerseAt;
+    return () => {
+      playVerseAtRef.current = undefined;
+    };
+  }, [playVerseAt, playVerseAtRef]);
+
+  useEffect(() => {
+    onPanelOpenChange?.(isPanelOpen);
+  }, [isPanelOpen, onPanelOpenChange]);
 
   const handleNextVerse = useCallback(async () => {
     if (audio.seekToNextVerse()) return;

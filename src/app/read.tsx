@@ -18,9 +18,9 @@ import { AudioPlayButton } from '@/components/reading/audio-play-button';
 import { ChapterItem } from '@/components/reading/chapter-item';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
 import { ReadingLayout } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import type { ChapterContent } from '@/types/reading';
 
@@ -77,6 +77,8 @@ export default function ReadingScreen() {
   const hasPreviousRef = useRef(false);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
+  const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
+  const playVerseAtRef = useRef<((chapter: number, verse: number) => void) | undefined>(undefined);
 
   useEffect(() => {
     chaptersRef.current = chapters;
@@ -253,6 +255,10 @@ export default function ReadingScreen() {
     [getAdjacentChapterForAudio],
   );
 
+  const handleVersePress = useCallback((chapter: number, verse: number) => {
+    playVerseAtRef.current?.(chapter, verse);
+  }, []);
+
   const renderItem = useCallback(
     ({ item, index }: { item: ChapterContent; index: number }) => (
       <ChapterItem
@@ -262,9 +268,20 @@ export default function ReadingScreen() {
         highlightedVerse={item.chapter === currentPlayingChapter ? currentPlayingVerse : null}
         onRootRef={getChapterRefSetter(item.chapter)}
         onVerseLayout={handleVerseLayout}
+        onVersePress={
+          isAudioPanelOpen ? (verse) => handleVersePress(item.chapter, verse) : undefined
+        }
       />
     ),
-    [displayBookName, currentPlayingChapter, currentPlayingVerse, getChapterRefSetter, handleVerseLayout],
+    [
+      displayBookName,
+      currentPlayingChapter,
+      currentPlayingVerse,
+      getChapterRefSetter,
+      handleVerseLayout,
+      handleVersePress,
+      isAudioPanelOpen,
+    ],
   );
 
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
@@ -339,6 +356,8 @@ export default function ReadingScreen() {
             onPanelHeightChange={(height) => {
               audioPanelHeightRef.current = height;
             }}
+            onPanelOpenChange={setIsAudioPanelOpen}
+            playVerseAtRef={playVerseAtRef}
           />
         ) : null}
       </SafeAreaView>
