@@ -1,6 +1,10 @@
-import { memo } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  DownloadMenuPopover,
+  type DownloadMenuAnchor,
+} from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -29,6 +33,21 @@ export const BookCardRow = memo(function BookCardRow({
 }: BookCardRowProps) {
   const theme = useTheme();
   const isDownloaded = book.downloadStatus === 'downloaded';
+  const downloadAnchorRef = useRef<View>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+
+  const openDownloadMenu = useCallback(() => {
+    downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      setMenuAnchor({ x, y, width, height });
+      setMenuVisible(true);
+    });
+  }, []);
+
+  const closeDownloadMenu = useCallback(() => {
+    setMenuVisible(false);
+    setMenuAnchor(null);
+  }, []);
 
   const cardStyle = [
     styles.card,
@@ -107,35 +126,43 @@ export const BookCardRow = memo(function BookCardRow({
         </Pressable>
       )}
 
-      <Pressable
-        style={({ pressed }) => [
-          cardStyle,
-          styles.downloadCard,
-          { opacity: pressed ? 0.9 : 1 },
-        ]}
-        onPress={onDownloadPress}
-        accessibilityRole="button"
-        accessibilityLabel={
-          isDownloaded ? `Delete ${book.name}` : `Download ${book.name}`
-        }>
-        {isDownloaded ? (
-          <IconSymbol
-            name={{ ios: 'trash', android: 'delete', web: 'delete' }}
-            size={24}
-            color={theme.iconDanger}
-          />
-        ) : (
-          <IconSymbol
-            name={{
-              ios: 'arrow.down.circle',
-              android: 'file_download',
-              web: 'file_download',
-            }}
-            size={28}
-            color={theme.iconPrimary}
-          />
-        )}
-      </Pressable>
+      <View ref={downloadAnchorRef} collapsable={false}>
+        <Pressable
+          style={({ pressed }) => [
+            cardStyle,
+            styles.downloadCard,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
+          onPress={isDownloaded ? onDownloadPress : openDownloadMenu}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isDownloaded ? `Delete ${book.name}` : `Download ${book.name}`
+          }>
+          {isDownloaded ? (
+            <IconSymbol
+              name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+              size={24}
+              color={theme.iconDanger}
+            />
+          ) : (
+            <IconSymbol
+              name={{
+                ios: 'arrow.down.circle',
+                android: 'file_download',
+                web: 'file_download',
+              }}
+              size={28}
+              color={theme.iconPrimary}
+            />
+          )}
+        </Pressable>
+      </View>
+
+      <DownloadMenuPopover
+        visible={menuVisible}
+        anchor={menuAnchor}
+        onClose={closeDownloadMenu}
+      />
     </View>
   );
 });

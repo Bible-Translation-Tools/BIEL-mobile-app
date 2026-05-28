@@ -16,6 +16,7 @@ const MATERIAL_ICON_ALIASES: Record<string, MaterialIconName> = {
   keyboard_arrow_right: 'keyboard-arrow-right',
   keyboard_arrow_up: 'keyboard-arrow-up',
   volume_up: 'volume-up',
+  close: 'close',
 };
 
 export type IconSymbolName =

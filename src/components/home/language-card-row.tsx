@@ -1,6 +1,10 @@
-import { memo } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  DownloadMenuPopover,
+  type DownloadMenuAnchor,
+} from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -19,6 +23,21 @@ export const LanguageCardRow = memo(function LanguageCardRow({
 }: LanguageCardRowProps) {
   const theme = useTheme();
   const isDownloaded = language.downloadStatus === 'downloaded';
+  const downloadAnchorRef = useRef<View>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+
+  const openDownloadMenu = useCallback(() => {
+    downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      setMenuAnchor({ x, y, width, height });
+      setMenuVisible(true);
+    });
+  }, []);
+
+  const closeDownloadMenu = useCallback(() => {
+    setMenuVisible(false);
+    setMenuAnchor(null);
+  }, []);
 
   const cardStyle = [
     styles.card,
@@ -73,27 +92,35 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         />
       </Pressable>
 
-      <Pressable
-        style={({ pressed }) => [
-          cardStyle,
-          styles.downloadCard,
-          { opacity: pressed ? 0.9 : 1 },
-        ]}
-        onPress={onDownloadPress}
-        accessibilityRole="button"
-        accessibilityLabel={
-          isDownloaded ? `${language.name} downloaded` : `Download ${language.name}`
-        }>
-        <IconSymbol
-          name={
-            isDownloaded
-              ? { ios: 'checkmark.circle.fill', android: 'download_done', web: 'download_done' }
-              : { ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }
-          }
-          size={28}
-          color={isDownloaded ? theme.iconSuccess : theme.iconPrimary}
-        />
-      </Pressable>
+      <View ref={downloadAnchorRef} collapsable={false}>
+        <Pressable
+          style={({ pressed }) => [
+            cardStyle,
+            styles.downloadCard,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
+          onPress={openDownloadMenu}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isDownloaded ? `${language.name} downloaded` : `Download ${language.name}`
+          }>
+          <IconSymbol
+            name={
+              isDownloaded
+                ? { ios: 'checkmark.circle.fill', android: 'download_done', web: 'download_done' }
+                : { ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }
+            }
+            size={28}
+            color={isDownloaded ? theme.iconSuccess : theme.iconPrimary}
+          />
+        </Pressable>
+      </View>
+
+      <DownloadMenuPopover
+        visible={menuVisible}
+        anchor={menuAnchor}
+        onClose={closeDownloadMenu}
+      />
     </View>
   );
 });

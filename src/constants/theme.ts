@@ -88,6 +88,26 @@ export const Typography = {
     lineHeight: 20,
     fontWeight: '400' as const,
   },
+  bodyXs: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '400' as const,
+  },
+} as const;
+
+export const DownloadMenuLayout = {
+  menuRadius: 10,
+  optionRadius: 12,
+  menuPadding: 16,
+  menuGap: 11,
+  optionPadding: 16,
+  optionGap: 16,
+  optionMinHeight: 77,
+  progressHeight: 4,
+  iconSize: 28,
+  menuMaxWidth: 342,
+  anchorGap: 8,
+  screenPadding: 16,
 } as const;
 
 export const HomeLayout = {
