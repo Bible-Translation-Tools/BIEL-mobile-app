@@ -12,6 +12,8 @@ type DownloadStatusOptionProps = {
   status?: DownloadStatus;
   progress?: number;
   onActionPress?: () => void;
+  /** When false, downloaded rows show status only (no trash / delete action). Default true. */
+  allowDelete?: boolean;
 };
 
 export const DownloadStatusOption = memo(function DownloadStatusOption({
@@ -20,17 +22,21 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
   status = 'pending',
   progress = 0,
   onActionPress,
+  allowDelete = true,
 }: DownloadStatusOptionProps) {
   const theme = useTheme();
   const isDownloading = status === 'downloading';
   const isDownloaded = status === 'downloaded';
   const showProgress = isDownloading || isDownloaded;
   const progressWidth = `${Math.min(Math.max(isDownloaded ? 1 : progress, 0), 1) * 100}%` as DimensionValue;
+  const canPress = Boolean(onActionPress) && (allowDelete || !isDownloaded);
 
   const accessibilityLabel = isDownloading
     ? `Cancel ${title} download`
     : isDownloaded
-      ? `Delete downloaded ${title}`
+      ? allowDelete
+        ? `Delete downloaded ${title}`
+        : `${title} downloaded`
       : `Download ${title}`;
 
   return (
@@ -44,9 +50,11 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
           opacity: pressed ? 0.7 : 1,
         },
       ]}
-      onPress={onActionPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}>
+      disabled={!canPress}
+      onPress={canPress ? onActionPress : undefined}
+      accessibilityRole={canPress ? 'button' : undefined}
+      accessibilityLabel={canPress ? accessibilityLabel : undefined}
+      accessibilityState={{ disabled: !canPress }}>
       <View style={styles.content}>
         <View style={styles.textBlock}>
           <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
@@ -90,11 +98,23 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
       </View>
       <View style={styles.actionIcon}>
         {isDownloaded ? (
-          <IconSymbol
-            name={{ ios: 'trash', android: 'delete', web: 'delete' }}
-            size={DownloadMenuLayout.deleteIconSize}
-            color={theme.iconDanger}
-          />
+          allowDelete ? (
+            <IconSymbol
+              name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+              size={DownloadMenuLayout.deleteIconSize}
+              color={theme.iconDanger}
+            />
+          ) : (
+            <IconSymbol
+              name={{
+                ios: 'checkmark.circle.fill',
+                android: 'download_done',
+                web: 'download_done',
+              }}
+              size={DownloadMenuLayout.iconSize}
+              color={theme.iconSuccess}
+            />
+          )
         ) : (
           <IconSymbol
             name={

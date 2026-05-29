@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -25,7 +25,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   onDownloadStatusChange,
 }: LanguageCardRowProps) {
   const theme = useTheme();
-  const isDownloaded = language.downloadStatus === 'downloaded';
+  const isScriptureDownloaded = language.downloadStatus === 'downloaded';
   const canDownloadText = language.hasText;
   const canDownloadAudio = language.hasAudio;
   const canDownload = canDownloadText || canDownloadAudio;
@@ -33,7 +33,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
 
-  const { isDownloading, progress, fileSizeLabel, startDownload, cancelDownload, deleteDownload } =
+  const { isDownloading, progress, fileSizeLabel, startDownload, cancelDownload } =
     useLanguageDownload({
       languageCode: language.code,
       enabled: canDownloadText,
@@ -48,12 +48,16 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     hasAudio,
     startDownload: startAudioDownload,
     cancelDownload: cancelAudioDownload,
-    deleteDownload: deleteAudioDownload,
   } = useLanguageAudioDownload({
     languageCode: language.code,
     enabled: canDownloadAudio,
     onComplete: onDownloadStatusChange,
   });
+
+  const needsAudioDownload = canDownloadAudio && hasAudio;
+  const isFullyDownloaded =
+    (!canDownloadText || isScriptureDownloaded) && (!needsAudioDownload || isAudioDownloaded);
+  const isAnyDownloadActive = isDownloading || isAudioDownloading;
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -67,32 +71,13 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     setMenuAnchor(null);
   }, []);
 
-  const handleDeletePress = useCallback(async () => {
-    try {
-      await deleteDownload();
-    } catch (err) {
-      Alert.alert(
-        'Delete failed',
-        err instanceof Error ? err.message : 'Could not remove downloaded books',
-      );
-    }
-  }, [deleteDownload]);
-
   const handleScripturePress = useCallback(async () => {
     if (isDownloading) {
       cancelDownload();
       return;
     }
 
-    if (isDownloaded) {
-      try {
-        await deleteDownload();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded books',
-        );
-      }
+    if (isScriptureDownloaded) {
       return;
     }
 
@@ -107,7 +92,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         err instanceof Error ? err.message : 'Could not download language',
       );
     }
-  }, [cancelDownload, deleteDownload, isDownloaded, isDownloading, startDownload]);
+  }, [cancelDownload, isScriptureDownloaded, isDownloading, startDownload]);
 
   const handleAudioPress = useCallback(async () => {
     if (!hasAudio) return;
@@ -118,14 +103,6 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     }
 
     if (isAudioDownloaded) {
-      try {
-        await deleteAudioDownload();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded audio',
-        );
-      }
       return;
     }
 
@@ -140,23 +117,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         err instanceof Error ? err.message : 'Could not download audio',
       );
     }
-  }, [
-    cancelAudioDownload,
-    deleteAudioDownload,
-    hasAudio,
-    isAudioDownloaded,
-    isAudioDownloading,
-    startAudioDownload,
-  ]);
-
-  const handleDownloadPress = useCallback(() => {
-    if (!canDownload) return;
-    if (isDownloaded) {
-      handleDeletePress();
-      return;
-    }
-    openDownloadMenu();
-  }, [canDownload, handleDeletePress, isDownloaded, openDownloadMenu]);
+  }, [cancelAudioDownload, hasAudio, isAudioDownloaded, isAudioDownloading, startAudioDownload]);
 
   const cardStyle = [
     styles.card,
@@ -219,18 +180,26 @@ export const LanguageCardRow = memo(function LanguageCardRow({
               styles.downloadCard,
               { opacity: pressed ? 0.9 : 1 },
             ]}
-            onPress={handleDownloadPress}
+            onPress={openDownloadMenu}
             accessibilityRole="button"
             accessibilityLabel={
-              isDownloaded
-                ? `Delete downloaded books for ${language.name}`
-                : `Download ${language.name}`
+              isAnyDownloadActive
+                ? `Download in progress for ${language.name}`
+                : isFullyDownloaded
+                  ? `${language.name} downloaded`
+                  : `Download ${language.name}`
             }>
-            {isDownloaded ? (
+            {isAnyDownloadActive ? (
+              <ActivityIndicator size="small" color={theme.tabActive} />
+            ) : isFullyDownloaded ? (
               <IconSymbol
-                name={{ ios: 'trash', android: 'delete', web: 'delete' }}
-                size={24}
-                color={theme.iconDanger}
+                name={{
+                  ios: 'checkmark.circle.fill',
+                  android: 'download_done',
+                  web: 'download_done',
+                }}
+                size={28}
+                color={theme.iconSuccess}
               />
             ) : (
               <IconSymbol
@@ -253,7 +222,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         onClose={closeDownloadMenu}
         menuProps={{
           scriptureFileSize: fileSizeLabel ?? '—',
-          scriptureStatus: resolveDownloadStatus(isDownloading, isDownloaded),
+          scriptureStatus: resolveDownloadStatus(isDownloading, isScriptureDownloaded),
           scriptureProgress: progress,
           onScripturePress: canDownloadText ? handleScripturePress : undefined,
           audioFileSize: audioFileSizeLabel ?? '—',
@@ -261,6 +230,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
           audioProgress,
           onAudioPress: handleAudioPress,
           audioDisabled: !hasAudio,
+          allowDelete: false,
         }}
       />
     </View>

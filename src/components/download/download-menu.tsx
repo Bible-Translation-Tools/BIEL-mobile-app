@@ -15,6 +15,7 @@ type DownloadMenuProps = {
   scriptureProgress?: number;
   onScripturePress?: () => void;
   scriptureDisabled?: boolean;
+  allowDelete?: boolean;
   audioTitle?: string;
   audioFileSize?: string;
   audioStatus?: DownloadStatus;
@@ -30,6 +31,7 @@ export const DownloadMenu = memo(function DownloadMenu({
   scriptureProgress = 0,
   onScripturePress,
   scriptureDisabled = false,
+  allowDelete = true,
   audioTitle = 'All Audio',
   audioFileSize = '—',
   audioStatus = 'pending',
@@ -56,6 +58,7 @@ export const DownloadMenu = memo(function DownloadMenu({
         status={scriptureDisabled ? 'pending' : scriptureStatus}
         progress={scriptureProgress}
         onActionPress={scriptureDisabled ? undefined : onScripturePress}
+        allowDelete={allowDelete}
       />
       <DownloadStatusOption
         title={audioTitle}
@@ -63,6 +66,7 @@ export const DownloadMenu = memo(function DownloadMenu({
         status={audioDisabled ? 'pending' : audioStatus}
         progress={audioProgress}
         onActionPress={audioDisabled ? undefined : onAudioPress}
+        allowDelete={allowDelete}
       />
     </View>
   );
