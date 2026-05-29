@@ -10,6 +10,20 @@ type RenderingWithResource = {
   };
 };
 
+/**
+ * Chooses the best scriptural rendering from WA catalog metadata.
+ *
+ * Filters out `tq` and `tn` resource types, then prefers types in
+ * {@link RESOURCE_PRIORITY} order (`ulb` → `udb` → `reg`). When several
+ * candidates share a type, prefers the one whose `book_slug` matches
+ * `bookSlug` (case-insensitive). Falls back to the first remaining candidate
+ * if no priority type matches.
+ *
+ * @param renderings - Scriptural rendering metadata from a GraphQL query.
+ * @param options.bookSlug - Slug used to disambiguate when multiple renderings share a type.
+ * @param options.requireChapter - When true, only items with a non-null `chapter` are considered (online chapter loads).
+ * @returns The selected rendering, or `null` if no suitable candidate exists.
+ */
 export function pickRendering<T extends RenderingWithResource>(
   renderings: T[],
   options?: { bookSlug?: string; requireChapter?: boolean },
