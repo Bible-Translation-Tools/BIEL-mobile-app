@@ -296,7 +296,12 @@ export default function ReadingScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ReadingToolbar chapterTitle={toolbarChapterTitle} />
+        <ReadingToolbar
+          chapterTitle={toolbarChapterTitle}
+          languageCode={languageCode}
+          bookSlug={bookSlug}
+          chapter={visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined)}
+        />
 
         {loading ? (
           <View style={styles.centered}>

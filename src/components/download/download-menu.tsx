@@ -9,10 +9,13 @@ import type { DownloadStatus } from '@/types/download';
 import { DownloadStatusOption } from './download-status-option';
 
 type DownloadMenuProps = {
+  scriptureTitle?: string;
   scriptureFileSize?: string;
   scriptureStatus?: DownloadStatus;
   scriptureProgress?: number;
   onScripturePress?: () => void;
+  scriptureDisabled?: boolean;
+  audioTitle?: string;
   audioFileSize?: string;
   audioStatus?: DownloadStatus;
   audioProgress?: number;
@@ -21,10 +24,13 @@ type DownloadMenuProps = {
 };
 
 export const DownloadMenu = memo(function DownloadMenu({
+  scriptureTitle = 'All Scripture',
   scriptureFileSize = '—',
   scriptureStatus = 'pending',
   scriptureProgress = 0,
   onScripturePress,
+  scriptureDisabled = false,
+  audioTitle = 'All Audio',
   audioFileSize = '—',
   audioStatus = 'pending',
   audioProgress = 0,
@@ -45,14 +51,14 @@ export const DownloadMenu = memo(function DownloadMenu({
       ]}>
       <Text style={[styles.title, { color: theme.textSecondary }]}>Download</Text>
       <DownloadStatusOption
-        title="All Scripture"
-        fileSize={scriptureFileSize}
-        status={scriptureStatus}
+        title={scriptureTitle}
+        fileSize={scriptureDisabled ? '—' : scriptureFileSize}
+        status={scriptureDisabled ? 'pending' : scriptureStatus}
         progress={scriptureProgress}
-        onActionPress={onScripturePress}
+        onActionPress={scriptureDisabled ? undefined : onScripturePress}
       />
       <DownloadStatusOption
-        title="All Audio"
+        title={audioTitle}
         fileSize={audioDisabled ? '—' : audioFileSize}
         status={audioDisabled ? 'pending' : audioStatus}
         progress={audioProgress}

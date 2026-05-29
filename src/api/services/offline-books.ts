@@ -3,25 +3,31 @@ import { File } from 'expo-file-system';
 import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { graphqlRequest } from '@/api/graphql/client';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { BOOK_CONTENT_QUERY } from '@/api/graphql/queries';
+import { BOOK_CONTENT_QUERY, CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import { pickRendering } from '@/api/services/resource-selection';
 import { parseWholeBookJson } from '@/api/services/whole-book-parser';
 import {
   ensureOfflineBookDirectory,
   ensureOfflineRootExists,
+  ensureOfflineScriptureDirectory,
+  getChapterHtmlFile,
   getOfflineBookDirectory,
   getWholeJsonFile,
   normalizeBookSlug,
 } from '@/constants/offline-storage';
 import {
   deleteBook as deleteBookRecord,
+  deleteScriptureChapter as deleteScriptureChapterRecord,
   getBookDownloadRecord,
   getChapterNumbersForBook,
+  getScriptureChapterRecord,
   listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
   upsertBookWithChapters,
+  upsertScriptureChapter,
 } from '@/db';
 import type { BookContentQueryResult, ResolvedBookContent } from '@/types/offline';
+import type { ChapterContentQueryResult } from '@/types/reading';
 
 function abortError(): Error {
   const error = new Error('Download aborted');
@@ -96,11 +102,37 @@ export async function loadWholeBookChapters(
   return chapters;
 }
 
+async function getOfflineChapterHtmlFromFile(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<{ html: string; bookName: string } | null> {
+  const chapterFile = getChapterHtmlFile(languageCode, bookSlug, chapter);
+  if (chapterFile.exists) {
+    const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
+    return {
+      html: await chapterFile.text(),
+      bookName: record?.bookName ?? bookSlug,
+    };
+  }
+
+  const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
+  if (!record) return null;
+
+  const file = new File(record.localPath);
+  if (!file.exists) return null;
+
+  return { html: await file.text(), bookName: record.bookName };
+}
+
 export async function getOfflineChapterHtml(
   languageCode: string,
   bookSlug: string,
   chapter: number,
 ): Promise<{ html: string; bookName: string } | null> {
+  const fromFile = await getOfflineChapterHtmlFromFile(languageCode, bookSlug, chapter);
+  if (fromFile) return fromFile;
+
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   if (!record) return null;
 
@@ -112,6 +144,168 @@ export async function getOfflineChapterHtml(
   if (!html) return null;
 
   return { html, bookName: record.bookName };
+}
+
+export async function isChapterScriptureDownloaded(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<boolean> {
+  const chapterFile = getChapterHtmlFile(languageCode, bookSlug, chapter);
+  if (chapterFile.exists) return true;
+
+  const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
+  if (record) {
+    const file = new File(record.localPath);
+    if (file.exists) return true;
+  }
+
+  const bookRecord = await getBookDownloadRecord(languageCode, bookSlug);
+  if (!bookRecord || !getWholeJsonFile(languageCode, bookSlug).exists) {
+    return false;
+  }
+
+  const chapters = await loadWholeBookChapters(languageCode, bookSlug);
+  return chapters.has(chapter);
+}
+
+export async function getChapterScriptureFileSizeBytes(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<number> {
+  const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
+  if (record) return record.byteSize;
+
+  const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
+    languageCode,
+    bookSlug,
+    chapter,
+  });
+
+  const rendering = pickRendering(data.scriptural_rendering_metadata, {
+    bookSlug,
+    requireChapter: true,
+  });
+
+  return rendering?.rendered_content.file_size_bytes ?? 0;
+}
+
+export async function getDownloadedChapterScriptureByteSize(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<number | null> {
+  const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
+  if (record) return record.byteSize;
+
+  if (await isChapterScriptureDownloaded(languageCode, bookSlug, chapter)) {
+    return getChapterScriptureFileSizeBytes(languageCode, bookSlug, chapter).catch(() => null);
+  }
+
+  return null;
+}
+
+export async function downloadChapterScripture(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+  options?: {
+    onProgress?: DownloadProgressCallback;
+    signal?: AbortSignal;
+  },
+): Promise<void> {
+  await ensureOfflineRootExists();
+
+  const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
+    languageCode,
+    bookSlug,
+    chapter,
+  });
+
+  const rendering = pickRendering(data.scriptural_rendering_metadata, {
+    bookSlug,
+    requireChapter: true,
+  });
+
+  if (!rendering?.chapter || !rendering.rendered_content.url) {
+    throw new Error('Chapter content not found');
+  }
+
+  if (options?.signal?.aborted) {
+    throw abortError();
+  }
+
+  options?.onProgress?.(0.1);
+
+  const response = await fetchRenderedContent(rendering.rendered_content.url, {
+    signal: options?.signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download chapter (${response.status})`);
+  }
+
+  const html = await response.text();
+  if (options?.signal?.aborted) {
+    throw abortError();
+  }
+
+  options?.onProgress?.(0.8);
+
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
+
+  const htmlFile = getChapterHtmlFile(languageCode, canonicalSlug, chapter);
+  const tempFile = new File(htmlFile.parentDirectory, `${htmlFile.name}.tmp`);
+  if (tempFile.exists) {
+    tempFile.delete();
+  }
+  tempFile.write(html);
+  if (htmlFile.exists) {
+    htmlFile.delete();
+  }
+  tempFile.move(htmlFile);
+
+  const byteSize = new TextEncoder().encode(html).length;
+
+  await upsertScriptureChapter({
+    languageCode,
+    bookSlug: canonicalSlug,
+    chapterNumber: chapter,
+    bookName: rendering.book_name,
+    resourceType: rendering.rendered_content.content.resource_type,
+    contentName: rendering.rendered_content.content.name,
+    sourceUrl: rendering.rendered_content.url,
+    localPath: htmlFile.uri,
+    byteSize,
+  });
+
+  options?.onProgress?.(1);
+}
+
+export async function hasStandaloneChapterScripture(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<boolean> {
+  const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
+  if (record) return true;
+  return getChapterHtmlFile(languageCode, bookSlug, chapter).exists;
+}
+
+export async function deleteChapterScripture(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<void> {
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const htmlFile = getChapterHtmlFile(languageCode, canonicalSlug, chapter);
+  if (htmlFile.exists) {
+    htmlFile.delete();
+  }
+
+  await deleteScriptureChapterRecord(languageCode, canonicalSlug, chapter);
 }
 
 export type DownloadProgressCallback = (progress: number) => void;

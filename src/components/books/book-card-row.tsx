@@ -107,7 +107,6 @@ export const BookCardRow = memo(function BookCardRow({
 
     try {
       await startDownload();
-      closeDownloadMenu();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
@@ -117,14 +116,7 @@ export const BookCardRow = memo(function BookCardRow({
         err instanceof Error ? err.message : 'Could not download book',
       );
     }
-  }, [
-    cancelDownload,
-    closeDownloadMenu,
-    deleteDownload,
-    isDownloaded,
-    isDownloading,
-    startDownload,
-  ]);
+  }, [cancelDownload, deleteDownload, isDownloaded, isDownloading, startDownload]);
 
   const handleAudioPress = useCallback(async () => {
     if (!hasAudio) return;
@@ -148,7 +140,6 @@ export const BookCardRow = memo(function BookCardRow({
 
     try {
       await startAudioDownload();
-      closeDownloadMenu();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
@@ -160,7 +151,6 @@ export const BookCardRow = memo(function BookCardRow({
     }
   }, [
     cancelAudioDownload,
-    closeDownloadMenu,
     deleteAudioDownload,
     hasAudio,
     isAudioDownloaded,

@@ -62,4 +62,20 @@ export const SCHEMA_STATEMENTS = [
   );`,
   `CREATE INDEX IF NOT EXISTS idx_audio_books_language ON audio_books(language_code);`,
   `CREATE INDEX IF NOT EXISTS idx_audio_chapters_book ON audio_chapters(audio_book_id);`,
+  `CREATE TABLE IF NOT EXISTS scripture_chapters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    language_code TEXT NOT NULL,
+    book_slug TEXT NOT NULL,
+    chapter_number INTEGER NOT NULL,
+    book_name TEXT NOT NULL,
+    resource_type TEXT,
+    content_name TEXT,
+    source_url TEXT NOT NULL,
+    local_path TEXT NOT NULL,
+    byte_size INTEGER NOT NULL DEFAULT 0,
+    downloaded_at INTEGER NOT NULL,
+    UNIQUE(language_code, book_slug, chapter_number),
+    FOREIGN KEY (language_code) REFERENCES languages(ietf_code) ON DELETE CASCADE
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_scripture_chapters_book ON scripture_chapters(language_code, book_slug);`,
 ] as const;

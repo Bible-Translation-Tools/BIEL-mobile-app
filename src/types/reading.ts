@@ -47,6 +47,7 @@ export type ApiChapterRendering = {
   chapter: number | null;
   rendered_content: {
     url: string;
+    file_size_bytes: number | null;
     content: {
       name: string;
       resource_type: string;

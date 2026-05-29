@@ -98,7 +98,6 @@ export const LanguageCardRow = memo(function LanguageCardRow({
 
     try {
       await startDownload();
-      closeDownloadMenu();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
@@ -108,14 +107,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         err instanceof Error ? err.message : 'Could not download language',
       );
     }
-  }, [
-    cancelDownload,
-    closeDownloadMenu,
-    deleteDownload,
-    isDownloaded,
-    isDownloading,
-    startDownload,
-  ]);
+  }, [cancelDownload, deleteDownload, isDownloaded, isDownloading, startDownload]);
 
   const handleAudioPress = useCallback(async () => {
     if (!hasAudio) return;
@@ -139,7 +131,6 @@ export const LanguageCardRow = memo(function LanguageCardRow({
 
     try {
       await startAudioDownload();
-      closeDownloadMenu();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
@@ -151,7 +142,6 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     }
   }, [
     cancelAudioDownload,
-    closeDownloadMenu,
     deleteAudioDownload,
     hasAudio,
     isAudioDownloaded,

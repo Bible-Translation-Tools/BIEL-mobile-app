@@ -133,6 +133,7 @@ export const CHAPTER_CONTENT_QUERY = `
       chapter
       rendered_content {
         url
+        file_size_bytes
         content {
           name
           resource_type

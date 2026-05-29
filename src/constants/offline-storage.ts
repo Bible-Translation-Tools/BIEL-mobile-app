@@ -62,3 +62,23 @@ export function ensureOfflineAudioDirectory(languageCode: string, bookSlug: stri
   }
   return dir;
 }
+
+export function getOfflineScriptureDirectory(languageCode: string, bookSlug: string): Directory {
+  return new Directory(getOfflineBookDirectory(languageCode, bookSlug), 'scripture');
+}
+
+export function getChapterHtmlFile(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): File {
+  return new File(getOfflineScriptureDirectory(languageCode, bookSlug), `ch-${chapter}.html`);
+}
+
+export function ensureOfflineScriptureDirectory(languageCode: string, bookSlug: string): Directory {
+  const dir = getOfflineScriptureDirectory(languageCode, bookSlug);
+  if (!dir.exists) {
+    dir.create({ intermediates: true, idempotent: true });
+  }
+  return dir;
+}

@@ -1,7 +1,11 @@
 import { File } from 'expo-file-system';
 
 import { graphqlRequest } from '@/api/graphql/client';
-import { AUDIO_BOOKS_FOR_LANGUAGE_QUERY, BOOK_AUDIO_FILES_QUERY } from '@/api/graphql/queries';
+import {
+  AUDIO_BOOKS_FOR_LANGUAGE_QUERY,
+  BOOK_AUDIO_FILES_QUERY,
+  CHAPTER_AUDIO_FILE_QUERY,
+} from '@/api/graphql/queries';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import {
   ensureOfflineAudioDirectory,
@@ -13,12 +17,15 @@ import {
 } from '@/constants/offline-storage';
 import {
   deleteAudioBook as deleteAudioBookRecord,
+  deleteAudioChapter as deleteAudioChapterRecord,
   getAudioBookRecord,
   listAudioChaptersForBook,
   listDownloadedAudioBookSlugs,
   listDownloadedAudioBooksForLanguage,
+  mergeAudioChapter,
   upsertAudioBookWithChapters,
 } from '@/db';
+import type { ChapterAudioQueryResult } from '@/types/audio';
 import type { AudioChapterRecord } from '@/db';
 import type {
   AudioBookManifest,
@@ -428,4 +435,177 @@ export async function deleteLanguageAudio(languageCode: string): Promise<void> {
   for (const bookSlug of slugs) {
     await deleteBookAudio(languageCode, bookSlug);
   }
+}
+
+function resolveChapterAudioFromQuery(
+  data: ChapterAudioQueryResult,
+): { mp3Url?: string; mp3ByteSize?: number; cueUrl?: string; cueByteSize?: number } {
+  const entry: {
+    mp3Url?: string;
+    mp3ByteSize?: number;
+    cueUrl?: string;
+    cueByteSize?: number;
+  } = {};
+
+  for (const content of data.content) {
+    for (const rendered of content.rendered_contents) {
+      if (!isContentsUrl(rendered.url)) continue;
+
+      const fileType = rendered.file_type?.toLowerCase();
+      if (fileType === 'mp3') {
+        entry.mp3Url = rendered.url;
+        entry.mp3ByteSize = rendered.file_size_bytes ?? 0;
+      } else if (fileType === 'cue') {
+        entry.cueUrl = rendered.url;
+        entry.cueByteSize = rendered.file_size_bytes ?? 0;
+      }
+    }
+  }
+
+  return entry;
+}
+
+export async function isChapterAudioDownloaded(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<boolean> {
+  const mp3File = getChapterMp3File(languageCode, bookSlug, chapter);
+  if (mp3File.exists) return true;
+
+  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
+  const record = chapters.find((item) => item.chapterNumber === chapter);
+  if (!record) return false;
+
+  const file = new File(record.mp3Path);
+  return file.exists;
+}
+
+export async function getChapterAudioTotalBytes(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<number> {
+  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
+  const record = chapters.find((item) => item.chapterNumber === chapter);
+  if (record) {
+    return record.mp3ByteSize + record.cueByteSize;
+  }
+
+  const [mp3Data, cueData] = await Promise.all([
+    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+      languageCode,
+      bookSlug,
+      chapter,
+      fileType: 'mp3',
+    }),
+    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+      languageCode,
+      bookSlug,
+      chapter,
+      fileType: 'cue',
+    }),
+  ]);
+
+  const mp3 = resolveChapterAudioFromQuery(mp3Data);
+  const cue = resolveChapterAudioFromQuery(cueData);
+  return (mp3.mp3ByteSize ?? 0) + (cue.cueByteSize ?? 0);
+}
+
+export async function getDownloadedChapterAudioByteSize(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<number | null> {
+  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
+  const record = chapters.find((item) => item.chapterNumber === chapter);
+  if (!record) return null;
+  return record.mp3ByteSize + record.cueByteSize;
+}
+
+export async function downloadChapterAudio(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+  options?: {
+    onProgress?: DownloadProgressCallback;
+    signal?: AbortSignal;
+  },
+): Promise<void> {
+  await ensureOfflineRootExists();
+
+  const [mp3Data, cueData] = await Promise.all([
+    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+      languageCode,
+      bookSlug,
+      chapter,
+      fileType: 'mp3',
+    }),
+    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+      languageCode,
+      bookSlug,
+      chapter,
+      fileType: 'cue',
+    }),
+  ]);
+
+  const mp3 = resolveChapterAudioFromQuery(mp3Data);
+  const cue = resolveChapterAudioFromQuery(cueData);
+
+  if (!mp3.mp3Url) {
+    throw new Error('No audio available for this chapter');
+  }
+
+  if (options?.signal?.aborted) {
+    throw abortError();
+  }
+
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  ensureOfflineAudioDirectory(languageCode, canonicalSlug);
+
+  options?.onProgress?.(0.1);
+
+  const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapter);
+  const mp3ByteSize = await writeBinaryFile(mp3.mp3Url, mp3File, { signal: options?.signal });
+
+  let cuePath: string | null = null;
+  let cueByteSize = 0;
+
+  if (cue.cueUrl) {
+    options?.onProgress?.(0.7);
+    const cueFile = getChapterCueFile(languageCode, canonicalSlug, chapter);
+    cueByteSize = await writeTextFile(cue.cueUrl, cueFile, { signal: options?.signal });
+    cuePath = cueFile.uri;
+  }
+
+  const manifest = await resolveBookAudioChapters(languageCode, canonicalSlug).catch(() => ({
+    bookSlug: canonicalSlug,
+    bookName: canonicalSlug,
+    chapters: [],
+  }));
+
+  await mergeAudioChapter(languageCode, canonicalSlug, manifest.bookName, {
+    chapterNumber: chapter,
+    mp3Path: mp3File.uri,
+    cuePath,
+    mp3ByteSize,
+    cueByteSize,
+  });
+
+  options?.onProgress?.(1);
+}
+
+export async function deleteChapterAudio(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<void> {
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapter);
+  const cueFile = getChapterCueFile(languageCode, canonicalSlug, chapter);
+
+  if (mp3File.exists) mp3File.delete();
+  if (cueFile.exists) cueFile.delete();
+
+  await deleteAudioChapterRecord(languageCode, canonicalSlug, chapter);
 }
