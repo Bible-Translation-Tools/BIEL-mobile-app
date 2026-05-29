@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -37,7 +37,7 @@ export const BookCardRow = memo(function BookCardRow({
   onDownloadStatusChange,
 }: BookCardRowProps) {
   const theme = useTheme();
-  const isDownloaded = book.downloadStatus === 'downloaded';
+  const isScriptureDownloaded = book.downloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -64,6 +64,8 @@ export const BookCardRow = memo(function BookCardRow({
     onComplete: onDownloadStatusChange,
   });
 
+  const isFullyDownloaded = isScriptureDownloaded && (!hasAudio || isAudioDownloaded);
+
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setMenuAnchor({ x, y, width, height });
@@ -78,14 +80,19 @@ export const BookCardRow = memo(function BookCardRow({
 
   const handleDeletePress = useCallback(async () => {
     try {
-      await deleteDownload();
+      if (isAudioDownloaded) {
+        await deleteAudioDownload();
+      }
+      if (isScriptureDownloaded) {
+        await deleteDownload();
+      }
     } catch (err) {
       Alert.alert(
         'Delete failed',
-        err instanceof Error ? err.message : 'Could not remove downloaded book',
+        err instanceof Error ? err.message : 'Could not remove downloaded content',
       );
     }
-  }, [deleteDownload]);
+  }, [deleteAudioDownload, deleteDownload, isAudioDownloaded, isScriptureDownloaded]);
 
   const handleScripturePress = useCallback(async () => {
     if (isDownloading) {
@@ -93,7 +100,7 @@ export const BookCardRow = memo(function BookCardRow({
       return;
     }
 
-    if (isDownloaded) {
+    if (isScriptureDownloaded) {
       try {
         await deleteDownload();
       } catch (err) {
@@ -116,7 +123,21 @@ export const BookCardRow = memo(function BookCardRow({
         err instanceof Error ? err.message : 'Could not download book',
       );
     }
-  }, [cancelDownload, deleteDownload, isDownloaded, isDownloading, startDownload]);
+  }, [cancelDownload, deleteDownload, isScriptureDownloaded, isDownloading, startDownload]);
+
+  const isAnyDownloadActive = isDownloading || isAudioDownloading;
+
+  const handleDownloadButtonPress = useCallback(() => {
+    if (isAnyDownloadActive) {
+      openDownloadMenu();
+      return;
+    }
+    if (isFullyDownloaded) {
+      handleDeletePress();
+      return;
+    }
+    openDownloadMenu();
+  }, [handleDeletePress, isAnyDownloadActive, isFullyDownloaded, openDownloadMenu]);
 
   const handleAudioPress = useCallback(async () => {
     if (!hasAudio) return;
@@ -170,7 +191,7 @@ export const BookCardRow = memo(function BookCardRow({
   const header = (
     <View style={styles.header}>
       <View style={styles.titleGroup}>
-        {isDownloaded ? (
+        {isFullyDownloaded ? (
           <IconSymbol
             name={{
               ios: 'checkmark.circle.fill',
@@ -242,12 +263,18 @@ export const BookCardRow = memo(function BookCardRow({
             styles.downloadCard,
             { opacity: pressed ? 0.9 : 1 },
           ]}
-          onPress={isDownloaded ? handleDeletePress : openDownloadMenu}
+          onPress={handleDownloadButtonPress}
           accessibilityRole="button"
           accessibilityLabel={
-            isDownloaded ? `Delete ${book.name}` : `Download ${book.name}`
+            isAnyDownloadActive
+              ? `Download in progress for ${book.name}`
+              : isFullyDownloaded
+                ? `Delete ${book.name}`
+                : `Download ${book.name}`
           }>
-          {isDownloaded ? (
+          {isAnyDownloadActive ? (
+            <ActivityIndicator size="small" color={theme.tabActive} />
+          ) : isFullyDownloaded ? (
             <IconSymbol
               name={{ ios: 'trash', android: 'delete', web: 'delete' }}
               size={24}
@@ -273,7 +300,7 @@ export const BookCardRow = memo(function BookCardRow({
         onClose={closeDownloadMenu}
         menuProps={{
           scriptureFileSize: fileSizeLabel ?? '—',
-          scriptureStatus: resolveDownloadStatus(isDownloading, isDownloaded),
+          scriptureStatus: resolveDownloadStatus(isDownloading, isScriptureDownloaded),
           scriptureProgress: progress,
           onScripturePress: handleScripturePress,
           audioFileSize: audioFileSizeLabel ?? '—',
