@@ -82,16 +82,30 @@ export function useReaderScroll(
       let initialChapters: ChapterContent[];
 
       if (previous != null) {
-        const [previousContent, currentContent] = await Promise.all([
-          fetchChapterContent(languageCode, bookSlug, previous),
-          fetchChapterContent(languageCode, bookSlug, initialChapter),
-        ]);
-        initialChapters = [previousContent, currentContent];
-        setInitialScrollIndex(1);
+        const currentContent = await fetchChapterContent(
+          languageCode,
+          bookSlug,
+          initialChapter,
+        );
 
-        const beforePrevious = getPreviousChapterNumber(numbers, previous);
-        if (beforePrevious != null) {
-          prefetchChapter(beforePrevious, 'prev');
+        let previousContent: ChapterContent | null = null;
+        try {
+          previousContent = await fetchChapterContent(languageCode, bookSlug, previous);
+        } catch {
+          // Previous chapter may not be available offline when only this chapter was downloaded.
+        }
+
+        if (previousContent != null) {
+          initialChapters = [previousContent, currentContent];
+          setInitialScrollIndex(1);
+
+          const beforePrevious = getPreviousChapterNumber(numbers, previous);
+          if (beforePrevious != null) {
+            prefetchChapter(beforePrevious, 'prev');
+          }
+        } else {
+          initialChapters = [currentContent];
+          setInitialScrollIndex(0);
         }
       } else {
         const currentContent = await fetchChapterContent(

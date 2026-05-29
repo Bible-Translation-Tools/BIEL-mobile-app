@@ -666,3 +666,19 @@ export async function deleteScriptureChapter(
     [languageCode, bookSlug, chapterNumber],
   );
 }
+
+export async function listScriptureChapterNumbersForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<number[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ chapter_number: number }>(
+    `SELECT chapter_number
+     FROM scripture_chapters
+     WHERE language_code = ? AND book_slug = ? COLLATE NOCASE
+     ORDER BY chapter_number ASC`,
+    languageCode,
+    bookSlug,
+  );
+  return rows.map((row) => row.chapter_number);
+}

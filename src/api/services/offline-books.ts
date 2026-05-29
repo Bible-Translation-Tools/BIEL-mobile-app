@@ -23,6 +23,7 @@ import {
   getScriptureChapterRecord,
   listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
+  listScriptureChapterNumbersForBook,
   upsertBookWithChapters,
   upsertScriptureChapter,
 } from '@/db';
@@ -412,10 +413,23 @@ export async function getOfflineChapterNumbers(
   languageCode: string,
   bookSlug: string,
 ): Promise<number[]> {
-  if (!(await isBookDownloaded(languageCode, bookSlug))) {
-    return [];
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const numbers = new Set<number>();
+
+  if (await isBookDownloaded(languageCode, bookSlug)) {
+    for (const chapterNumber of await getChapterNumbersForBook(languageCode, canonicalSlug)) {
+      numbers.add(chapterNumber);
+    }
   }
-  return getChapterNumbersForBook(languageCode, normalizeBookSlug(bookSlug));
+
+  for (const chapterNumber of await listScriptureChapterNumbersForBook(
+    languageCode,
+    canonicalSlug,
+  )) {
+    numbers.add(chapterNumber);
+  }
+
+  return [...numbers].sort((a, b) => a - b);
 }
 
 export async function getDownloadedBookByteSize(
