@@ -101,8 +101,7 @@ export function useBookDownload({
   const deleteDownload = useCallback(async () => {
     if (!languageCode || !bookSlug) return;
     await deleteBookScripture(languageCode, bookSlug);
-    const remoteBytes = await getBookScriptureFileSizeBytes(languageCode, bookSlug);
-    setFileSizeLabel(formatByteSize(remoteBytes));
+    setFileSizeLabel(null);
     onComplete?.();
   }, [bookSlug, languageCode, onComplete]);
 
