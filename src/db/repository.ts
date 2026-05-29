@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import { isOldTestament } from '@/constants/bible-books';
 import type { BookItem, Testament } from '@/types/book';
 
-import { DATABASE_NAME, MIGRATION_V2_STATEMENTS, MIGRATIONS, SCHEMA_VERSION } from './schema';
+import { DATABASE_NAME, SCHEMA_STATEMENTS } from './schema';
 
 export type BookDownloadRecord = {
   id: number;
@@ -43,23 +43,7 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
 
 export async function initDatabase(): Promise<void> {
   const db = await getDb();
-  await db.execAsync(MIGRATIONS.join('\n'));
-
-  const row = await db.getFirstAsync<{ version: number }>(
-    'SELECT version FROM schema_version LIMIT 1',
-  );
-  const currentVersion = row?.version ?? 0;
-
-  if (currentVersion < SCHEMA_VERSION) {
-    if (currentVersion < 2) {
-      await db.execAsync(MIGRATION_V2_STATEMENTS.join('\n'));
-    }
-    if (!row) {
-      await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', SCHEMA_VERSION);
-    } else {
-      await db.runAsync('UPDATE schema_version SET version = ?', SCHEMA_VERSION);
-    }
-  }
+  await db.execAsync(SCHEMA_STATEMENTS.join('\n'));
 }
 
 export async function getBookDownloadRecord(
@@ -196,22 +180,18 @@ export async function upsertBookCatalogEntry(
   languageCode: string,
   book: Pick<BookItem, 'slug' | 'name' | 'testament'>,
 ): Promise<void> {
-  try {
-    const db = await getDb();
-    await db.runAsync(
-      `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT(language_code, book_slug) DO UPDATE SET
-         book_name = excluded.book_name,
-         testament = excluded.testament`,
-      languageCode,
-      book.slug,
-      book.name,
-      book.testament,
-    );
-  } catch {
-    // book_catalog may not exist before migration v2
-  }
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(language_code, book_slug) DO UPDATE SET
+       book_name = excluded.book_name,
+       testament = excluded.testament`,
+    languageCode,
+    book.slug,
+    book.name,
+    book.testament,
+  );
 }
 
 export async function listDownloadedBookSlugs(languageCode: string): Promise<string[]> {

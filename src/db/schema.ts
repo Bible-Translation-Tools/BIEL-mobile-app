@@ -1,10 +1,7 @@
 export const DATABASE_NAME = 'biel-offline.db';
 
-export const MIGRATIONS = [
+export const SCHEMA_STATEMENTS = [
   `PRAGMA foreign_keys = ON;`,
-  `CREATE TABLE IF NOT EXISTS schema_version (
-    version INTEGER NOT NULL
-  );`,
   `CREATE TABLE IF NOT EXISTS languages (
     ietf_code TEXT PRIMARY KEY NOT NULL,
     english_name TEXT,
@@ -34,20 +31,6 @@ export const MIGRATIONS = [
   );`,
   `CREATE INDEX IF NOT EXISTS idx_books_language ON books(language_code);`,
   `CREATE INDEX IF NOT EXISTS idx_chapters_book ON chapters(book_id);`,
-  `CREATE TABLE IF NOT EXISTS book_catalog (
-    language_code TEXT NOT NULL,
-    book_slug TEXT NOT NULL,
-    book_name TEXT NOT NULL,
-    testament TEXT NOT NULL,
-    PRIMARY KEY (language_code, book_slug)
-  );`,
-  `CREATE INDEX IF NOT EXISTS idx_book_catalog_language ON book_catalog(language_code);`,
-] as const;
-
-export const SCHEMA_VERSION = 2;
-
-/** For databases created before book_catalog existed. */
-export const MIGRATION_V2_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS book_catalog (
     language_code TEXT NOT NULL,
     book_slug TEXT NOT NULL,

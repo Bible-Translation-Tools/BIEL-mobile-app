@@ -59,20 +59,16 @@ flowchart TB
 
 On app start, [`src/app/_layout.tsx`](../src/app/_layout.tsx) runs:
 
-1. `initDatabase()` — create/migrate SQLite schema
+1. `initDatabase()` — create SQLite schema if missing
 2. `ensureOfflineRootExists()` — create `document/biel-offline/` if missing
 
 ## SQLite database
 
 **Module:** [`src/db/`](../src/db/)  
 **Database file:** `biel-offline.db` (app documents directory)  
-**Schema version:** `2` ([`src/db/schema.ts`](../src/db/schema.ts))
+**Schema:** [`src/db/schema.ts`](../src/db/schema.ts) — applied once at startup via `CREATE TABLE IF NOT EXISTS`
 
 ### Tables
-
-#### `schema_version`
-
-Tracks applied migrations (`version` integer).
 
 #### `languages`
 
@@ -133,18 +129,13 @@ Cached **full book list** for a language (from a successful online `BooksForLang
 
 Also updated via `upsertBookCatalogEntry` when a single book is downloaded (so that book appears offline even if the full catalog was never cached).
 
-### Migrations
-
-- **v1:** `languages`, `books`, `chapters`
-- **v2:** `book_catalog` (+ index). Applied in `initDatabase()` when `schema_version < 2` ([`MIGRATION_V2_STATEMENTS`](../src/db/schema.ts)).
-
 ### Repository API
 
 Public exports from [`src/db/index.ts`](../src/db/index.ts) / [`src/db/repository.ts`](../src/db/repository.ts):
 
 | Function | Purpose |
 |----------|---------|
-| `initDatabase()` | Run migrations |
+| `initDatabase()` | Create tables/indexes if missing |
 | `getBookDownloadRecord(languageCode, bookSlug)` | Single download row |
 | `listDownloadedBookSlugs(languageCode)` | Slugs for download UI badges |
 | `listDownloadedBooksForLanguage(languageCode)` | Full download records |
@@ -385,7 +376,7 @@ sequenceDiagram
 
 | Path | Role |
 |------|------|
-| `src/db/schema.ts` | Table definitions, migration v2 |
+| `src/db/schema.ts` | Table definitions |
 | `src/db/repository.ts` | All SQL access |
 | `src/constants/offline-storage.ts` | File paths |
 | `src/api/graphql/queries.ts` | GraphQL query strings |
@@ -401,7 +392,7 @@ sequenceDiagram
 
 ## Operational notes
 
-- **Restart after schema updates:** A full app restart (not only Fast Refresh) ensures migration v2 creates `book_catalog` on devices that installed v1 earlier.
+- **Schema changes during development:** Uninstall the app or clear app storage to delete `biel-offline.db`, then relaunch. `CREATE TABLE IF NOT EXISTS` does not alter existing tables.
 - **Catalog vs downloaded-only offline:** If the user never opened a language online after catalog caching existed, offline book list shows **downloaded books only** until a successful online `BooksForLanguage` fetch.
 - **Web:** `expo-sqlite` on web may need extra Metro/COOP configuration; primary target is iOS/Android (Expo Go).
 - **Audio:** Chapter audio is not part of this offline path; download menu “All Audio” is not wired to offline storage yet.
