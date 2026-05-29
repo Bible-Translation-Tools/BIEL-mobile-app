@@ -7,8 +7,10 @@ import {
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
+import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
 import { useTheme } from '@/hooks/use-theme';
+import { resolveDownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
 
 type LanguageCardRowProps = {
@@ -25,6 +27,8 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   const theme = useTheme();
   const isDownloaded = language.downloadStatus === 'downloaded';
   const canDownloadText = language.hasText;
+  const canDownloadAudio = language.hasAudio;
+  const canDownload = canDownloadText || canDownloadAudio;
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -35,6 +39,21 @@ export const LanguageCardRow = memo(function LanguageCardRow({
       enabled: canDownloadText,
       onComplete: onDownloadStatusChange,
     });
+
+  const {
+    isDownloading: isAudioDownloading,
+    progress: audioProgress,
+    fileSizeLabel: audioFileSizeLabel,
+    isDownloaded: isAudioDownloaded,
+    hasAudio,
+    startDownload: startAudioDownload,
+    cancelDownload: cancelAudioDownload,
+    deleteDownload: deleteAudioDownload,
+  } = useLanguageAudioDownload({
+    languageCode: language.code,
+    enabled: canDownloadAudio,
+    onComplete: onDownloadStatusChange,
+  });
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -65,6 +84,18 @@ export const LanguageCardRow = memo(function LanguageCardRow({
       return;
     }
 
+    if (isDownloaded) {
+      try {
+        await deleteDownload();
+      } catch (err) {
+        Alert.alert(
+          'Delete failed',
+          err instanceof Error ? err.message : 'Could not remove downloaded books',
+        );
+      }
+      return;
+    }
+
     try {
       await startDownload();
       closeDownloadMenu();
@@ -77,16 +108,65 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         err instanceof Error ? err.message : 'Could not download language',
       );
     }
-  }, [cancelDownload, closeDownloadMenu, isDownloading, startDownload]);
+  }, [
+    cancelDownload,
+    closeDownloadMenu,
+    deleteDownload,
+    isDownloaded,
+    isDownloading,
+    startDownload,
+  ]);
+
+  const handleAudioPress = useCallback(async () => {
+    if (!hasAudio) return;
+
+    if (isAudioDownloading) {
+      cancelAudioDownload();
+      return;
+    }
+
+    if (isAudioDownloaded) {
+      try {
+        await deleteAudioDownload();
+      } catch (err) {
+        Alert.alert(
+          'Delete failed',
+          err instanceof Error ? err.message : 'Could not remove downloaded audio',
+        );
+      }
+      return;
+    }
+
+    try {
+      await startAudioDownload();
+      closeDownloadMenu();
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      Alert.alert(
+        'Download failed',
+        err instanceof Error ? err.message : 'Could not download audio',
+      );
+    }
+  }, [
+    cancelAudioDownload,
+    closeDownloadMenu,
+    deleteAudioDownload,
+    hasAudio,
+    isAudioDownloaded,
+    isAudioDownloading,
+    startAudioDownload,
+  ]);
 
   const handleDownloadPress = useCallback(() => {
-    if (!canDownloadText) return;
+    if (!canDownload) return;
     if (isDownloaded) {
       handleDeletePress();
       return;
     }
     openDownloadMenu();
-  }, [canDownloadText, handleDeletePress, isDownloaded, openDownloadMenu]);
+  }, [canDownload, handleDeletePress, isDownloaded, openDownloadMenu]);
 
   const cardStyle = [
     styles.card,
@@ -141,7 +221,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         />
       </Pressable>
 
-      {canDownloadText ? (
+      {canDownload ? (
         <View ref={downloadAnchorRef} collapsable={false}>
           <Pressable
             style={({ pressed }) => [
@@ -183,9 +263,14 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         onClose={closeDownloadMenu}
         menuProps={{
           scriptureFileSize: fileSizeLabel ?? '—',
-          scriptureState: isDownloading ? 'downloading' : 'default',
+          scriptureStatus: resolveDownloadStatus(isDownloading, isDownloaded),
           scriptureProgress: progress,
-          onScripturePress: handleScripturePress,
+          onScripturePress: canDownloadText ? handleScripturePress : undefined,
+          audioFileSize: audioFileSizeLabel ?? '—',
+          audioStatus: resolveDownloadStatus(isAudioDownloading, isAudioDownloaded),
+          audioProgress,
+          onAudioPress: handleAudioPress,
+          audioDisabled: !hasAudio,
         }}
       />
     </View>

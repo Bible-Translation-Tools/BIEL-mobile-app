@@ -1,15 +1,27 @@
 export {
+  deleteAudioBook,
   deleteBook,
+  getAudioBookRecord,
   getBookCatalogCountsByLanguage,
   getBookDownloadRecord,
   getChapterNumbersForBook,
   getDownloadedBookCountsByLanguage,
   initDatabase,
+  listAudioChaptersForBook,
   listBookCatalog,
+  listDownloadedAudioBookSlugs,
+  listDownloadedAudioBooksForLanguage,
   listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
   replaceBookCatalog,
+  upsertAudioBookWithChapters,
   upsertBookCatalogEntry,
   upsertBookWithChapters,
 } from './repository';
-export type { BookDownloadRecord, UpsertBookParams } from './repository';
+export type {
+  AudioBookDownloadRecord,
+  AudioChapterRecord,
+  BookDownloadRecord,
+  UpsertAudioBookParams,
+  UpsertBookParams,
+} from './repository';

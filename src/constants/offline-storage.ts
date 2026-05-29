@@ -34,3 +34,31 @@ export async function ensureOfflineRootExists(): Promise<void> {
     root.create({ intermediates: true, idempotent: true });
   }
 }
+
+export function getOfflineAudioDirectory(languageCode: string, bookSlug: string): Directory {
+  return new Directory(getOfflineBookDirectory(languageCode, bookSlug), 'audio');
+}
+
+export function getChapterMp3File(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): File {
+  return new File(getOfflineAudioDirectory(languageCode, bookSlug), `ch-${chapter}.mp3`);
+}
+
+export function getChapterCueFile(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): File {
+  return new File(getOfflineAudioDirectory(languageCode, bookSlug), `ch-${chapter}.cue`);
+}
+
+export function ensureOfflineAudioDirectory(languageCode: string, bookSlug: string): Directory {
+  const dir = getOfflineAudioDirectory(languageCode, bookSlug);
+  if (!dir.exists) {
+    dir.create({ intermediates: true, idempotent: true });
+  }
+  return dir;
+}

@@ -7,9 +7,11 @@ import {
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
+import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
+import { resolveDownloadStatus } from '@/types/download';
 
 import { ChapterGrid } from './chapter-grid';
 
@@ -47,6 +49,21 @@ export const BookCardRow = memo(function BookCardRow({
       onComplete: onDownloadStatusChange,
     });
 
+  const {
+    isDownloading: isAudioDownloading,
+    progress: audioProgress,
+    fileSizeLabel: audioFileSizeLabel,
+    isDownloaded: isAudioDownloaded,
+    hasAudio,
+    startDownload: startAudioDownload,
+    cancelDownload: cancelAudioDownload,
+    deleteDownload: deleteAudioDownload,
+  } = useBookAudioDownload({
+    languageCode,
+    bookSlug: book.slug,
+    onComplete: onDownloadStatusChange,
+  });
+
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setMenuAnchor({ x, y, width, height });
@@ -76,6 +93,18 @@ export const BookCardRow = memo(function BookCardRow({
       return;
     }
 
+    if (isDownloaded) {
+      try {
+        await deleteDownload();
+      } catch (err) {
+        Alert.alert(
+          'Delete failed',
+          err instanceof Error ? err.message : 'Could not remove downloaded book',
+        );
+      }
+      return;
+    }
+
     try {
       await startDownload();
       closeDownloadMenu();
@@ -88,7 +117,56 @@ export const BookCardRow = memo(function BookCardRow({
         err instanceof Error ? err.message : 'Could not download book',
       );
     }
-  }, [cancelDownload, closeDownloadMenu, isDownloading, startDownload]);
+  }, [
+    cancelDownload,
+    closeDownloadMenu,
+    deleteDownload,
+    isDownloaded,
+    isDownloading,
+    startDownload,
+  ]);
+
+  const handleAudioPress = useCallback(async () => {
+    if (!hasAudio) return;
+
+    if (isAudioDownloading) {
+      cancelAudioDownload();
+      return;
+    }
+
+    if (isAudioDownloaded) {
+      try {
+        await deleteAudioDownload();
+      } catch (err) {
+        Alert.alert(
+          'Delete failed',
+          err instanceof Error ? err.message : 'Could not remove downloaded audio',
+        );
+      }
+      return;
+    }
+
+    try {
+      await startAudioDownload();
+      closeDownloadMenu();
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      Alert.alert(
+        'Download failed',
+        err instanceof Error ? err.message : 'Could not download audio',
+      );
+    }
+  }, [
+    cancelAudioDownload,
+    closeDownloadMenu,
+    deleteAudioDownload,
+    hasAudio,
+    isAudioDownloaded,
+    isAudioDownloading,
+    startAudioDownload,
+  ]);
 
   const cardStyle = [
     styles.card,
@@ -205,9 +283,14 @@ export const BookCardRow = memo(function BookCardRow({
         onClose={closeDownloadMenu}
         menuProps={{
           scriptureFileSize: fileSizeLabel ?? '—',
-          scriptureState: isDownloading ? 'downloading' : 'default',
+          scriptureStatus: resolveDownloadStatus(isDownloading, isDownloaded),
           scriptureProgress: progress,
           onScripturePress: handleScripturePress,
+          audioFileSize: audioFileSizeLabel ?? '—',
+          audioStatus: resolveDownloadStatus(isAudioDownloading, isAudioDownloaded),
+          audioProgress,
+          onAudioPress: handleAudioPress,
+          audioDisabled: !hasAudio,
         }}
       />
     </View>

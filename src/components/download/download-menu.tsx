@@ -4,20 +4,32 @@ import { StyleSheet, Text, View } from 'react-native';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { DownloadStatusOption, type DownloadStatusState } from './download-status-option';
+import type { DownloadStatus } from '@/types/download';
+
+import { DownloadStatusOption } from './download-status-option';
 
 type DownloadMenuProps = {
   scriptureFileSize?: string;
-  scriptureState?: DownloadStatusState;
+  scriptureStatus?: DownloadStatus;
   scriptureProgress?: number;
   onScripturePress?: () => void;
+  audioFileSize?: string;
+  audioStatus?: DownloadStatus;
+  audioProgress?: number;
+  onAudioPress?: () => void;
+  audioDisabled?: boolean;
 };
 
 export const DownloadMenu = memo(function DownloadMenu({
   scriptureFileSize = '—',
-  scriptureState = 'default',
+  scriptureStatus = 'pending',
   scriptureProgress = 0,
   onScripturePress,
+  audioFileSize = '—',
+  audioStatus = 'pending',
+  audioProgress = 0,
+  onAudioPress,
+  audioDisabled = false,
 }: DownloadMenuProps) {
   const theme = useTheme();
 
@@ -35,11 +47,17 @@ export const DownloadMenu = memo(function DownloadMenu({
       <DownloadStatusOption
         title="All Scripture"
         fileSize={scriptureFileSize}
-        state={scriptureState}
+        status={scriptureStatus}
         progress={scriptureProgress}
         onActionPress={onScripturePress}
       />
-      <DownloadStatusOption title="All Audio" fileSize="—" />
+      <DownloadStatusOption
+        title="All Audio"
+        fileSize={audioDisabled ? '—' : audioFileSize}
+        status={audioDisabled ? 'pending' : audioStatus}
+        progress={audioProgress}
+        onActionPress={audioDisabled ? undefined : onAudioPress}
+      />
     </View>
   );
 });

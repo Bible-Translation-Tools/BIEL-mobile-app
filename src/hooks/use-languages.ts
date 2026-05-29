@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchLanguages } from '@/api/services/languages';
 import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage } from '@/db';
-import type { DownloadStatus, LanguageItem } from '@/types/language';
+import type { DownloadStatus } from '@/types/download';
+import type { LanguageItem } from '@/types/language';
 
 function applyLanguageDownloadStatus(
   items: LanguageItem[],

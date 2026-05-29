@@ -105,6 +105,8 @@ export const DownloadMenuLayout = {
   optionMinHeight: 77,
   progressHeight: 4,
   iconSize: 28,
+  deleteIconSize: 24,
+  progressSuccessTrack: '#eef0ff',
   menuMaxWidth: 342,
   anchorGap: 8,
   screenPadding: 16,

@@ -9,7 +9,7 @@ Offline scripture uses two storage layers:
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | **Metadata** | SQLite (`expo-sqlite`, file `biel-offline.db`) | Languages, downloaded books, chapter lists, cached book catalog |
-| **Content** | File system (`expo-file-system`) | `whole.json` per book (HTML chapters inside JSON) |
+| **Content** | File system (`expo-file-system`) | `whole.json` per book (scripture); `audio/ch-{n}.mp3` + `.cue` per chapter |
 
 The GraphQL API at `https://api.bibleineverylanguage.org/v1/graphql` resolves URLs and metadata. Actual book text is fetched from `read.bibletranslationtools.org` (requires a specific `Referer` header — see [Content fetching](#content-fetching)).
 
@@ -129,6 +129,15 @@ Cached **full book list** for a language (from a successful online `BooksForLang
 
 Also updated via `upsertBookCatalogEntry` when a single book is downloaded (so that book appears offline even if the full catalog was never cached).
 
+#### `audio_books` / `audio_chapters`
+
+Separate from scripture `books` / `chapters`. One `audio_books` row per book with downloaded audio; `audio_chapters` stores local `file://` paths and byte sizes for each chapter’s MP3 (and optional CUE).
+
+| Table | Purpose |
+|-------|---------|
+| `audio_books` | Per-book audio download metadata (`language_code`, `book_slug`, `byte_size`, …) |
+| `audio_chapters` | Per chapter: `mp3_path`, `cue_path`, byte sizes |
+
 ### Repository API
 
 Public exports from [`src/db/index.ts`](../src/db/index.ts) / [`src/db/repository.ts`](../src/db/repository.ts):
@@ -145,6 +154,8 @@ Public exports from [`src/db/index.ts`](../src/db/index.ts) / [`src/db/repositor
 | `upsertBookWithChapters(params)` | Save download + chapters + catalog entry |
 | `deleteBook(languageCode, bookSlug)` | Remove DB rows (files deleted separately) |
 | `getChapterNumbersForBook(languageCode, bookSlug)` | Ordered chapter numbers |
+| `getAudioBookRecord` / `upsertAudioBookWithChapters` / `deleteAudioBook` | Audio download metadata |
+| `listDownloadedAudioBookSlugs` / `listAudioChaptersForBook` | Audio download UI + playback |
 
 ## File storage
 
@@ -152,6 +163,8 @@ Public exports from [`src/db/index.ts`](../src/db/index.ts) / [`src/db/repositor
 
 ```
 {documentDirectory}/biel-offline/{languageCode}/{BOOK_SLUG}/whole.json
+{documentDirectory}/biel-offline/{languageCode}/{BOOK_SLUG}/audio/ch-{chapter}.mp3
+{documentDirectory}/biel-offline/{languageCode}/{BOOK_SLUG}/audio/ch-{chapter}.cue
 ```
 
 - `BOOK_SLUG` is normalized to **uppercase** (`normalizeBookSlug`).
@@ -174,6 +187,9 @@ An in-memory cache (`wholeBookCache` in [`offline-books.ts`](../src/api/services
 | `BooksForLanguage` | `BOOKS_FOR_LANGUAGE_QUERY` | Book list (online) + catalog cache |
 | `ChaptersForBook` | `CHAPTERS_FOR_BOOK_QUERY` | Chapter grid when book not downloaded |
 | `ChapterContent` | `CHAPTER_CONTENT_QUERY` | Online-only per-chapter HTML fallback |
+| `BookAudioFiles` | `BOOK_AUDIO_FILES_QUERY` | All chapter MP3/CUE URLs for a book |
+| `AudioBooksForLanguage` | `AUDIO_BOOKS_FOR_LANGUAGE_QUERY` | Books with audio in a language |
+| `ChapterAudioFile` | `CHAPTER_AUDIO_FILE_QUERY` | Single-chapter MP3/CUE (online fallback) |
 
 ### `BookContent` filters
 
@@ -255,6 +271,21 @@ Chapter HTML is passed to the same pipeline as online chapters: `buildChapterCon
 - Invalid JSON / HTML / USFM body → specific error messages
 - No chapters after parse → `Downloaded book has no chapters`
 
+### `offline-audio.ts`
+
+**Download hierarchy:** chapter (MP3 + optional CUE) → book (`downloadBookAudio` loops all chapters) → language (`downloadLanguageAudio` loops all books with audio).
+
+| Function | Behavior |
+|----------|----------|
+| `resolveBookAudioChapters` | `BookAudioFiles` query → chapter manifest |
+| `resolveLanguageAudioBooks` | Distinct books with audio for a language |
+| `downloadBookAudio` | Fetch each chapter MP3/CUE → write under `audio/` → `upsertAudioBookWithChapters` |
+| `deleteBookAudio` | Remove `audio/` directory + DB rows |
+| `downloadLanguageAudio` | For each incomplete audio book, call `downloadBookAudio` |
+| `deleteLanguageAudio` | Delete audio for all downloaded books in language |
+| `getOfflineChapterAudioUri` / `getOfflineChapterCueText` | Local paths for playback |
+| `isBookAudioDownloaded` | DB row + all MP3 files exist |
+
 ### `books.ts`
 
 | Function | Behavior |
@@ -299,6 +330,20 @@ Download status (`pending` / `downloaded`) is merged via `listDownloadedBookSlug
 - `downloadBookScripture` with progress callback and `AbortController` cancel.
 - `deleteBookScripture` on trash icon when book is downloaded.
 
+### Book audio download — `useBookAudioDownload`
+
+[`src/hooks/use-book-audio-download.ts`](../src/hooks/use-book-audio-download.ts)
+
+- Wired to download menu **All Audio** (scripture checkmark/trash unchanged).
+- Tap **All Audio**: start download; while downloading, tap cancels; when complete, tap deletes audio.
+
+### Language audio download — `useLanguageAudioDownload`
+
+[`src/hooks/use-language-audio-download.ts`](../src/hooks/use-language-audio-download.ts)
+
+- Home screen **All Audio**: downloads every book → every chapter for that language.
+- Language download button shown when `hasText || hasAudio`.
+
 ### Route params
 
 [`src/utils/route-params.ts`](../src/utils/route-params.ts) — `normalizeRouteParam()` ensures `languageCode` from expo-router is a single string (not `string[]`).
@@ -330,6 +375,29 @@ sequenceDiagram
   Off->>DB: upsertBookWithChapters + catalog entry
   Off-->>Hook: done
   Hook->>UI: refreshDownloadStatus
+```
+
+### Download book audio (All Audio)
+
+```mermaid
+sequenceDiagram
+  participant UI as BookCardRow
+  participant Hook as useBookAudioDownload
+  participant Off as offline-audio
+  participant GQL as GraphQL API
+  participant CDN as CDN
+  participant DB as SQLite
+  participant FS as File system
+
+  UI->>Hook: startDownload
+  Hook->>Off: downloadBookAudio
+  Off->>GQL: BookAudioFiles query
+  GQL-->>Off: chapter MP3/CUE URLs
+  loop each chapter
+    Off->>CDN: GET mp3 + cue
+    Off->>FS: write audio/ch-N.*
+  end
+  Off->>DB: upsertAudioBookWithChapters
 ```
 
 ### Read chapter offline
@@ -388,14 +456,19 @@ sequenceDiagram
 | `src/api/services/resource-selection.ts` | ulb/udb/reg priority |
 | `src/api/services/whole-book-parser.ts` | `whole.json` → chapter map |
 | `src/hooks/use-books.ts` | Book list state |
-| `src/hooks/use-book-download.ts` | Download UI state |
+| `src/hooks/use-book-download.ts` | Scripture download UI state |
+| `src/hooks/use-book-audio-download.ts` | Book audio download UI state |
+| `src/hooks/use-language-audio-download.ts` | Language audio download UI state |
+| `src/api/services/offline-audio.ts` | Audio download / delete / offline read |
+| `src/api/services/audio.ts` | Chapter audio (offline-first) |
 
 ## Operational notes
 
 - **Schema changes during development:** Uninstall the app or clear app storage to delete `biel-offline.db`, then relaunch. `CREATE TABLE IF NOT EXISTS` does not alter existing tables.
 - **Catalog vs downloaded-only offline:** If the user never opened a language online after catalog caching existed, offline book list shows **downloaded books only** until a successful online `BooksForLanguage` fetch.
 - **Web:** `expo-sqlite` on web may need extra Metro/COOP configuration; primary target is iOS/Android (Expo Go).
-- **Audio:** Chapter audio is not part of this offline path; download menu “All Audio” is not wired to offline storage yet.
+- **Audio vs scripture:** Audio and scripture downloads are independent. Card checkmark/trash reflect scripture only; audio is managed from the download menu.
+- **Audio playback:** [`audio.ts`](../src/api/services/audio.ts) checks local files before GraphQL/CDN.
 
 ## Dependencies
 

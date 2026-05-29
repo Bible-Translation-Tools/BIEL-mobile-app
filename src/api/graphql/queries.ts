@@ -30,6 +30,61 @@ export const BOOK_CONTENT_QUERY = `
   }
 `;
 
+export const BOOK_AUDIO_FILES_QUERY = `
+  query BookAudioFiles($languageCode: String!, $bookSlug: String!) {
+    content(
+      where: {
+        type: { _eq: "audio" }
+        language: { ietf_code: { _eq: $languageCode } }
+      }
+    ) {
+      rendered_contents(
+        where: {
+          scriptural_rendering_metadata: {
+            book_slug: { _eq: $bookSlug }
+            chapter: { _is_null: false }
+            is_whole_book: { _eq: false }
+          }
+        }
+      ) {
+        url
+        file_type
+        file_size_bytes
+        scriptural_rendering_metadata {
+          chapter
+          book_slug
+          book_name
+        }
+      }
+    }
+  }
+`;
+
+export const AUDIO_BOOKS_FOR_LANGUAGE_QUERY = `
+  query AudioBooksForLanguage($languageCode: String!) {
+    content(
+      where: {
+        type: { _eq: "audio" }
+        language: { ietf_code: { _eq: $languageCode } }
+      }
+    ) {
+      rendered_contents(
+        where: {
+          scriptural_rendering_metadata: {
+            chapter: { _is_null: false }
+            is_whole_book: { _eq: false }
+          }
+        }
+      ) {
+        scriptural_rendering_metadata {
+          book_slug
+          book_name
+        }
+      }
+    }
+  }
+`;
+
 export const CHAPTER_AUDIO_FILE_QUERY = `
   query ChapterAudioFile($languageCode: String!, $bookSlug: String!, $chapter: Int!, $fileType: String!) {
     content(
