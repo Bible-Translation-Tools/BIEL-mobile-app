@@ -1,5 +1,6 @@
 import { File } from 'expo-file-system';
 
+import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { graphqlRequest } from '@/api/graphql/client';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { BOOK_CONTENT_QUERY } from '@/api/graphql/queries';
@@ -16,6 +17,8 @@ import {
   deleteBook as deleteBookRecord,
   getBookDownloadRecord,
   getChapterNumbersForBook,
+  listDownloadedBookSlugs,
+  listDownloadedBooksForLanguage,
   upsertBookWithChapters,
 } from '@/db';
 import type { BookContentQueryResult, ResolvedBookContent } from '@/types/offline';
@@ -227,4 +230,89 @@ export async function getDownloadedBookByteSize(
 ): Promise<number | null> {
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   return record?.byteSize ?? null;
+}
+
+export async function getLanguageDownloadedByteSize(languageCode: string): Promise<number> {
+  const records = await listDownloadedBooksForLanguage(languageCode);
+  return records.reduce((sum, record) => sum + record.byteSize, 0);
+}
+
+export async function getLanguageScriptureTotalBytes(languageCode: string): Promise<number> {
+  const slugs = await resolveLanguageBookSlugs(languageCode);
+  let total = 0;
+
+  for (const bookSlug of slugs) {
+    const downloadedBytes = await getDownloadedBookByteSize(languageCode, bookSlug);
+    if (downloadedBytes != null) {
+      total += downloadedBytes;
+      continue;
+    }
+    total += await getBookScriptureFileSizeBytes(languageCode, bookSlug);
+  }
+
+  return total;
+}
+
+export async function isLanguageScriptureDownloaded(languageCode: string): Promise<boolean> {
+  const slugs = await resolveLanguageBookSlugs(languageCode);
+  if (slugs.length === 0) return false;
+
+  for (const bookSlug of slugs) {
+    if (!(await isBookDownloaded(languageCode, bookSlug))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function downloadLanguageScripture(
+  languageCode: string,
+  options?: {
+    onProgress?: DownloadProgressCallback;
+    signal?: AbortSignal;
+  },
+): Promise<void> {
+  const slugs = await resolveLanguageBookSlugs(languageCode);
+  if (slugs.length === 0) {
+    throw new Error('No books available to download for this language');
+  }
+
+  const pendingSlugs: string[] = [];
+  for (const bookSlug of slugs) {
+    if (options?.signal?.aborted) {
+      throw abortError();
+    }
+    if (!(await isBookDownloaded(languageCode, bookSlug))) {
+      pendingSlugs.push(bookSlug);
+    }
+  }
+
+  if (pendingSlugs.length === 0) {
+    options?.onProgress?.(1);
+    return;
+  }
+
+  for (let index = 0; index < pendingSlugs.length; index++) {
+    if (options?.signal?.aborted) {
+      throw abortError();
+    }
+
+    const bookSlug = pendingSlugs[index]!;
+    await downloadBookScripture(languageCode, bookSlug, {
+      signal: options?.signal,
+      onProgress: (bookProgress) => {
+        const overall = (index + bookProgress) / pendingSlugs.length;
+        options?.onProgress?.(overall);
+      },
+    });
+  }
+
+  options?.onProgress?.(1);
+}
+
+export async function deleteLanguageScripture(languageCode: string): Promise<void> {
+  const slugs = await listDownloadedBookSlugs(languageCode);
+  for (const bookSlug of slugs) {
+    await deleteBookScripture(languageCode, bookSlug);
+  }
 }

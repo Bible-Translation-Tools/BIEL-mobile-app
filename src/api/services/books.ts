@@ -85,3 +85,27 @@ export async function fetchBooksForLanguageOffline(languageCode: string): Promis
 
   return sortBooks([...bySlug.values()]);
 }
+
+/** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */
+export async function resolveLanguageBookSlugs(languageCode: string): Promise<string[]> {
+  const catalog = await listBookCatalog(languageCode);
+  if (catalog.length > 0) {
+    return catalog.map((book) => book.slug);
+  }
+
+  try {
+    const books = await fetchBooksForLanguage(languageCode);
+    if (books.length > 0) {
+      return books.map((book) => book.slug);
+    }
+  } catch {
+    // Fall through to downloaded-only list when offline.
+  }
+
+  const downloaded = await listDownloadedBooksForLanguage(languageCode).catch(() => []);
+  if (downloaded.length > 0) {
+    return downloaded.map((record) => record.bookSlug);
+  }
+
+  throw new Error('Book list unavailable. Connect to the internet and open this language first.');
+}

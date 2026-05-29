@@ -18,7 +18,7 @@ export default function HomeScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const { languages, loading, error, refetch } = useLanguages();
+  const { languages, loading, error, refetch, refreshDownloadStatus } = useLanguages();
 
   const filteredLanguages = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -79,6 +79,7 @@ export default function HomeScreen() {
           error={error}
           onRetry={refetch}
           onLanguagePress={handleLanguagePress}
+          onDownloadStatusChange={refreshDownloadStatus}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
         />

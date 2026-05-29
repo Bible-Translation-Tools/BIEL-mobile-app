@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -7,25 +7,34 @@ import {
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
+import { useLanguageDownload } from '@/hooks/use-language-download';
 import { useTheme } from '@/hooks/use-theme';
 import type { LanguageItem } from '@/types/language';
 
 type LanguageCardRowProps = {
   language: LanguageItem;
   onPress?: () => void;
-  onDownloadPress?: () => void;
+  onDownloadStatusChange?: () => void;
 };
 
 export const LanguageCardRow = memo(function LanguageCardRow({
   language,
   onPress,
-  onDownloadPress,
+  onDownloadStatusChange,
 }: LanguageCardRowProps) {
   const theme = useTheme();
   const isDownloaded = language.downloadStatus === 'downloaded';
+  const canDownloadText = language.hasText;
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+
+  const { isDownloading, progress, fileSizeLabel, startDownload, cancelDownload, deleteDownload } =
+    useLanguageDownload({
+      languageCode: language.code,
+      enabled: canDownloadText,
+      onComplete: onDownloadStatusChange,
+    });
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -38,6 +47,46 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     setMenuVisible(false);
     setMenuAnchor(null);
   }, []);
+
+  const handleDeletePress = useCallback(async () => {
+    try {
+      await deleteDownload();
+    } catch (err) {
+      Alert.alert(
+        'Delete failed',
+        err instanceof Error ? err.message : 'Could not remove downloaded books',
+      );
+    }
+  }, [deleteDownload]);
+
+  const handleScripturePress = useCallback(async () => {
+    if (isDownloading) {
+      cancelDownload();
+      return;
+    }
+
+    try {
+      await startDownload();
+      closeDownloadMenu();
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      Alert.alert(
+        'Download failed',
+        err instanceof Error ? err.message : 'Could not download language',
+      );
+    }
+  }, [cancelDownload, closeDownloadMenu, isDownloading, startDownload]);
+
+  const handleDownloadPress = useCallback(() => {
+    if (!canDownloadText) return;
+    if (isDownloaded) {
+      handleDeletePress();
+      return;
+    }
+    openDownloadMenu();
+  }, [canDownloadText, handleDeletePress, isDownloaded, openDownloadMenu]);
 
   const cardStyle = [
     styles.card,
@@ -92,34 +141,52 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         />
       </Pressable>
 
-      <View ref={downloadAnchorRef} collapsable={false}>
-        <Pressable
-          style={({ pressed }) => [
-            cardStyle,
-            styles.downloadCard,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
-          onPress={openDownloadMenu}
-          accessibilityRole="button"
-          accessibilityLabel={
-            isDownloaded ? `${language.name} downloaded` : `Download ${language.name}`
-          }>
-          <IconSymbol
-            name={
+      {canDownloadText ? (
+        <View ref={downloadAnchorRef} collapsable={false}>
+          <Pressable
+            style={({ pressed }) => [
+              cardStyle,
+              styles.downloadCard,
+              { opacity: pressed ? 0.9 : 1 },
+            ]}
+            onPress={handleDownloadPress}
+            accessibilityRole="button"
+            accessibilityLabel={
               isDownloaded
-                ? { ios: 'checkmark.circle.fill', android: 'download_done', web: 'download_done' }
-                : { ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }
-            }
-            size={28}
-            color={isDownloaded ? theme.iconSuccess : theme.iconPrimary}
-          />
-        </Pressable>
-      </View>
+                ? `Delete downloaded books for ${language.name}`
+                : `Download ${language.name}`
+            }>
+            {isDownloaded ? (
+              <IconSymbol
+                name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+                size={24}
+                color={theme.iconDanger}
+              />
+            ) : (
+              <IconSymbol
+                name={{
+                  ios: 'arrow.down.circle',
+                  android: 'file_download',
+                  web: 'file_download',
+                }}
+                size={28}
+                color={theme.iconPrimary}
+              />
+            )}
+          </Pressable>
+        </View>
+      ) : null}
 
       <DownloadMenuPopover
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        menuProps={{
+          scriptureFileSize: fileSizeLabel ?? '—',
+          scriptureState: isDownloading ? 'downloading' : 'default',
+          scriptureProgress: progress,
+          onScripturePress: handleScripturePress,
+        }}
       />
     </View>
   );

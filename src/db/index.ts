@@ -1,7 +1,9 @@
 export {
   deleteBook,
+  getBookCatalogCountsByLanguage,
   getBookDownloadRecord,
   getChapterNumbersForBook,
+  getDownloadedBookCountsByLanguage,
   initDatabase,
   listBookCatalog,
   listDownloadedBookSlugs,

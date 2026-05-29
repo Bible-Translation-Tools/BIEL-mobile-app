@@ -203,6 +203,30 @@ export async function listDownloadedBookSlugs(languageCode: string): Promise<str
   return rows.map((row) => row.book_slug);
 }
 
+export async function getDownloadedBookCountsByLanguage(): Promise<Record<string, number>> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{ language_code: string; count: number }>(
+      'SELECT language_code, COUNT(*) AS count FROM books GROUP BY language_code',
+    );
+    return Object.fromEntries(rows.map((row) => [row.language_code, row.count]));
+  } catch {
+    return {};
+  }
+}
+
+export async function getBookCatalogCountsByLanguage(): Promise<Record<string, number>> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{ language_code: string; count: number }>(
+      'SELECT language_code, COUNT(*) AS count FROM book_catalog GROUP BY language_code',
+    );
+    return Object.fromEntries(rows.map((row) => [row.language_code, row.count]));
+  } catch {
+    return {};
+  }
+}
+
 export async function getChapterNumbersForBook(
   languageCode: string,
   bookSlug: string,
