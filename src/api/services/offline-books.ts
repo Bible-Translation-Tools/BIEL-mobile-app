@@ -364,16 +364,16 @@ export async function downloadBookScripture(
   const canonicalSlug = normalizeBookSlug(bookSlug);
   ensureOfflineBookDirectory(languageCode, canonicalSlug);
 
-  const wholeFile = getWholeJsonFile(languageCode, canonicalSlug);
-  const tempFile = new File(wholeFile.parentDirectory, 'whole.json.tmp');
+  const bookJsonFile = getWholeJsonFile(languageCode, canonicalSlug);
+  const tempFile = new File(bookJsonFile.parentDirectory, 'whole.json.tmp');
   if (tempFile.exists) {
     tempFile.delete();
   }
   tempFile.write(jsonText);
-  if (wholeFile.exists) {
-    wholeFile.delete();
+  if (bookJsonFile.exists) {
+    bookJsonFile.delete();
   }
-  tempFile.move(wholeFile);
+  tempFile.move(bookJsonFile);
 
   wholeBookCache.set(cacheKey(languageCode, canonicalSlug), chapters);
 
@@ -389,7 +389,7 @@ export async function downloadBookScripture(
     resourceType: resolved.resourceType,
     contentName: resolved.contentName,
     sourceUrl: resolved.url,
-    localPath: wholeFile.uri,
+    localPath: bookJsonFile.uri,
     byteSize,
     chapterNumbers,
   });
