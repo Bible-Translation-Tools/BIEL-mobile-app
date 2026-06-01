@@ -19,13 +19,16 @@ export default function BookSelectionScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, name } = useLocalSearchParams<{
+  const { languageCode, name, hasText: hasTextParam } = useLocalSearchParams<{
     languageCode: string | string[];
     name?: string | string[];
+    hasText?: string | string[];
   }>();
 
   const ietfCode = normalizeRouteParam(languageCode);
   const languageName = normalizeRouteParam(name) ?? 'Language';
+  const hasText =
+    normalizeRouteParam(hasTextParam) !== '0' && normalizeRouteParam(hasTextParam) !== 'false';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
@@ -40,10 +43,11 @@ export default function BookSelectionScreen() {
           bookSlug: book.slug,
           bookName: book.name,
           chapter: String(chapter.number),
+          ...(hasText ? {} : { audioOnly: '1' }),
         },
       });
     },
-    [router, ietfCode],
+    [hasText, router, ietfCode],
   );
 
   const filteredBooks = useMemo(() => {
@@ -77,6 +81,7 @@ export default function BookSelectionScreen() {
         <BookList
           books={filteredBooks}
           languageCode={ietfCode}
+          audioOnly={!hasText}
           loading={loading}
           error={error}
           onRetry={refetch}

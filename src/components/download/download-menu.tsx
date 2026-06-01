@@ -22,6 +22,7 @@ type DownloadMenuProps = {
   audioProgress?: number;
   onAudioPress?: () => void;
   audioDisabled?: boolean;
+  hideScripture?: boolean;
 };
 
 export const DownloadMenu = memo(function DownloadMenu({
@@ -38,6 +39,7 @@ export const DownloadMenu = memo(function DownloadMenu({
   audioProgress = 0,
   onAudioPress,
   audioDisabled = false,
+  hideScripture = false,
 }: DownloadMenuProps) {
   const theme = useTheme();
 
@@ -52,14 +54,16 @@ export const DownloadMenu = memo(function DownloadMenu({
         styles.menuShadow,
       ]}>
       <Text style={[styles.title, { color: theme.textSecondary }]}>Download</Text>
-      <DownloadStatusOption
-        title={scriptureTitle}
-        fileSize={scriptureDisabled ? '—' : scriptureFileSize}
-        status={scriptureDisabled ? 'pending' : scriptureStatus}
-        progress={scriptureProgress}
-        onActionPress={scriptureDisabled ? undefined : onScripturePress}
-        allowDelete={allowDelete}
-      />
+      {hideScripture ? null : (
+        <DownloadStatusOption
+          title={scriptureTitle}
+          fileSize={scriptureDisabled ? '—' : scriptureFileSize}
+          status={scriptureDisabled ? 'pending' : scriptureStatus}
+          progress={scriptureProgress}
+          onActionPress={scriptureDisabled ? undefined : onScripturePress}
+          allowDelete={allowDelete}
+        />
+      )}
       <DownloadStatusOption
         title={audioTitle}
         fileSize={audioDisabled ? '—' : audioFileSize}

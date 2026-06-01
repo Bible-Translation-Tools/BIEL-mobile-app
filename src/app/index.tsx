@@ -53,7 +53,11 @@ export default function HomeScreen() {
     (language: LanguageItem) => {
       router.push({
         pathname: '/books',
-        params: { languageCode: language.code, name: language.name },
+        params: {
+          languageCode: language.code,
+          name: language.name,
+          hasText: language.hasText ? '1' : '0',
+        },
       });
     },
     [router],

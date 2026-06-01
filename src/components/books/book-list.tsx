@@ -20,6 +20,7 @@ import { BookCardRow } from './book-card-row';
 type BookListProps = {
   books: BookItem[];
   languageCode?: string;
+  audioOnly?: boolean;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -69,6 +70,7 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
 export function BookList({
   books,
   languageCode,
+  audioOnly = false,
   loading = false,
   error = null,
   onRetry,
@@ -78,7 +80,7 @@ export function BookList({
   contentContainerStyle,
 }: BookListProps) {
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
-  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode);
+  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode, audioOnly);
 
   const expandedBook = books.find((book) => book.id === expandedBookId);
 

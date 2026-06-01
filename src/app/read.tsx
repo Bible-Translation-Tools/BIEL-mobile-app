@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AudioOnlyChapterScreen } from '@/components/reading/audio-only-chapter-screen';
 import { AudioPlayButton } from '@/components/reading/audio-play-button';
 import { ChapterItem } from '@/components/reading/chapter-item';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
+import { normalizeRouteParam } from '@/utils/route-params';
 import { ReadingLayout } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
@@ -27,14 +29,21 @@ import type { ChapterContent } from '@/types/reading';
 export default function ReadingScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, bookSlug, bookName, chapter } = useLocalSearchParams<{
-    languageCode: string;
-    bookSlug: string;
-    bookName?: string;
-    chapter: string;
-  }>();
+  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam } =
+    useLocalSearchParams<{
+      languageCode: string;
+      bookSlug: string;
+      bookName?: string;
+      chapter: string;
+      audioOnly?: string;
+    }>();
 
-  const chapterNumber = Number.parseInt(chapter, 10);
+  const ietfCode = normalizeRouteParam(languageCode) ?? '';
+  const resolvedBookSlug = normalizeRouteParam(bookSlug) ?? '';
+  const resolvedBookName = normalizeRouteParam(bookName);
+  const audioOnly = audioOnlyParam === '1' || audioOnlyParam === 'true';
+  const chapterNumber = Number.parseInt(normalizeRouteParam(chapter) ?? '', 10);
+
   const {
     chapters,
     loading,
@@ -49,10 +58,11 @@ export default function ReadingScreen() {
     initialScrollIndex,
     clearInitialScrollIndex,
     refetch,
+    audioOnlyFallback,
   } = useReaderScroll(
-    languageCode,
-    bookSlug,
-    Number.isFinite(chapterNumber) ? chapterNumber : undefined,
+    audioOnly ? undefined : languageCode,
+    audioOnly ? undefined : bookSlug,
+    audioOnly || !Number.isFinite(chapterNumber) ? undefined : chapterNumber,
   );
 
   const displayBookName =
@@ -291,6 +301,25 @@ export default function ReadingScreen() {
       <ActivityIndicator size="small" color={theme.iconPrimary} />
     </View>
   ) : null;
+
+  if (
+    (audioOnly || audioOnlyFallback) &&
+    ietfCode &&
+    resolvedBookSlug &&
+    Number.isFinite(chapterNumber)
+  ) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <AudioOnlyChapterScreen
+          languageCode={ietfCode}
+          bookSlug={resolvedBookSlug}
+          bookName={resolvedBookName}
+          chapter={chapterNumber}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>

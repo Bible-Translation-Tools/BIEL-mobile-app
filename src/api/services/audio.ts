@@ -16,17 +16,23 @@ export async function fetchChapterAudioUrl(
   const localUri = await getOfflineChapterAudioUri(languageCode, bookSlug, chapter);
   if (localUri) return localUri;
 
-  const data = await graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-    languageCode,
-    bookSlug,
-    chapter,
-    fileType: 'mp3',
-  });
+  try {
+    const data = await graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+      languageCode,
+      bookSlug,
+      chapter,
+      fileType: 'mp3',
+    });
 
-  for (const content of data.content) {
-    for (const rendered of content.rendered_contents) {
-      if (rendered.url && rendered.url.includes('CONTENTS')) return rendered.url;
+    for (const content of data.content) {
+      for (const rendered of content.rendered_contents) {
+        if (rendered.url && rendered.url.includes('CONTENTS')) return rendered.url;
+      }
     }
+  } catch {
+    const offlineUri = await getOfflineChapterAudioUri(languageCode, bookSlug, chapter);
+    if (offlineUri) return offlineUri;
+    throw new Error('Audio is not available offline');
   }
 
   return null;
@@ -37,17 +43,21 @@ export async function fetchChapterTimingUrl(
   bookSlug: string,
   chapter: number,
 ): Promise<string | null> {
-  const data = await graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-    languageCode,
-    bookSlug,
-    chapter,
-    fileType: 'cue',
-  });
+  try {
+    const data = await graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+      languageCode,
+      bookSlug,
+      chapter,
+      fileType: 'cue',
+    });
 
-  for (const content of data.content) {
-    for (const rendered of content.rendered_contents) {
-      if (rendered.url && rendered.url.includes('CONTENTS')) return rendered.url;
+    for (const content of data.content) {
+      for (const rendered of content.rendered_contents) {
+        if (rendered.url && rendered.url.includes('CONTENTS')) return rendered.url;
+      }
     }
+  } catch {
+    return null;
   }
 
   return null;
@@ -66,11 +76,15 @@ export async function fetchChapterVerseTimings(
   const url = await fetchChapterTimingUrl(languageCode, bookSlug, chapter);
   if (!url) return [];
 
-  const response = await fetchRenderedContent(url);
-  if (!response.ok) {
-    throw new Error(`Failed to download timing file (${response.status})`);
-  }
+  try {
+    const response = await fetchRenderedContent(url);
+    if (!response.ok) {
+      return [];
+    }
 
-  const text = await response.text();
-  return parseCueVerseTimings(text);
+    const text = await response.text();
+    return parseCueVerseTimings(text);
+  } catch {
+    return [];
+  }
 }

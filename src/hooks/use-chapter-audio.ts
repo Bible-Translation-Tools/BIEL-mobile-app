@@ -88,12 +88,6 @@ export function useChapterAudio({
     };
   }, [enabled, languageCode, bookSlug, chapter, player]);
 
-  useEffect(() => {
-    if (status.didJustFinish) {
-      player.seekTo(0);
-    }
-  }, [status.didJustFinish, player]);
-
   const togglePlay = useCallback(() => {
     if (!audioUrl) return;
     if (status.playing) player.pause();
@@ -103,6 +97,11 @@ export function useChapterAudio({
   const pause = useCallback(() => {
     player.pause();
   }, [player]);
+
+  const play = useCallback(() => {
+    if (!audioUrl) return;
+    player.play();
+  }, [audioUrl, player]);
 
   const seekTo = useCallback(
     (seconds: number) => {
@@ -205,6 +204,7 @@ export function useChapterAudio({
     hasVerseTimings: verseTimings.length > 0,
     togglePlay,
     pause,
+    play,
     seekTo,
     seekToVerse,
     seekToFirstVerse,

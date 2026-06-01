@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MediaPlayerControls } from '@/components/reading/media-player-controls';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MediaPlayerLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -34,8 +35,6 @@ export function MediaPlayerPanel({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  const playDisabled = isLoading || Boolean(error);
-
   return (
     <View
       style={[
@@ -63,105 +62,20 @@ export function MediaPlayerPanel({
       </Pressable>
 
       <View style={styles.playBar}>
-        <View style={styles.controlsRow}>
-          <Pressable
-            onPress={onPreviousVerse}
-            style={({ pressed }) => [styles.verseControl, { opacity: pressed ? 0.6 : 1 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Previous verse">
-            <IconSymbol
-              name={{
-                ios: 'backward.end.fill',
-                android: 'skip-previous',
-                web: 'skip-previous',
-              }}
-              size={36}
-              color={theme.iconPrimary}
-            />
-            <Text style={[styles.verseLabel, { color: theme.text }]}>Verse</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={onTogglePlay}
-            disabled={playDisabled}
-            style={({ pressed }) => [
-              styles.playButton,
-              {
-                backgroundColor: theme.tabActive,
-                opacity: playDisabled ? 0.6 : pressed ? 0.9 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: playDisabled }}
-            accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <IconSymbol
-                name={
-                  isPlaying
-                    ? { ios: 'pause.fill', android: 'pause', web: 'pause' }
-                    : { ios: 'play.fill', android: 'play-arrow', web: 'play-arrow' }
-                }
-                size={24}
-                color="#ffffff"
-              />
-            )}
-          </Pressable>
-
-          <Pressable
-            onPress={onNextVerse}
-            style={({ pressed }) => [styles.verseControl, { opacity: pressed ? 0.6 : 1 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Next verse">
-            <IconSymbol
-              name={{ ios: 'forward.end.fill', android: 'skip-next', web: 'skip-next' }}
-              size={36}
-              color={theme.iconPrimary}
-            />
-            <Text style={[styles.verseLabel, { color: theme.text }]}>Verse</Text>
-          </Pressable>
-        </View>
-
-        {error ? (
-          <Text style={[styles.errorText, { color: theme.iconDanger }]} numberOfLines={2}>
-            {error}
-          </Text>
-        ) : passage ? (
-          <Text style={[styles.passage, { color: theme.text }]} numberOfLines={1}>
-            {passage}
-          </Text>
-        ) : null}
-
-        <View
-          style={styles.volumeRow}
-          accessibilityRole="adjustable"
-          accessibilityLabel="Volume">
-          <IconSymbol
-            name={{ ios: 'speaker.wave.1.fill', android: 'volume-mute', web: 'volume-mute' }}
-            size={16}
-            color={theme.iconPrimary}
-          />
-          <View style={[styles.volumeTrack, { backgroundColor: theme.background }]}>
-            <View
-              style={[
-                styles.volumeFill,
-                { backgroundColor: theme.tabActive, width: `${VOLUME_PLACEHOLDER * 100}%` },
-              ]}
-            />
-          </View>
-          <IconSymbol
-            name={{ ios: 'speaker.wave.3.fill', android: 'volume-up', web: 'volume-up' }}
-            size={16}
-            color={theme.iconPrimary}
-          />
-        </View>
+        <MediaPlayerControls
+          passage={passage}
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          error={error}
+          canStepVerse={canStepVerse}
+          onTogglePlay={onTogglePlay}
+          onPreviousVerse={onPreviousVerse}
+          onNextVerse={onNextVerse}
+        />
       </View>
     </View>
   );
 }
-
-const VOLUME_PLACEHOLDER = 0.5;
 
 const styles = StyleSheet.create({
   container: {
@@ -187,56 +101,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   playBar: {
-    alignItems: 'center',
-    gap: MediaPlayerLayout.playBarGap,
     paddingHorizontal: MediaPlayerLayout.playBarPaddingH,
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: MediaPlayerLayout.controlsGap,
-  },
-  verseControl: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  verseLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  playButton: {
-    width: MediaPlayerLayout.playButtonSize,
-    height: MediaPlayerLayout.playButtonSize,
-    borderRadius: MediaPlayerLayout.playButtonSize / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  passage: {
-    fontSize: 20,
-    lineHeight: 32,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  volumeRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  volumeTrack: {
-    flex: 1,
-    height: 4,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  volumeFill: {
-    height: '100%',
-    borderRadius: 5,
   },
 });

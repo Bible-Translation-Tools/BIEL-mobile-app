@@ -166,6 +166,30 @@ export async function getDownloadedBookAudioByteSize(
   return record?.byteSize ?? null;
 }
 
+export async function getOfflineAudioChapterNumbers(
+  languageCode: string,
+  bookSlug: string,
+): Promise<number[]> {
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const numbers = new Set<number>();
+
+  for (const chapter of await listAudioChaptersForBook(languageCode, canonicalSlug)) {
+    numbers.add(chapter.chapterNumber);
+  }
+
+  const audioDir = getOfflineAudioDirectory(languageCode, canonicalSlug);
+  if (audioDir.exists) {
+    for (const entry of audioDir.list()) {
+      const match = /^ch-(\d+)\.mp3$/i.exec(entry.name);
+      if (match) {
+        numbers.add(Number.parseInt(match[1], 10));
+      }
+    }
+  }
+
+  return [...numbers].sort((a, b) => a - b);
+}
+
 export async function isBookAudioDownloaded(
   languageCode: string,
   bookSlug: string,
@@ -189,12 +213,13 @@ export async function getOfflineChapterAudioUri(
   bookSlug: string,
   chapter: number,
 ): Promise<string | null> {
-  const mp3File = getChapterMp3File(languageCode, bookSlug, chapter);
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapter);
   if (mp3File.exists) {
     return mp3File.uri;
   }
 
-  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
+  const chapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
   const record = chapters.find((item) => item.chapterNumber === chapter);
   if (!record) return null;
 
@@ -202,17 +227,26 @@ export async function getOfflineChapterAudioUri(
   return file.exists ? file.uri : null;
 }
 
+export async function isChapterAudioDownloaded(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<boolean> {
+  return (await getOfflineChapterAudioUri(languageCode, bookSlug, chapter)) != null;
+}
+
 export async function getOfflineChapterCueText(
   languageCode: string,
   bookSlug: string,
   chapter: number,
 ): Promise<string | null> {
-  const cueFile = getChapterCueFile(languageCode, bookSlug, chapter);
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const cueFile = getChapterCueFile(languageCode, canonicalSlug, chapter);
   if (cueFile.exists) {
     return cueFile.text();
   }
 
-  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
+  const chapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
   const record = chapters.find((item) => item.chapterNumber === chapter);
   if (!record?.cuePath) return null;
 
@@ -465,51 +499,40 @@ function resolveChapterAudioFromQuery(
   return entry;
 }
 
-export async function isChapterAudioDownloaded(
-  languageCode: string,
-  bookSlug: string,
-  chapter: number,
-): Promise<boolean> {
-  const mp3File = getChapterMp3File(languageCode, bookSlug, chapter);
-  if (mp3File.exists) return true;
-
-  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
-  const record = chapters.find((item) => item.chapterNumber === chapter);
-  if (!record) return false;
-
-  const file = new File(record.mp3Path);
-  return file.exists;
-}
-
 export async function getChapterAudioTotalBytes(
   languageCode: string,
   bookSlug: string,
   chapter: number,
 ): Promise<number> {
-  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const chapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
   const record = chapters.find((item) => item.chapterNumber === chapter);
   if (record) {
     return record.mp3ByteSize + record.cueByteSize;
   }
 
-  const [mp3Data, cueData] = await Promise.all([
-    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-      languageCode,
-      bookSlug,
-      chapter,
-      fileType: 'mp3',
-    }),
-    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-      languageCode,
-      bookSlug,
-      chapter,
-      fileType: 'cue',
-    }),
-  ]);
+  try {
+    const [mp3Data, cueData] = await Promise.all([
+      graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+        languageCode,
+        bookSlug,
+        chapter,
+        fileType: 'mp3',
+      }),
+      graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+        languageCode,
+        bookSlug,
+        chapter,
+        fileType: 'cue',
+      }),
+    ]);
 
-  const mp3 = resolveChapterAudioFromQuery(mp3Data);
-  const cue = resolveChapterAudioFromQuery(cueData);
-  return (mp3.mp3ByteSize ?? 0) + (cue.cueByteSize ?? 0);
+    const mp3 = resolveChapterAudioFromQuery(mp3Data);
+    const cue = resolveChapterAudioFromQuery(cueData);
+    return (mp3.mp3ByteSize ?? 0) + (cue.cueByteSize ?? 0);
+  } catch {
+    return 0;
+  }
 }
 
 export async function getDownloadedChapterAudioByteSize(
