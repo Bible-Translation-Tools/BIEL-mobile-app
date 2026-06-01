@@ -5,7 +5,7 @@ import {
   downloadLanguageScripture,
   getLanguageDownloadedByteSize,
   getLanguageScriptureTotalBytes,
-} from '@/api/services/offline-books';
+} from '@/api/services/offline-text';
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
 type UseLanguageDownloadOptions = {

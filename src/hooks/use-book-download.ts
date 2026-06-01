@@ -5,7 +5,7 @@ import {
   downloadBookScripture,
   getBookScriptureFileSizeBytes,
   getDownloadedBookByteSize,
-} from '@/api/services/offline-books';
+} from '@/api/services/offline-text';
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
 type UseBookDownloadOptions = {

@@ -4,7 +4,7 @@ import {
   getOfflineAudioChapterNumbers,
   resolveBookAudioChapters,
 } from '@/api/services/offline-audio';
-import { getOfflineChapterNumbers } from '@/api/services/offline-books';
+import { getOfflineChapterNumbers } from '@/api/services/offline-text';
 import type { ChapterItem, ChaptersQueryResult } from '@/types/book';
 
 export async function fetchAudioChaptersForBook(

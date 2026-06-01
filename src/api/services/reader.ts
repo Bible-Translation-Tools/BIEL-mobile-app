@@ -1,7 +1,7 @@
 import { graphqlRequest } from '@/api/graphql/client';
 import { CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { getOfflineChapterHtml } from '@/api/services/offline-books';
+import { getOfflineChapterHtml } from '@/api/services/offline-text';
 import { pickRendering } from '@/api/services/resource-selection';
 import type {
   ChapterContent,

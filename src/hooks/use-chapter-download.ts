@@ -14,7 +14,7 @@ import {
   getDownloadedChapterScriptureByteSize,
   hasStandaloneChapterScripture,
   isChapterScriptureDownloaded,
-} from '@/api/services/offline-books';
+} from '@/api/services/offline-text';
 import { formatByteSize } from '@/api/services/whole-book-parser';
 import { resolveDownloadStatus } from '@/types/download';
 
