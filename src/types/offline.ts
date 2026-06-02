@@ -23,3 +23,14 @@ export type ResolvedBookContent = {
   contentName: string;
   fileSizeBytes: number;
 };
+
+export type OfflineChapter = {
+  number: number;
+  html: string;
+};
+
+export type OfflineBook = {
+  slug: string;
+  name: string;
+  chapters: Map<number, OfflineChapter>;
+};

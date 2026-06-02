@@ -5,7 +5,7 @@ import { graphqlRequest } from '@/api/graphql/client';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { BOOK_CONTENT_QUERY, CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import { pickRendering } from '@/api/services/resource-selection';
-import { parseWholeBookJson } from '@/api/services/whole-book-parser';
+import { offlineBookChapterHtmlMap, parseWholeBookJson } from '@/api/services/whole-book-parser';
 import {
   ensureOfflineBookDirectory,
   ensureOfflineRootExists,
@@ -27,7 +27,7 @@ import {
   upsertBookWithChapters,
   upsertScriptureChapter,
 } from '@/db';
-import type { BookContentQueryResult, ResolvedBookContent } from '@/types/offline';
+import type { BookContentQueryResult, OfflineBook, ResolvedBookContent } from '@/types/offline';
 import type { ChapterContentQueryResult } from '@/types/reading';
 
 function abortError(): Error {
@@ -36,10 +36,21 @@ function abortError(): Error {
   return error;
 }
 
-let wholeBookCache: Map<string, Map<number, string>> = new Map();
+let wholeBookCache: Map<string, OfflineBook> = new Map();
 
 function cacheKey(languageCode: string, bookSlug: string): string {
   return `${languageCode}:${bookSlug.toUpperCase()}`;
+}
+
+function withOfflineBookIdentity(
+  book: OfflineBook,
+  identity: { slug: string; name: string },
+): OfflineBook {
+  return {
+    ...book,
+    slug: book.slug || identity.slug,
+    name: book.name || identity.name,
+  };
 }
 
 export async function resolveBookContent(
@@ -89,7 +100,7 @@ export async function loadWholeBookChapters(
 ): Promise<Map<number, string>> {
   const key = cacheKey(languageCode, bookSlug);
   const cached = wholeBookCache.get(key);
-  if (cached) return cached;
+  if (cached) return offlineBookChapterHtmlMap(cached);
 
   const file = getWholeJsonFile(languageCode, bookSlug);
   if (!file.exists) {
@@ -98,9 +109,12 @@ export async function loadWholeBookChapters(
 
   const jsonText = await file.text();
   const payload = JSON.parse(jsonText) as unknown;
-  const chapters = parseWholeBookJson(payload);
-  wholeBookCache.set(key, chapters);
-  return chapters;
+  const offlineBook = withOfflineBookIdentity(parseWholeBookJson(payload), {
+    slug: normalizeBookSlug(bookSlug),
+    name: bookSlug,
+  });
+  wholeBookCache.set(key, offlineBook);
+  return offlineBookChapterHtmlMap(offlineBook);
 }
 
 async function getOfflineChapterHtmlFromFile(
@@ -356,12 +370,16 @@ export async function downloadBookScripture(
     }
     throw new Error('Downloaded book data is not valid JSON');
   }
-  const chapters = parseWholeBookJson(payload);
-  if (chapters.size === 0) {
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const offlineBook = withOfflineBookIdentity(parseWholeBookJson(payload), {
+    slug: canonicalSlug,
+    name: resolved.bookName,
+  });
+  const chapterNumbers = [...offlineBook.chapters.keys()].sort((a, b) => a - b);
+  if (chapterNumbers.length === 0) {
     throw new Error('Downloaded book has no chapters');
   }
 
-  const canonicalSlug = normalizeBookSlug(bookSlug);
   ensureOfflineBookDirectory(languageCode, canonicalSlug);
 
   const bookJsonFile = getWholeJsonFile(languageCode, canonicalSlug);
@@ -375,12 +393,11 @@ export async function downloadBookScripture(
   }
   tempFile.move(bookJsonFile);
 
-  wholeBookCache.set(cacheKey(languageCode, canonicalSlug), chapters);
+  wholeBookCache.set(cacheKey(languageCode, canonicalSlug), offlineBook);
 
   options?.onProgress?.(0.9);
 
   const byteSize = new TextEncoder().encode(jsonText).length;
-  const chapterNumbers = [...chapters.keys()].sort((a, b) => a - b);
 
   await upsertBookWithChapters({
     languageCode,

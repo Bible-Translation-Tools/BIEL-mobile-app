@@ -1,3 +1,5 @@
+import type { OfflineBook, OfflineChapter } from '@/types/offline';
+
 function isHtmlString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
@@ -19,13 +21,17 @@ function extractHtmlFromChapterValue(value: unknown): string | null {
   return null;
 }
 
-function addChapter(chapters: Map<number, string>, chapterNumber: number, html: string) {
+function addChapter(
+  chapters: Map<number, OfflineChapter>,
+  chapterNumber: number,
+  html: string,
+) {
   if (!Number.isFinite(chapterNumber) || chapterNumber < 1) return;
-  chapters.set(chapterNumber, html);
+  chapters.set(chapterNumber, { number: chapterNumber, html });
 }
 
 function parseChapterRecord(
-  chapters: Map<number, string>,
+  chapters: Map<number, OfflineChapter>,
   key: string,
   value: unknown,
 ) {
@@ -56,7 +62,10 @@ function parseChapterRecord(
   }
 }
 
-function parseChaptersObject(chapters: Map<number, string>, value: Record<string, unknown>) {
+function parseChaptersObject(
+  chapters: Map<number, OfflineChapter>,
+  value: Record<string, unknown>,
+) {
   for (const [key, chapterValue] of Object.entries(value)) {
     parseChapterRecord(chapters, key, chapterValue);
   }
@@ -68,7 +77,7 @@ function parseChapterNumber(value: unknown): number {
   return Number.NaN;
 }
 
-function parseChaptersArray(chapters: Map<number, string>, value: unknown[]) {
+function parseChaptersArray(chapters: Map<number, OfflineChapter>, value: unknown[]) {
   for (const item of value) {
     if (item == null || typeof item !== 'object') continue;
     const record = item as Record<string, unknown>;
@@ -81,22 +90,22 @@ function parseChaptersArray(chapters: Map<number, string>, value: unknown[]) {
 }
 
 /**
- * Parses a whole-book JSON payload into chapter number → HTML.
+ * Parses an external whole-book JSON payload into an internal OfflineBook model.
  */
-export function parseWholeBookJson(payload: unknown): Map<number, string> {
-  const chapters = new Map<number, string>();
+export function parseWholeBookJson(payload: unknown): OfflineBook {
+  const chapters = new Map<number, OfflineChapter>();
 
   if (payload == null) {
-    return chapters;
+    return { slug: '', name: '', chapters };
   }
 
   if (Array.isArray(payload)) {
     parseChaptersArray(chapters, payload);
-    return chapters;
+    return { slug: '', name: '', chapters };
   }
 
   if (typeof payload !== 'object') {
-    return chapters;
+    return { slug: '', name: '', chapters };
   }
 
   const root = payload as Record<string, unknown>;
@@ -120,6 +129,27 @@ export function parseWholeBookJson(payload: unknown): Map<number, string> {
     parseChapterRecord(chapters, key, value);
   }
 
+  const slug =
+    typeof root.book_slug === 'string'
+      ? root.book_slug
+      : typeof root.slug === 'string'
+        ? root.slug
+        : '';
+  const name =
+    typeof root.book_name === 'string'
+      ? root.book_name
+      : typeof root.name === 'string'
+        ? root.name
+        : '';
+
+  return { slug, name, chapters };
+}
+
+export function offlineBookChapterHtmlMap(book: OfflineBook): Map<number, string> {
+  const chapters = new Map<number, string>();
+  for (const [chapterNumber, chapter] of book.chapters.entries()) {
+    chapters.set(chapterNumber, chapter.html);
+  }
   return chapters;
 }
 
