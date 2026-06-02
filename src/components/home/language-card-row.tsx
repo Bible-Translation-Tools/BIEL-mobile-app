@@ -33,7 +33,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
 
-  const { isDownloading, progress, fileSizeLabel, startDownload, cancelDownload } =
+  const { isDownloading, progress, fileSizeLabel, isChecking: isScriptureChecking, startDownload, cancelDownload } =
     useLanguageDownload({
       languageCode: language.code,
       enabled: canDownloadText,
@@ -46,6 +46,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     fileSizeLabel: audioFileSizeLabel,
     isDownloaded: isAudioDownloaded,
     hasAudio,
+    isChecking: isAudioChecking,
     startDownload: startAudioDownload,
     cancelDownload: cancelAudioDownload,
   } = useLanguageAudioDownload({
@@ -222,14 +223,23 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         onClose={closeDownloadMenu}
         menuProps={{
           scriptureFileSize: fileSizeLabel ?? '—',
-          scriptureStatus: resolveDownloadStatus(isDownloading, isScriptureDownloaded),
+          scriptureStatus: resolveDownloadStatus(
+            isDownloading,
+            isScriptureDownloaded,
+            isScriptureChecking,
+          ),
           scriptureProgress: progress,
           onScripturePress: canDownloadText ? handleScripturePress : undefined,
+          scriptureDisabled: !canDownloadText,
           audioFileSize: audioFileSizeLabel ?? '—',
-          audioStatus: resolveDownloadStatus(isAudioDownloading, isAudioDownloaded),
+          audioStatus: resolveDownloadStatus(
+            isAudioDownloading,
+            isAudioDownloaded,
+            isAudioChecking,
+          ),
           audioProgress,
           onAudioPress: handleAudioPress,
-          audioDisabled: !hasAudio,
+          audioDisabled: !hasAudio && !isAudioChecking,
           allowDelete: false,
         }}
       />

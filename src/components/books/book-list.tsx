@@ -19,9 +19,9 @@ import { BookCardRow } from './book-card-row';
 
 type BookListProps = {
   books: BookItem[];
-  languageCode?: string;
-  audioOnly?: boolean;
-  loading?: boolean;
+  languageCode: string;
+  audioOnly: boolean;
+  loading: boolean;
   error?: string | null;
   onRetry?: () => void;
   onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
@@ -70,8 +70,8 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
 export function BookList({
   books,
   languageCode,
-  audioOnly = false,
-  loading = false,
+  audioOnly,
+  loading,
   error = null,
   onRetry,
   onChapterPress,

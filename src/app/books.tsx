@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BookList } from '@/components/books/book-list';
@@ -78,18 +78,26 @@ export default function BookSelectionScreen() {
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <BooksToolbar languageName={languageName} />
-        <BookList
-          books={filteredBooks}
-          languageCode={ietfCode}
-          audioOnly={!hasText}
-          loading={loading}
-          error={error}
-          onRetry={refetch}
-          onChapterPress={handleChapterPress}
-          onDownloadStatusChange={refreshDownloadStatus}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.listContent}
-        />
+        {ietfCode ? (
+          <BookList
+            books={filteredBooks}
+            languageCode={ietfCode}
+            audioOnly={!hasText}
+            loading={loading}
+            error={error}
+            onRetry={refetch}
+            onChapterPress={handleChapterPress}
+            onDownloadStatusChange={refreshDownloadStatus}
+            ListHeaderComponent={listHeader}
+            contentContainerStyle={styles.listContent}
+          />
+        ) : (
+          <View style={styles.missingLanguage}>
+            <Text style={[styles.missingLanguageText, { color: theme.textSecondary }]}>
+              {error ?? 'Language not found'}
+            </Text>
+          </View>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -108,5 +116,15 @@ const styles = StyleSheet.create({
   listHeader: {
     gap: BookLayout.contentGap,
     paddingBottom: BookLayout.contentGap,
+  },
+  missingLanguage: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: BookLayout.padding,
+  },
+  missingLanguageText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

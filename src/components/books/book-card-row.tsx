@@ -17,7 +17,7 @@ import { ChapterGrid } from './chapter-grid';
 
 type BookCardRowProps = {
   book: BookItem;
-  languageCode?: string;
+  languageCode: string;
   isExpanded?: boolean;
   chapters?: ChapterItem[];
   chaptersLoading?: boolean;
@@ -42,7 +42,7 @@ export const BookCardRow = memo(function BookCardRow({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
 
-  const { isDownloading, progress, fileSizeLabel, startDownload, cancelDownload, deleteDownload } =
+  const { isDownloading, progress, fileSizeLabel, isChecking: isScriptureChecking, startDownload, cancelDownload, deleteDownload } =
     useBookDownload({
       languageCode,
       bookSlug: book.slug,
@@ -55,6 +55,7 @@ export const BookCardRow = memo(function BookCardRow({
     fileSizeLabel: audioFileSizeLabel,
     isDownloaded: isAudioDownloaded,
     hasAudio,
+    isChecking: isAudioChecking,
     startDownload: startAudioDownload,
     cancelDownload: cancelAudioDownload,
     deleteDownload: deleteAudioDownload,
@@ -300,14 +301,22 @@ export const BookCardRow = memo(function BookCardRow({
         onClose={closeDownloadMenu}
         menuProps={{
           scriptureFileSize: fileSizeLabel ?? '—',
-          scriptureStatus: resolveDownloadStatus(isDownloading, isScriptureDownloaded),
+          scriptureStatus: resolveDownloadStatus(
+            isDownloading,
+            isScriptureDownloaded,
+            isScriptureChecking,
+          ),
           scriptureProgress: progress,
           onScripturePress: handleScripturePress,
           audioFileSize: audioFileSizeLabel ?? '—',
-          audioStatus: resolveDownloadStatus(isAudioDownloading, isAudioDownloaded),
+          audioStatus: resolveDownloadStatus(
+            isAudioDownloading,
+            isAudioDownloaded,
+            isAudioChecking,
+          ),
           audioProgress,
           onAudioPress: handleAudioPress,
-          audioDisabled: !hasAudio,
+          audioDisabled: !hasAudio && !isAudioChecking,
         }}
       />
     </View>

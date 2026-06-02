@@ -12,9 +12,9 @@ import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useTheme } from '@/hooks/use-theme';
 
 type AudioOnlyToolbarProps = {
-  languageCode?: string;
-  bookSlug?: string;
-  chapter?: number;
+  languageCode: string;
+  bookSlug: string;
+  chapter: number;
 };
 
 export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyToolbarProps) {
@@ -85,8 +85,6 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
     startAudioDownload,
   ]);
 
-  const canOpenDownloadMenu = languageCode != null && bookSlug != null && chapter != null;
-
   return (
     <>
       <View style={styles.toolbar}>
@@ -105,13 +103,8 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
 
         <View ref={downloadAnchorRef} collapsable={false}>
           <Pressable
-            style={({ pressed }) => [
-              styles.downloadButton,
-              { opacity: pressed ? 0.7 : 1 },
-              !canOpenDownloadMenu && styles.downloadButtonDisabled,
-            ]}
-            onPress={canOpenDownloadMenu ? openDownloadMenu : undefined}
-            disabled={!canOpenDownloadMenu}
+            style={({ pressed }) => [styles.downloadButton, { opacity: pressed ? 0.7 : 1 }]}
+            onPress={openDownloadMenu}
             accessibilityRole="button"
             accessibilityLabel="Download chapter audio">
             <IconSymbol
@@ -134,7 +127,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
           audioStatus,
           audioProgress,
           onAudioPress: handleAudioPress,
-          audioDisabled: !hasAudio,
+          audioDisabled: !hasAudio && audioStatus !== 'checking',
         }}
       />
     </>
@@ -164,8 +157,5 @@ const styles = StyleSheet.create({
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  downloadButtonDisabled: {
-    opacity: 0.4,
   },
 });

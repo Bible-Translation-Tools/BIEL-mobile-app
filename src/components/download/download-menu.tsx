@@ -57,19 +57,21 @@ export const DownloadMenu = memo(function DownloadMenu({
       {hideScripture ? null : (
         <DownloadStatusOption
           title={scriptureTitle}
-          fileSize={scriptureDisabled ? '—' : scriptureFileSize}
-          status={scriptureDisabled ? 'pending' : scriptureStatus}
+          fileSize={scriptureFileSize}
+          status={scriptureStatus}
           progress={scriptureProgress}
-          onActionPress={scriptureDisabled ? undefined : onScripturePress}
+          onActionPress={onScripturePress}
+          disabled={scriptureDisabled}
           allowDelete={allowDelete}
         />
       )}
       <DownloadStatusOption
         title={audioTitle}
-        fileSize={audioDisabled ? '—' : audioFileSize}
-        status={audioDisabled ? 'pending' : audioStatus}
+        fileSize={audioFileSize}
+        status={audioStatus}
         progress={audioProgress}
-        onActionPress={audioDisabled ? undefined : onAudioPress}
+        onActionPress={onAudioPress}
+        disabled={audioDisabled}
         allowDelete={allowDelete}
       />
     </View>

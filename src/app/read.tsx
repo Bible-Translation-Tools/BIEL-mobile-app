@@ -304,11 +304,17 @@ export default function ReadingScreen() {
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
           <ReadingToolbar
-          chapterTitle={toolbarChapterTitle}
-          languageCode={languageCode}
-          bookSlug={bookSlug}
-          chapter={visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined)}
-        />
+            chapterTitle={toolbarChapterTitle}
+            downloadContext={
+              ietfCode && resolvedBookSlug && Number.isFinite(chapterNumber)
+                ? {
+                    languageCode: ietfCode,
+                    bookSlug: resolvedBookSlug,
+                    chapter: visibleChapter ?? chapterNumber,
+                  }
+                : undefined
+            }
+          />
 
         {loading ? (
           <View style={styles.centered}>

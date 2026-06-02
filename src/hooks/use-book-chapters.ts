@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { fetchAudioChaptersForBook, fetchChaptersForBook } from '@/api/services/chapters';
 import type { ChapterItem } from '@/types/book';
 
-export function useBookChapters(languageCode: string | undefined, audioOnly = false) {
+export function useBookChapters(languageCode: string, audioOnly: boolean) {
   const cacheRef = useRef<Record<string, ChapterItem[]>>({});
   const [chaptersByBook, setChaptersByBook] = useState<Record<string, ChapterItem[]>>({});
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -11,8 +11,6 @@ export function useBookChapters(languageCode: string | undefined, audioOnly = fa
 
   const loadChapters = useCallback(
     async (bookSlug: string) => {
-      if (!languageCode) return;
-
       const cached = cacheRef.current[bookSlug];
       if (cached) return;
 

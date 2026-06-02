@@ -9,7 +9,7 @@ import {
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
 type UseLanguageDownloadOptions = {
-  languageCode: string | undefined;
+  languageCode: string;
   enabled?: boolean;
   onComplete?: () => void;
 };
@@ -22,42 +22,53 @@ export function useLanguageDownload({
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fileSizeLabel, setFileSizeLabel] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(enabled);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!languageCode || !enabled) {
+    if (!enabled) {
       setFileSizeLabel(null);
+      setIsChecking(false);
       return;
     }
 
     let cancelled = false;
-    const code = languageCode;
 
     async function loadFileSizeLabel() {
-      const downloadedBytes = await getLanguageDownloadedByteSize(code);
-      if (cancelled) return;
+      setIsChecking(true);
 
-      if (downloadedBytes > 0) {
-        const totalBytes = await getLanguageScriptureTotalBytes(code).catch(() => downloadedBytes);
+      try {
+        const downloadedBytes = await getLanguageDownloadedByteSize(languageCode);
         if (cancelled) return;
-        setFileSizeLabel(
-          downloadedBytes >= totalBytes
-            ? formatByteSize(downloadedBytes)
-            : `${formatByteSize(downloadedBytes)} / ${formatByteSize(totalBytes)}`,
-        );
-        return;
-      }
 
-      const remoteBytes = await getLanguageScriptureTotalBytes(code);
-      if (cancelled) return;
-      setFileSizeLabel(formatByteSize(remoteBytes));
+        if (downloadedBytes > 0) {
+          const totalBytes = await getLanguageScriptureTotalBytes(languageCode).catch(
+            () => downloadedBytes,
+          );
+          if (cancelled) return;
+          setFileSizeLabel(
+            downloadedBytes >= totalBytes
+              ? formatByteSize(downloadedBytes)
+              : `${formatByteSize(downloadedBytes)} / ${formatByteSize(totalBytes)}`,
+          );
+          return;
+        }
+
+        const remoteBytes = await getLanguageScriptureTotalBytes(languageCode);
+        if (cancelled) return;
+        setFileSizeLabel(formatByteSize(remoteBytes));
+      } catch {
+        if (!cancelled) {
+          setFileSizeLabel(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsChecking(false);
+        }
+      }
     }
 
-    loadFileSizeLabel().catch(() => {
-      if (!cancelled) {
-        setFileSizeLabel(null);
-      }
-    });
+    loadFileSizeLabel();
 
     return () => {
       cancelled = true;
@@ -72,7 +83,7 @@ export function useLanguageDownload({
   }, []);
 
   const startDownload = useCallback(async () => {
-    if (!languageCode || !enabled || isDownloading) return;
+    if (!enabled || isDownloading) return;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -102,7 +113,6 @@ export function useLanguageDownload({
   }, [enabled, isDownloading, languageCode, onComplete]);
 
   const deleteDownload = useCallback(async () => {
-    if (!languageCode) return;
     await deleteLanguageScripture(languageCode);
     setFileSizeLabel(null);
     onComplete?.();
@@ -112,6 +122,7 @@ export function useLanguageDownload({
     isDownloading,
     progress,
     fileSizeLabel,
+    isChecking,
     startDownload,
     cancelDownload,
     deleteDownload,

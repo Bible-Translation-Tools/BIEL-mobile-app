@@ -19,29 +19,28 @@ import { ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useTheme } from '@/hooks/use-theme';
 
-type ReadingToolbarProps = {
-  chapterTitle?: string;
-  languageCode?: string;
-  bookSlug?: string;
-  chapter?: number;
+export type ChapterDownloadContext = {
+  languageCode: string;
+  bookSlug: string;
+  chapter: number;
 };
 
-export function ReadingToolbar({
-  chapterTitle,
+type ReadingToolbarProps = {
+  chapterTitle?: string;
+  downloadContext?: ChapterDownloadContext;
+};
+
+type ReadingToolbarDownloadButtonProps = ChapterDownloadContext;
+
+function ReadingToolbarDownloadButton({
   languageCode,
   bookSlug,
   chapter,
-}: ReadingToolbarProps) {
+}: ReadingToolbarDownloadButtonProps) {
   const theme = useTheme();
-  const router = useRouter();
-  const isElevated = chapterTitle != null;
   const downloadAnchorRef = useRef<View>(null);
-  const textSettingsAnchorRef = useRef<View>(null);
-  const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
-  const [textSettingsVisible, setTextSettingsVisible] = useState(false);
-  const [textSettingsAnchor, setTextSettingsAnchor] = useState<TextSettingsAnchor | null>(null);
 
   const {
     scriptureFileSizeLabel,
@@ -61,9 +60,6 @@ export function ReadingToolbar({
   } = useChapterDownload({ languageCode, bookSlug, chapter });
 
   const openDownloadMenu = useCallback(() => {
-    systemSettingsRef.current?.close();
-    setTextSettingsVisible(false);
-    setTextSettingsAnchor(null);
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setMenuAnchor({ x, y, width, height });
       setMenuVisible(true);
@@ -73,27 +69,6 @@ export function ReadingToolbar({
   const closeDownloadMenu = useCallback(() => {
     setMenuVisible(false);
     setMenuAnchor(null);
-  }, []);
-
-  const openTextSettings = useCallback(() => {
-    if (textSettingsVisible) {
-      setTextSettingsVisible(false);
-      setTextSettingsAnchor(null);
-      return;
-    }
-
-    systemSettingsRef.current?.close();
-    setMenuVisible(false);
-    setMenuAnchor(null);
-    textSettingsAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setTextSettingsAnchor({ x, y, width, height });
-      setTextSettingsVisible(true);
-    });
-  }, [textSettingsVisible]);
-
-  const closeTextSettings = useCallback(() => {
-    setTextSettingsVisible(false);
-    setTextSettingsAnchor(null);
   }, []);
 
   const handleScripturePress = useCallback(async () => {
@@ -180,7 +155,87 @@ export function ReadingToolbar({
     startAudioDownload,
   ]);
 
-  const canOpenDownloadMenu = languageCode != null && bookSlug != null && chapter != null;
+  return (
+    <>
+      <View ref={downloadAnchorRef} collapsable={false}>
+        <Pressable
+          style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
+          onPress={openDownloadMenu}
+          accessibilityRole="button"
+          accessibilityLabel="Download chapter">
+          <IconSymbol
+            name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+            size={ReadingLayout.toolbarIconSize}
+            color={theme.iconPrimary}
+          />
+        </Pressable>
+      </View>
+
+      <DownloadMenuPopover
+        visible={menuVisible}
+        anchor={menuAnchor}
+        onClose={closeDownloadMenu}
+        menuProps={{
+          scriptureTitle: 'Scripture',
+          scriptureFileSize: scriptureFileSizeLabel ?? '—',
+          scriptureStatus,
+          scriptureProgress,
+          onScripturePress: handleScripturePress,
+          audioTitle: 'Audio',
+          audioFileSize: audioFileSizeLabel ?? '—',
+          audioStatus,
+          audioProgress,
+          onAudioPress: handleAudioPress,
+          audioDisabled: !hasAudio && audioStatus !== 'checking',
+        }}
+      />
+    </>
+  );
+}
+
+function DisabledDownloadButton() {
+  const theme = useTheme();
+
+  return (
+    <View style={styles.iconButtonDisabledWrapper}>
+      <View style={[styles.iconButton, styles.iconButtonDisabled]}>
+        <IconSymbol
+          name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+          size={ReadingLayout.toolbarIconSize}
+          color={theme.iconPrimary}
+        />
+      </View>
+    </View>
+  );
+}
+
+export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbarProps) {
+  const theme = useTheme();
+  const router = useRouter();
+  const isElevated = chapterTitle != null;
+  const textSettingsAnchorRef = useRef<View>(null);
+  const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
+  const [textSettingsVisible, setTextSettingsVisible] = useState(false);
+  const [textSettingsAnchor, setTextSettingsAnchor] = useState<TextSettingsAnchor | null>(null);
+
+  const openTextSettings = useCallback(() => {
+    if (textSettingsVisible) {
+      setTextSettingsVisible(false);
+      setTextSettingsAnchor(null);
+      return;
+    }
+
+    systemSettingsRef.current?.close();
+    textSettingsAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      setTextSettingsAnchor({ x, y, width, height });
+      setTextSettingsVisible(true);
+    });
+  }, [textSettingsVisible]);
+
+  const closeTextSettings = useCallback(() => {
+    setTextSettingsVisible(false);
+    setTextSettingsAnchor(null);
+  }, []);
 
   return (
     <View
@@ -237,31 +292,21 @@ export function ReadingToolbar({
             />
           </Pressable>
         </View>
-        <View ref={downloadAnchorRef} collapsable={false}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.iconButton,
-              { opacity: pressed ? 0.7 : 1 },
-              !canOpenDownloadMenu && styles.iconButtonDisabled,
-            ]}
-            onPress={canOpenDownloadMenu ? openDownloadMenu : undefined}
-            disabled={!canOpenDownloadMenu}
-            accessibilityRole="button"
-            accessibilityLabel="Download chapter">
-            <IconSymbol
-              name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
-              size={ReadingLayout.toolbarIconSize}
-              color={theme.iconPrimary}
-            />
-          </Pressable>
-        </View>
+        {downloadContext ? (
+          <ReadingToolbarDownloadButton
+            key={`${downloadContext.languageCode}:${downloadContext.bookSlug}:${downloadContext.chapter}`}
+            languageCode={downloadContext.languageCode}
+            bookSlug={downloadContext.bookSlug}
+            chapter={downloadContext.chapter}
+          />
+        ) : (
+          <DisabledDownloadButton />
+        )}
         <SettingsToolbarButton
           ref={systemSettingsRef}
           iconSize={ReadingLayout.toolbarSettingsIconSize}
           hitSize={ReadingLayout.toolbarIconSize}
           onOpen={() => {
-            setMenuVisible(false);
-            setMenuAnchor(null);
             setTextSettingsVisible(false);
             setTextSettingsAnchor(null);
           }}
@@ -272,25 +317,6 @@ export function ReadingToolbar({
         visible={textSettingsVisible}
         anchor={textSettingsAnchor}
         onClose={closeTextSettings}
-      />
-
-      <DownloadMenuPopover
-        visible={menuVisible}
-        anchor={menuAnchor}
-        onClose={closeDownloadMenu}
-        menuProps={{
-          scriptureTitle: 'Scripture',
-          scriptureFileSize: scriptureFileSizeLabel ?? '—',
-          scriptureStatus,
-          scriptureProgress,
-          onScripturePress: handleScripturePress,
-          audioTitle: 'Audio',
-          audioFileSize: audioFileSizeLabel ?? '—',
-          audioStatus,
-          audioProgress,
-          onAudioPress: handleAudioPress,
-          audioDisabled: !hasAudio,
-        }}
       />
     </View>
   );
@@ -337,7 +363,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  iconButtonDisabled: {
+  iconButtonDisabledWrapper: {
     opacity: 0.4,
+  },
+  iconButtonDisabled: {
+    opacity: 1,
   },
 });

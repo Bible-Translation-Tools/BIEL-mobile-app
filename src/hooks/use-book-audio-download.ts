@@ -10,8 +10,8 @@ import {
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
 type UseBookAudioDownloadOptions = {
-  languageCode: string | undefined;
-  bookSlug: string | undefined;
+  languageCode: string;
+  bookSlug: string;
   onComplete?: () => void;
 };
 
@@ -25,68 +25,68 @@ export function useBookAudioDownload({
   const [fileSizeLabel, setFileSizeLabel] = useState<string | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [hasAudio, setHasAudio] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!languageCode || !bookSlug) {
-      setFileSizeLabel(null);
-      setIsDownloaded(false);
-      setHasAudio(false);
-      return;
-    }
-
     let cancelled = false;
-    const code = languageCode;
-    const slug = bookSlug;
 
     async function loadState() {
-      const downloaded = await isBookAudioDownloaded(code, slug);
-      if (cancelled) return;
-      setIsDownloaded(downloaded);
-
-      const downloadedBytes = await getDownloadedBookAudioByteSize(code, slug);
-      if (cancelled) return;
+      setIsChecking(true);
 
       try {
-        const remoteBytes = await getBookAudioTotalBytes(code, slug);
+        const downloaded = await isBookAudioDownloaded(languageCode, bookSlug);
         if (cancelled) return;
-        setHasAudio(remoteBytes > 0);
+        setIsDownloaded(downloaded);
 
-        if (remoteBytes <= 0) {
-          setFileSizeLabel(null);
-          return;
+        const downloadedBytes = await getDownloadedBookAudioByteSize(languageCode, bookSlug);
+        if (cancelled) return;
+
+        try {
+          const remoteBytes = await getBookAudioTotalBytes(languageCode, bookSlug);
+          if (cancelled) return;
+          setHasAudio(remoteBytes > 0);
+
+          if (remoteBytes <= 0) {
+            setFileSizeLabel(null);
+            return;
+          }
+
+          if (downloaded) {
+            setFileSizeLabel(formatByteSize(downloadedBytes ?? remoteBytes));
+            return;
+          }
+
+          if (downloadedBytes != null && downloadedBytes > 0) {
+            setFileSizeLabel(
+              `${formatByteSize(downloadedBytes)} / ${formatByteSize(remoteBytes)}`,
+            );
+            return;
+          }
+
+          setFileSizeLabel(formatByteSize(remoteBytes));
+        } catch {
+          if (!cancelled) {
+            setHasAudio(downloadedBytes != null);
+            setFileSizeLabel(
+              downloadedBytes != null ? formatByteSize(downloadedBytes) : null,
+            );
+          }
         }
-
-        if (downloaded) {
-          setFileSizeLabel(formatByteSize(downloadedBytes ?? remoteBytes));
-          return;
-        }
-
-        if (downloadedBytes != null && downloadedBytes > 0) {
-          setFileSizeLabel(
-            `${formatByteSize(downloadedBytes)} / ${formatByteSize(remoteBytes)}`,
-          );
-          return;
-        }
-
-        setFileSizeLabel(formatByteSize(remoteBytes));
       } catch {
         if (!cancelled) {
-          setHasAudio(downloadedBytes != null);
-          setFileSizeLabel(
-            downloadedBytes != null ? formatByteSize(downloadedBytes) : null,
-          );
+          setFileSizeLabel(null);
+          setIsDownloaded(false);
+          setHasAudio(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsChecking(false);
         }
       }
     }
 
-    loadState().catch(() => {
-      if (!cancelled) {
-        setFileSizeLabel(null);
-        setIsDownloaded(false);
-        setHasAudio(false);
-      }
-    });
+    loadState();
 
     return () => {
       cancelled = true;
@@ -101,7 +101,7 @@ export function useBookAudioDownload({
   }, []);
 
   const startDownload = useCallback(async () => {
-    if (!languageCode || !bookSlug || isDownloading || !hasAudio) return;
+    if (isDownloading || !hasAudio) return;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -132,7 +132,6 @@ export function useBookAudioDownload({
   }, [bookSlug, hasAudio, isDownloading, languageCode, onComplete]);
 
   const deleteDownload = useCallback(async () => {
-    if (!languageCode || !bookSlug) return;
     await deleteBookAudio(languageCode, bookSlug);
     setFileSizeLabel(null);
     setIsDownloaded(false);
@@ -145,6 +144,7 @@ export function useBookAudioDownload({
     fileSizeLabel,
     isDownloaded,
     hasAudio,
+    isChecking,
     startDownload,
     cancelDownload,
     deleteDownload,

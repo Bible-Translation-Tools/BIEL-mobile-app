@@ -11,7 +11,7 @@ import {
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
 type UseLanguageAudioDownloadOptions = {
-  languageCode: string | undefined;
+  languageCode: string;
   enabled?: boolean;
   onComplete?: () => void;
 };
@@ -26,68 +26,79 @@ export function useLanguageAudioDownload({
   const [fileSizeLabel, setFileSizeLabel] = useState<string | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [hasAudio, setHasAudio] = useState(false);
+  const [isChecking, setIsChecking] = useState(enabled);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!languageCode || !enabled) {
+    if (!enabled) {
       setFileSizeLabel(null);
       setIsDownloaded(false);
       setHasAudio(false);
+      setIsChecking(false);
       return;
     }
 
     let cancelled = false;
-    const code = languageCode;
 
     async function loadState() {
-      const books = await resolveLanguageAudioBooks(code).catch(() => []);
-      if (cancelled) return;
+      setIsChecking(true);
 
-      if (books.length === 0) {
-        setHasAudio(false);
-        setFileSizeLabel(null);
-        setIsDownloaded(false);
-        return;
-      }
+      try {
+        const books = await resolveLanguageAudioBooks(languageCode).catch(() => []);
+        if (cancelled) return;
 
-      setHasAudio(true);
+        if (books.length === 0) {
+          setHasAudio(false);
+          setFileSizeLabel(null);
+          setIsDownloaded(false);
+          return;
+        }
 
-      let allDownloaded = true;
-      for (const book of books) {
-        if (!(await isBookAudioDownloaded(code, book.bookSlug))) {
-          allDownloaded = false;
-          break;
+        setHasAudio(true);
+
+        let allDownloaded = true;
+        for (const book of books) {
+          if (!(await isBookAudioDownloaded(languageCode, book.bookSlug))) {
+            allDownloaded = false;
+            break;
+          }
+        }
+        if (cancelled) return;
+        setIsDownloaded(allDownloaded);
+
+        const downloadedBytes = await getLanguageDownloadedAudioByteSize(languageCode);
+        if (cancelled) return;
+
+        if (downloadedBytes > 0) {
+          const totalBytes = await getLanguageAudioTotalBytes(languageCode).catch(
+            () => downloadedBytes,
+          );
+          if (cancelled) return;
+          setFileSizeLabel(
+            downloadedBytes >= totalBytes
+              ? formatByteSize(downloadedBytes)
+              : `${formatByteSize(downloadedBytes)} / ${formatByteSize(totalBytes)}`,
+          );
+          return;
+        }
+
+        const remoteBytes = await getLanguageAudioTotalBytes(languageCode);
+        if (cancelled) return;
+        setFileSizeLabel(formatByteSize(remoteBytes));
+      } catch {
+        if (!cancelled) {
+          setFileSizeLabel(null);
+          setIsDownloaded(false);
+          setHasAudio(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsChecking(false);
         }
       }
-      if (cancelled) return;
-      setIsDownloaded(allDownloaded);
-
-      const downloadedBytes = await getLanguageDownloadedAudioByteSize(code);
-      if (cancelled) return;
-
-      if (downloadedBytes > 0) {
-        const totalBytes = await getLanguageAudioTotalBytes(code).catch(() => downloadedBytes);
-        if (cancelled) return;
-        setFileSizeLabel(
-          downloadedBytes >= totalBytes
-            ? formatByteSize(downloadedBytes)
-            : `${formatByteSize(downloadedBytes)} / ${formatByteSize(totalBytes)}`,
-        );
-        return;
-      }
-
-      const remoteBytes = await getLanguageAudioTotalBytes(code);
-      if (cancelled) return;
-      setFileSizeLabel(formatByteSize(remoteBytes));
     }
 
-    loadState().catch(() => {
-      if (!cancelled) {
-        setFileSizeLabel(null);
-        setIsDownloaded(false);
-        setHasAudio(false);
-      }
-    });
+    loadState();
 
     return () => {
       cancelled = true;
@@ -102,7 +113,7 @@ export function useLanguageAudioDownload({
   }, []);
 
   const startDownload = useCallback(async () => {
-    if (!languageCode || !enabled || isDownloading || !hasAudio) return;
+    if (!enabled || isDownloading || !hasAudio) return;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -133,7 +144,6 @@ export function useLanguageAudioDownload({
   }, [enabled, hasAudio, isDownloading, languageCode, onComplete]);
 
   const deleteDownload = useCallback(async () => {
-    if (!languageCode) return;
     await deleteLanguageAudio(languageCode);
     setFileSizeLabel(null);
     setIsDownloaded(false);
@@ -146,6 +156,7 @@ export function useLanguageAudioDownload({
     fileSizeLabel,
     isDownloaded,
     hasAudio,
+    isChecking,
     startDownload,
     cancelDownload,
     deleteDownload,

@@ -9,8 +9,8 @@ import {
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
 type UseBookDownloadOptions = {
-  languageCode: string | undefined;
-  bookSlug: string | undefined;
+  languageCode: string;
+  bookSlug: string;
   onComplete?: () => void;
 };
 
@@ -22,39 +22,40 @@ export function useBookDownload({
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fileSizeLabel, setFileSizeLabel] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!languageCode || !bookSlug) {
-      setFileSizeLabel(null);
-      return;
-    }
-
     let cancelled = false;
 
-    const code = languageCode;
-    const slug = bookSlug;
-
     async function loadFileSizeLabel() {
-      const downloadedBytes = await getDownloadedBookByteSize(code, slug);
-      if (cancelled) return;
+      setIsChecking(true);
 
-      if (downloadedBytes != null) {
-        setFileSizeLabel(formatByteSize(downloadedBytes));
-        return;
+      try {
+        const downloadedBytes = await getDownloadedBookByteSize(languageCode, bookSlug);
+        if (cancelled) return;
+
+        if (downloadedBytes != null) {
+          setFileSizeLabel(formatByteSize(downloadedBytes));
+          return;
+        }
+
+        const remoteBytes = await getBookScriptureFileSizeBytes(languageCode, bookSlug);
+        if (cancelled) return;
+
+        setFileSizeLabel(formatByteSize(remoteBytes));
+      } catch {
+        if (!cancelled) {
+          setFileSizeLabel(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsChecking(false);
+        }
       }
-
-      const remoteBytes = await getBookScriptureFileSizeBytes(code, slug);
-      if (cancelled) return;
-
-      setFileSizeLabel(formatByteSize(remoteBytes));
     }
 
-    loadFileSizeLabel().catch(() => {
-      if (!cancelled) {
-        setFileSizeLabel(null);
-      }
-    });
+    loadFileSizeLabel();
 
     return () => {
       cancelled = true;
@@ -69,7 +70,7 @@ export function useBookDownload({
   }, []);
 
   const startDownload = useCallback(async () => {
-    if (!languageCode || !bookSlug || isDownloading) return;
+    if (isDownloading) return;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -99,7 +100,6 @@ export function useBookDownload({
   }, [bookSlug, isDownloading, languageCode, onComplete]);
 
   const deleteDownload = useCallback(async () => {
-    if (!languageCode || !bookSlug) return;
     await deleteBookScripture(languageCode, bookSlug);
     setFileSizeLabel(null);
     onComplete?.();
@@ -109,6 +109,7 @@ export function useBookDownload({
     isDownloading,
     progress,
     fileSizeLabel,
+    isChecking,
     startDownload,
     cancelDownload,
     deleteDownload,
