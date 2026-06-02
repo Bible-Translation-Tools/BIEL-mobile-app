@@ -1,4 +1,8 @@
 export {
+  loadAppearancePreference,
+  saveAppearancePreference,
+} from './appearance-preferences';
+export {
   clearReadingTextPreferences,
   loadReadingTextPreferences,
   saveReadingTextPreferences,

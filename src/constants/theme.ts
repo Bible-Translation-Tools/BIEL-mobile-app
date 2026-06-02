@@ -123,6 +123,13 @@ export const TextSettingsLayout = {
   resetHeight: 40,
 } as const;
 
+export const SystemSettingsLayout = {
+  menuWidth: 324,
+  optionMinHeight: 77,
+  optionIconSize: 28,
+  themeIconSize: 24,
+} as const;
+
 export const HomeLayout = {
   padding: 16,
   contentGap: 20,

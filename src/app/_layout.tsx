@@ -2,16 +2,25 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
 
 import { SplashScreenView } from '@/components/splash-screen';
+import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-context';
 import { ensureOfflineRootExists } from '@/constants/offline-storage';
 import { initDatabase } from '@/db';
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
-export default function RootLayout() {
+function RootNavigation() {
   const colorScheme = useColorScheme();
+
+  return (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
@@ -35,8 +44,8 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ThemeProvider>
+    <AppearanceProvider>
+      <RootNavigation />
+    </AppearanceProvider>
   );
 }
