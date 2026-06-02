@@ -21,6 +21,7 @@ import { ReadingToolbar } from '@/components/reading/reading-toolbar';
 import { ReadingTextSettingsProvider } from '@/contexts/reading-text-settings-context';
 import { normalizeRouteParam } from '@/utils/route-params';
 import { ReadingLayout } from '@/constants/theme';
+import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
@@ -74,6 +75,14 @@ export default function ReadingScreen() {
 
   const { toolbarChapterTitle, visibleChapter, updateScrollY, onViewableItemsChanged, viewabilityConfig } =
     useReaderToolbar(displayBookName);
+
+  const currentAudioChapter =
+    visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined);
+  const currentChapterHasAudio = useChapterHasAudio({
+    languageCode,
+    bookSlug,
+    chapter: currentAudioChapter,
+  });
 
   const listRef = useRef<FlatListType<ChapterContent>>(null);
   const didInitialScrollRef = useRef(false);
@@ -343,7 +352,7 @@ export default function ReadingScreen() {
           />
         ) : null}
 
-        {chapters.length > 0 ? (
+        {chapters.length > 0 && (currentChapterHasAudio) ? (
           <AudioPlayButton
             languageCode={languageCode}
             bookSlug={bookSlug}
