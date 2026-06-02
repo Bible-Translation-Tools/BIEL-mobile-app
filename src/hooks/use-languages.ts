@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchLanguages } from '@/api/services/languages';
+import { fetchLanguages, fetchLanguagesOffline } from '@/api/services/languages';
 import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage } from '@/db';
 import type { DownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
@@ -44,6 +44,27 @@ export function useLanguages() {
     setLoading(true);
     setError(null);
 
+    let offlineItems: LanguageItem[] = [];
+    try {
+      offlineItems = await fetchLanguagesOffline();
+    } catch {
+      offlineItems = [];
+    }
+
+    if (offlineItems.length > 0) {
+      try {
+        const [downloadedCounts, catalogCounts] = await Promise.all([
+          getDownloadedBookCountsByLanguage(),
+          getBookCatalogCountsByLanguage(),
+        ]);
+        setLanguages(applyLanguageDownloadStatus(offlineItems, downloadedCounts, catalogCounts));
+        setError(null);
+      } catch {
+        setLanguages(offlineItems);
+        setError(null);
+      }
+    }
+
     try {
       const items = await fetchLanguages();
       const [downloadedCounts, catalogCounts] = await Promise.all([
@@ -51,9 +72,12 @@ export function useLanguages() {
         getBookCatalogCountsByLanguage(),
       ]);
       setLanguages(applyLanguageDownloadStatus(items, downloadedCounts, catalogCounts));
+      setError(null);
     } catch (err) {
-      setLanguages([]);
-      setError(err instanceof Error ? err.message : 'Failed to load languages');
+      if (offlineItems.length === 0) {
+        setLanguages([]);
+        setError(err instanceof Error ? err.message : 'Failed to load languages');
+      }
     } finally {
       setLoading(false);
     }

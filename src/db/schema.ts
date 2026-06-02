@@ -39,6 +39,14 @@ export const SCHEMA_STATEMENTS = [
     PRIMARY KEY (language_code, book_slug)
   );`,
   `CREATE INDEX IF NOT EXISTS idx_book_catalog_language ON book_catalog(language_code);`,
+  `CREATE TABLE IF NOT EXISTS language_catalog (
+    ietf_code TEXT PRIMARY KEY NOT NULL,
+    english_name TEXT NOT NULL,
+    national_name TEXT NOT NULL,
+    has_text INTEGER NOT NULL DEFAULT 0,
+    has_audio INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );`,
   `CREATE TABLE IF NOT EXISTS audio_books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     language_code TEXT NOT NULL,

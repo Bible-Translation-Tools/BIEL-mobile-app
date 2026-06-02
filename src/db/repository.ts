@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 
 import { isOldTestament } from '@/constants/bible-books';
 import type { BookItem, Testament } from '@/types/book';
+import type { LanguageItem } from '@/types/language';
 
 import { DATABASE_NAME, SCHEMA_STATEMENTS } from './schema';
 
@@ -123,6 +124,107 @@ export async function listDownloadedBooksForLanguage(
       localPath: row.local_path,
       byteSize: row.byte_size,
       downloadedAt: row.downloaded_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+type CachedLanguageRow = {
+  ietf_code: string;
+  english_name: string;
+  national_name: string;
+  has_text: number;
+  has_audio: number;
+  sort_order: number;
+};
+
+function mapCachedLanguageRow(row: CachedLanguageRow): LanguageItem {
+  return {
+    code: row.ietf_code,
+    name: row.english_name,
+    nationalName: row.national_name,
+    hasText: row.has_text === 1,
+    hasAudio: row.has_audio === 1,
+    downloadStatus: 'pending',
+  };
+}
+
+export async function replaceLanguageCatalog(languages: LanguageItem[]): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM language_catalog');
+    for (const [index, language] of languages.entries()) {
+      await db.runAsync(
+        `INSERT INTO language_catalog (
+           ietf_code, english_name, national_name, has_text, has_audio, sort_order
+         ) VALUES (?, ?, ?, ?, ?, ?)`,
+        language.code,
+        language.name,
+        language.nationalName,
+        language.hasText ? 1 : 0,
+        language.hasAudio ? 1 : 0,
+        index,
+      );
+    }
+  });
+}
+
+export async function listLanguageCatalog(): Promise<LanguageItem[]> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<CachedLanguageRow>(
+      `SELECT ietf_code, english_name, national_name, has_text, has_audio, sort_order
+       FROM language_catalog
+       ORDER BY sort_order ASC, english_name ASC`,
+    );
+    return rows.map(mapCachedLanguageRow);
+  } catch {
+    return [];
+  }
+}
+
+/** Languages with local downloads that may not appear in the cached catalog. */
+export async function listLanguagesWithDownloads(): Promise<LanguageItem[]> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{
+      ietf_code: string;
+      english_name: string | null;
+      national_name: string | null;
+      has_text: number;
+      has_audio: number;
+    }>(
+      `SELECT
+         l.ietf_code,
+         l.english_name,
+         l.national_name,
+         CASE
+           WHEN EXISTS (SELECT 1 FROM books b WHERE b.language_code = l.ietf_code)
+             OR EXISTS (SELECT 1 FROM book_catalog bc WHERE bc.language_code = l.ietf_code)
+             OR EXISTS (SELECT 1 FROM scripture_chapters sc WHERE sc.language_code = l.ietf_code)
+           THEN 1
+           ELSE 0
+         END AS has_text,
+         CASE
+           WHEN EXISTS (SELECT 1 FROM audio_books ab WHERE ab.language_code = l.ietf_code)
+           THEN 1
+           ELSE 0
+         END AS has_audio
+       FROM languages l
+       WHERE EXISTS (SELECT 1 FROM books b WHERE b.language_code = l.ietf_code)
+          OR EXISTS (SELECT 1 FROM audio_books ab WHERE ab.language_code = l.ietf_code)
+          OR EXISTS (SELECT 1 FROM scripture_chapters sc WHERE sc.language_code = l.ietf_code)
+       ORDER BY COALESCE(l.english_name, l.ietf_code) ASC`,
+    );
+
+    return rows.map((row) => ({
+      code: row.ietf_code,
+      name: row.english_name?.trim() || row.ietf_code,
+      nationalName: row.national_name?.trim() || row.english_name?.trim() || row.ietf_code,
+      hasText: row.has_text === 1,
+      hasAudio: row.has_audio === 1,
+      downloadStatus: 'pending' as const,
     }));
   } catch {
     return [];
