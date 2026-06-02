@@ -78,4 +78,8 @@ export const SCHEMA_STATEMENTS = [
     FOREIGN KEY (language_code) REFERENCES languages(ietf_code) ON DELETE CASCADE
   );`,
   `CREATE INDEX IF NOT EXISTS idx_scripture_chapters_book ON scripture_chapters(language_code, book_slug);`,
+  `CREATE TABLE IF NOT EXISTS preferences (
+    "key" TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+  );`,
 ] as const;

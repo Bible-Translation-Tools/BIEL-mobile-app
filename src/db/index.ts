@@ -1,4 +1,11 @@
 export {
+  clearReadingTextPreferences,
+  loadReadingTextPreferences,
+  saveReadingTextPreferences,
+} from './reading-text-preferences';
+export type { ReadingTextPreferenceLevels } from './reading-text-preferences';
+export { deletePreference, getPreference, setPreference } from './preferences';
+export {
   deleteAudioBook,
   deleteAudioChapter,
   deleteBook,

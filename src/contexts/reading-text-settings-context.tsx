@@ -4,7 +4,9 @@ import {
   useCallback,
   useContext,
   useDeferredValue,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -19,6 +21,7 @@ import {
   TEXT_SIZE_LEVEL_MIN,
   verseNumberFontSizeForLevel,
 } from '@/constants/reading-text-settings';
+import { loadReadingTextPreferences, saveReadingTextPreferences } from '@/db';
 
 export type ReadingTextStyles = {
   fontSize: number;
@@ -46,6 +49,8 @@ const ReadingTextSettingsActionsContext = createContext<ReadingTextSettingsActio
   null,
 );
 
+const PERSIST_DEBOUNCE_MS = 300;
+
 function clampLevel(level: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, level));
 }
@@ -70,6 +75,7 @@ function buildTextStyles(
 export function ReadingTextSettingsProvider({ children }: { children: ReactNode }) {
   const [textSizeLevel, setTextSizeLevel] = useState(0);
   const [lineHeightLevel, setLineHeightLevel] = useState(0);
+  const persistReadyRef = useRef(false);
 
   const deferredTextSizeLevel = useDeferredValue(textSizeLevel);
   const deferredLineHeightLevel = useDeferredValue(lineHeightLevel);
@@ -82,6 +88,33 @@ export function ReadingTextSettingsProvider({ children }: { children: ReactNode 
     () => buildTextStyles(deferredTextSizeLevel, deferredLineHeightLevel, verseLayoutReportsPaused),
     [deferredTextSizeLevel, deferredLineHeightLevel, verseLayoutReportsPaused],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadReadingTextPreferences().then((levels) => {
+      if (cancelled) return;
+      startTransition(() => {
+        setTextSizeLevel(levels.textSizeLevel);
+        setLineHeightLevel(levels.lineHeightLevel);
+      });
+      persistReadyRef.current = true;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!persistReadyRef.current) return;
+
+    const timer = setTimeout(() => {
+      void saveReadingTextPreferences(textSizeLevel, lineHeightLevel);
+    }, PERSIST_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [textSizeLevel, lineHeightLevel]);
 
   const increaseTextSize = useCallback(
     () =>
