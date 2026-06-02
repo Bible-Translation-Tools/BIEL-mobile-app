@@ -194,18 +194,25 @@ export async function isBookAudioDownloaded(
   languageCode: string,
   bookSlug: string,
 ): Promise<boolean> {
-  const record = await getAudioBookRecord(languageCode, bookSlug);
-  if (!record) return false;
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const downloadedNumbers = await getOfflineAudioChapterNumbers(languageCode, canonicalSlug);
+  if (downloadedNumbers.length === 0) return false;
 
-  const chapters = await listAudioChaptersForBook(languageCode, bookSlug);
-  if (chapters.length === 0) return false;
-
-  for (const chapter of chapters) {
-    const mp3File = new File(chapter.mp3Path);
+  for (const chapterNumber of downloadedNumbers) {
+    const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapterNumber);
     if (!mp3File.exists) return false;
   }
 
-  return true;
+  try {
+    const manifest = await resolveBookAudioChapters(languageCode, canonicalSlug);
+    if (manifest.chapters.length === 0) return false;
+
+    const downloadedSet = new Set(downloadedNumbers);
+    return manifest.chapters.every((chapter) => downloadedSet.has(chapter.chapter));
+  } catch {
+    // Offline: without the remote manifest we cannot confirm a full-book download.
+    return false;
+  }
 }
 
 export async function getOfflineChapterAudioUri(
@@ -408,10 +415,12 @@ export async function getLanguageAudioTotalBytes(languageCode: string): Promise<
   let total = 0;
 
   for (const book of books) {
-    const downloadedBytes = await getDownloadedBookAudioByteSize(languageCode, book.bookSlug);
-    if (downloadedBytes != null) {
-      total += downloadedBytes;
-      continue;
+    if (await isBookAudioDownloaded(languageCode, book.bookSlug)) {
+      const downloadedBytes = await getDownloadedBookAudioByteSize(languageCode, book.bookSlug);
+      if (downloadedBytes != null) {
+        total += downloadedBytes;
+        continue;
+      }
     }
     total += await getBookAudioTotalBytes(languageCode, book.bookSlug);
   }

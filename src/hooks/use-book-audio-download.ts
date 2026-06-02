@@ -47,21 +47,35 @@ export function useBookAudioDownload({
       const downloadedBytes = await getDownloadedBookAudioByteSize(code, slug);
       if (cancelled) return;
 
-      if (downloadedBytes != null) {
-        setFileSizeLabel(formatByteSize(downloadedBytes));
-        setHasAudio(true);
-        return;
-      }
-
       try {
         const remoteBytes = await getBookAudioTotalBytes(code, slug);
         if (cancelled) return;
         setHasAudio(remoteBytes > 0);
-        setFileSizeLabel(remoteBytes > 0 ? formatByteSize(remoteBytes) : null);
+
+        if (remoteBytes <= 0) {
+          setFileSizeLabel(null);
+          return;
+        }
+
+        if (downloaded) {
+          setFileSizeLabel(formatByteSize(downloadedBytes ?? remoteBytes));
+          return;
+        }
+
+        if (downloadedBytes != null && downloadedBytes > 0) {
+          setFileSizeLabel(
+            `${formatByteSize(downloadedBytes)} / ${formatByteSize(remoteBytes)}`,
+          );
+          return;
+        }
+
+        setFileSizeLabel(formatByteSize(remoteBytes));
       } catch {
         if (!cancelled) {
-          setHasAudio(false);
-          setFileSizeLabel(null);
+          setHasAudio(downloadedBytes != null);
+          setFileSizeLabel(
+            downloadedBytes != null ? formatByteSize(downloadedBytes) : null,
+          );
         }
       }
     }
