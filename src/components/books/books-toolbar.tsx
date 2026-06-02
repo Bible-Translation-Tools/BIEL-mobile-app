@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -62,16 +63,7 @@ export function BooksToolbar({ languageName }: BooksToolbarProps) {
           />
         </Pressable>
 
-        <Pressable
-          style={({ pressed }) => [styles.settingsButton, { opacity: pressed ? 0.7 : 1 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Settings">
-          <IconSymbol
-            name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
-            size={28}
-            color={theme.iconPrimary}
-          />
-        </Pressable>
+        <SettingsToolbarButton iconSize={28} hitSize={28} />
       </View>
     </View>
   );
@@ -109,12 +101,6 @@ const styles = StyleSheet.create({
     borderRadius: BookLayout.cardRadius,
     borderWidth: 1,
     flexShrink: 1,
-  },
-  settingsButton: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   languageLabel: {
     flexDirection: 'row',

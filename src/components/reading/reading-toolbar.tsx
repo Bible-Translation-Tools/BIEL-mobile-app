@@ -10,6 +10,10 @@ import {
   TextSettingsPopover,
   type TextSettingsAnchor,
 } from '@/components/reading/text-settings-popover';
+import {
+  SettingsToolbarButton,
+  type SettingsToolbarButtonRef,
+} from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
@@ -33,6 +37,7 @@ export function ReadingToolbar({
   const isElevated = chapterTitle != null;
   const downloadAnchorRef = useRef<View>(null);
   const textSettingsAnchorRef = useRef<View>(null);
+  const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
   const [textSettingsVisible, setTextSettingsVisible] = useState(false);
@@ -56,6 +61,7 @@ export function ReadingToolbar({
   } = useChapterDownload({ languageCode, bookSlug, chapter });
 
   const openDownloadMenu = useCallback(() => {
+    systemSettingsRef.current?.close();
     setTextSettingsVisible(false);
     setTextSettingsAnchor(null);
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -76,6 +82,7 @@ export function ReadingToolbar({
       return;
     }
 
+    systemSettingsRef.current?.close();
     setMenuVisible(false);
     setMenuAnchor(null);
     textSettingsAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -248,19 +255,17 @@ export function ReadingToolbar({
             />
           </Pressable>
         </View>
-        <Pressable
-          style={({ pressed }) => [
-            styles.settingsButton,
-            { opacity: pressed ? 0.7 : 1 },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Settings">
-          <IconSymbol
-            name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
-            size={ReadingLayout.toolbarSettingsIconSize}
-            color={theme.iconPrimary}
-          />
-        </Pressable>
+        <SettingsToolbarButton
+          ref={systemSettingsRef}
+          iconSize={ReadingLayout.toolbarSettingsIconSize}
+          hitSize={ReadingLayout.toolbarIconSize}
+          onOpen={() => {
+            setMenuVisible(false);
+            setMenuAnchor(null);
+            setTextSettingsVisible(false);
+            setTextSettingsAnchor(null);
+          }}
+        />
       </View>
 
       <TextSettingsPopover
@@ -334,11 +339,5 @@ const styles = StyleSheet.create({
   },
   iconButtonDisabled: {
     opacity: 0.4,
-  },
-  settingsButton: {
-    width: ReadingLayout.toolbarIconSize,
-    height: ReadingLayout.toolbarIconSize,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
