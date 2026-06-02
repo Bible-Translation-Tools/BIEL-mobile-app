@@ -86,7 +86,13 @@ export function BookList({
 
   useEffect(() => {
     setExpandedBookId(null);
-  }, [books]);
+  }, [languageCode]);
+
+  useEffect(() => {
+    if (expandedBookId && !books.some((book) => book.id === expandedBookId)) {
+      setExpandedBookId(null);
+    }
+  }, [books, expandedBookId]);
 
   useEffect(() => {
     if (expandedBook) {
