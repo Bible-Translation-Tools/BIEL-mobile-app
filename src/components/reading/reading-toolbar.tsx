@@ -6,6 +6,10 @@ import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
+import {
+  TextSettingsPopover,
+  type TextSettingsAnchor,
+} from '@/components/reading/text-settings-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
@@ -28,8 +32,11 @@ export function ReadingToolbar({
   const router = useRouter();
   const isElevated = chapterTitle != null;
   const downloadAnchorRef = useRef<View>(null);
+  const textSettingsAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const [textSettingsVisible, setTextSettingsVisible] = useState(false);
+  const [textSettingsAnchor, setTextSettingsAnchor] = useState<TextSettingsAnchor | null>(null);
 
   const {
     scriptureFileSizeLabel,
@@ -49,6 +56,8 @@ export function ReadingToolbar({
   } = useChapterDownload({ languageCode, bookSlug, chapter });
 
   const openDownloadMenu = useCallback(() => {
+    setTextSettingsVisible(false);
+    setTextSettingsAnchor(null);
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setMenuAnchor({ x, y, width, height });
       setMenuVisible(true);
@@ -58,6 +67,26 @@ export function ReadingToolbar({
   const closeDownloadMenu = useCallback(() => {
     setMenuVisible(false);
     setMenuAnchor(null);
+  }, []);
+
+  const openTextSettings = useCallback(() => {
+    if (textSettingsVisible) {
+      setTextSettingsVisible(false);
+      setTextSettingsAnchor(null);
+      return;
+    }
+
+    setMenuVisible(false);
+    setMenuAnchor(null);
+    textSettingsAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      setTextSettingsAnchor({ x, y, width, height });
+      setTextSettingsVisible(true);
+    });
+  }, [textSettingsVisible]);
+
+  const closeTextSettings = useCallback(() => {
+    setTextSettingsVisible(false);
+    setTextSettingsAnchor(null);
   }, []);
 
   const handleScripturePress = useCallback(async () => {
@@ -180,16 +209,27 @@ export function ReadingToolbar({
       </View>
 
       <View style={styles.trailing}>
-        <Pressable
-          style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Text settings">
-          <IconSymbol
-            name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
-            size={ReadingLayout.toolbarIconSize}
-            color={theme.iconPrimary}
-          />
-        </Pressable>
+        <View ref={textSettingsAnchorRef} collapsable={false}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.iconButton,
+              textSettingsVisible && {
+                borderColor: theme.textLabel,
+                backgroundColor: theme.backgroundElement,
+              },
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+            onPress={openTextSettings}
+            accessibilityRole="button"
+            accessibilityLabel="Text settings"
+            accessibilityState={{ expanded: textSettingsVisible }}>
+            <IconSymbol
+              name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
+              size={ReadingLayout.toolbarIconSize}
+              color={theme.iconPrimary}
+            />
+          </Pressable>
+        </View>
         <View ref={downloadAnchorRef} collapsable={false}>
           <Pressable
             style={({ pressed }) => [
@@ -222,6 +262,12 @@ export function ReadingToolbar({
           />
         </Pressable>
       </View>
+
+      <TextSettingsPopover
+        visible={textSettingsVisible}
+        anchor={textSettingsAnchor}
+        onClose={closeTextSettings}
+      />
 
       <DownloadMenuPopover
         visible={menuVisible}
@@ -282,6 +328,9 @@ const styles = StyleSheet.create({
     height: ReadingLayout.toolbarIconSize,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   iconButtonDisabled: {
     opacity: 0.4,

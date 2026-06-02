@@ -112,6 +112,17 @@ export const DownloadMenuLayout = {
   screenPadding: 16,
 } as const;
 
+export const TextSettingsLayout = {
+  menuWidth: 262,
+  rowGap: 9,
+  rowIconSize: 28,
+  stepperHeight: 42,
+  stepperRadius: 10,
+  stepperPaddingH: 10,
+  stepperIconSize: 24,
+  resetHeight: 40,
+} as const;
+
 export const HomeLayout = {
   padding: 16,
   contentGap: 20,

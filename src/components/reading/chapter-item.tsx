@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
   Modal,
@@ -19,10 +19,34 @@ type ChapterItemProps = {
   chapter: ChapterContent;
   isFirst?: boolean;
   highlightedVerse?: number | null;
+  fontSize: number;
+  lineHeight: number;
+  verseNumberFontSize: number;
+  footnoteMarkerFontSize: number;
+  verseLayoutReportsPaused: boolean;
   onRootRef?: (node: View | null) => void;
   onVerseLayout?: (chapterNumber: number, verseToY: Map<number, number>) => void;
   onVersePress?: (verse: number) => void;
 };
+
+const VERSE_LAYOUT_REPORT_DEBOUNCE_MS = 80;
+
+function chapterItemPropsAreEqual(prev: ChapterItemProps, next: ChapterItemProps): boolean {
+  return (
+    prev.chapter === next.chapter &&
+    prev.bookName === next.bookName &&
+    prev.isFirst === next.isFirst &&
+    prev.highlightedVerse === next.highlightedVerse &&
+    prev.fontSize === next.fontSize &&
+    prev.lineHeight === next.lineHeight &&
+    prev.verseNumberFontSize === next.verseNumberFontSize &&
+    prev.footnoteMarkerFontSize === next.footnoteMarkerFontSize &&
+    prev.verseLayoutReportsPaused === next.verseLayoutReportsPaused &&
+    prev.onVersePress === next.onVersePress &&
+    prev.onRootRef === next.onRootRef &&
+    prev.onVerseLayout === next.onVerseLayout
+  );
+}
 
 const SUPERSCRIPT_DIGITS: Record<string, string> = {
   '0': '⁰',
@@ -57,17 +81,38 @@ function toSuperscript(value: number): string {
 // parsing line text from onTextLayout.
 const VERSE_NUMBER_MARKER = '⁠';
 
-export const ChapterItem = memo(function ChapterItem({
+function ChapterItemInner({
   bookName,
   chapter,
   isFirst = false,
   highlightedVerse = null,
+  fontSize,
+  lineHeight,
+  verseNumberFontSize,
+  footnoteMarkerFontSize,
+  verseLayoutReportsPaused,
   onRootRef,
   onVerseLayout,
   onVersePress,
 }: ChapterItemProps) {
   const theme = useTheme();
   const [activeFootnoteId, setActiveFootnoteId] = useState<string | null>(null);
+
+  const paragraphStyle = useMemo(
+    () => [styles.paragraph, { fontSize, lineHeight }],
+    [fontSize, lineHeight],
+  );
+  const verseNumberStyle = useMemo(
+    () => [styles.verseNumber, { fontSize: verseNumberFontSize, lineHeight }],
+    [verseNumberFontSize, lineHeight],
+  );
+  const footnoteMarkerStyle = useMemo(
+    () => [
+      styles.footnoteMarker,
+      { color: theme.tabActive, fontSize: footnoteMarkerFontSize, lineHeight },
+    ],
+    [footnoteMarkerFontSize, lineHeight, theme.tabActive],
+  );
   const footnoteMap = useMemo(
     () => new Map(chapter.footnotes.map((note) => [note.id, note])),
     [chapter.footnotes],
@@ -81,11 +126,28 @@ export const ChapterItem = memo(function ChapterItem({
   // (i.e. the y of the line where the verse starts). Populated by onTextLayout.
   const verseLineYsRef = useRef<Map<string, Map<number, number>>>(new Map());
   const onVerseLayoutRef = useRef(onVerseLayout);
-  onVerseLayoutRef.current = onVerseLayout;
+  const verseLayoutReportsPausedRef = useRef(verseLayoutReportsPaused);
+  const reportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const reportVerseLayouts = () => {
+  onVerseLayoutRef.current = onVerseLayout;
+  verseLayoutReportsPausedRef.current = verseLayoutReportsPaused;
+
+  useEffect(() => {
+    verseLineYsRef.current.clear();
+  }, [fontSize, lineHeight]);
+
+  useEffect(
+    () => () => {
+      if (reportTimerRef.current != null) {
+        clearTimeout(reportTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const reportVerseLayouts = useCallback(() => {
     const report = onVerseLayoutRef.current;
-    if (!report) return;
+    if (!report || verseLayoutReportsPausedRef.current) return;
     const verseToY = new Map<number, number>();
     chapter.sections.forEach((section, sectionIndex) => {
       const sectionY = sectionYsRef.current.get(sectionIndex) ?? 0;
@@ -101,13 +163,32 @@ export const ChapterItem = memo(function ChapterItem({
       });
     });
     report(chapter.chapter, verseToY);
-  };
+  }, [chapter]);
+
+  const scheduleReportVerseLayouts = useCallback(() => {
+    if (verseLayoutReportsPausedRef.current) return;
+    if (reportTimerRef.current != null) {
+      clearTimeout(reportTimerRef.current);
+    }
+    reportTimerRef.current = setTimeout(() => {
+      reportTimerRef.current = null;
+      reportVerseLayouts();
+    }, VERSE_LAYOUT_REPORT_DEBOUNCE_MS);
+  }, [reportVerseLayouts]);
+
+  useEffect(() => {
+    if (!verseLayoutReportsPaused) {
+      scheduleReportVerseLayouts();
+    }
+  }, [verseLayoutReportsPaused, scheduleReportVerseLayouts]);
 
   const handleParagraphTextLayout = (
     sectionIndex: number,
     paragraphIndex: number,
     event: NativeSyntheticEvent<TextLayoutEventData>,
   ) => {
+    if (verseLayoutReportsPausedRef.current) return;
+
     const lines = event.nativeEvent.lines;
     if (!lines || lines.length === 0) return;
 
@@ -146,22 +227,22 @@ export const ChapterItem = memo(function ChapterItem({
     }
 
     verseLineYsRef.current.set(`${sectionIndex}-${paragraphIndex}`, verseToLineY);
-    reportVerseLayouts();
+    scheduleReportVerseLayouts();
   };
 
   const handleSectionsLayout = (event: LayoutChangeEvent) => {
     sectionsContainerYRef.current = event.nativeEvent.layout.y;
-    reportVerseLayouts();
+    scheduleReportVerseLayouts();
   };
 
   const handleSectionLayout = (sectionIndex: number, event: LayoutChangeEvent) => {
     sectionYsRef.current.set(sectionIndex, event.nativeEvent.layout.y);
-    reportVerseLayouts();
+    scheduleReportVerseLayouts();
   };
 
   const handleParagraphLayout = (key: string, event: LayoutChangeEvent) => {
     paragraphYsRef.current.set(key, event.nativeEvent.layout.y);
-    reportVerseLayouts();
+    scheduleReportVerseLayouts();
   };
 
   const renderLineParts = (parts: ScriptureInlinePart[], verseKey: string) =>
@@ -174,7 +255,7 @@ export const ChapterItem = memo(function ChapterItem({
       return (
         <Text
           key={partKey}
-          style={[styles.footnoteMarker, { color: theme.tabActive }]}
+          style={footnoteMarkerStyle}
           onPress={() => setActiveFootnoteId(part.targetId)}>
           {' '}
           {toSuperscript(Number.parseInt(part.label, 10) || 0)}
@@ -213,7 +294,7 @@ export const ChapterItem = memo(function ChapterItem({
             {section.paragraphs.map((paragraph, paragraphIndex) => (
               <Text
                 key={`paragraph-${chapter.chapter}-${sectionIndex}-${paragraphIndex}`}
-                style={[styles.paragraph, { color: theme.text }]}
+                style={[paragraphStyle, { color: theme.text }]}
                 onLayout={(event) =>
                   handleParagraphLayout(`${sectionIndex}-${paragraphIndex}`, event)
                 }
@@ -225,7 +306,7 @@ export const ChapterItem = memo(function ChapterItem({
                     key={`verse-${chapter.chapter}-${sectionIndex}-${paragraphIndex}-${verseIndex}-${verse.number}`}
                     style={verse.number === highlightedVerse ? styles.highlightedVerse : undefined}>
                     {verseIndex > 0 ? (verse.startsOnNewLine ? '\n' : ' ') : ''}
-                    <Text style={styles.verseNumber}>
+                    <Text style={verseNumberStyle}>
                       {VERSE_NUMBER_MARKER}
                       {toSuperscript(verse.number)}
                     </Text>
@@ -271,7 +352,9 @@ export const ChapterItem = memo(function ChapterItem({
       </Modal>
     </View>
   );
-});
+}
+
+export const ChapterItem = memo(ChapterItemInner, chapterItemPropsAreEqual);
 
 const styles = StyleSheet.create({
   chapterBlock: {
@@ -305,7 +388,6 @@ const styles = StyleSheet.create({
   },
   verseNumber: {
     ...Typography.verseNumber,
-    fontSize: 18,
   },
   highlightedVerse: {
     backgroundColor: 'rgba(0, 91, 221, 0.12)',
