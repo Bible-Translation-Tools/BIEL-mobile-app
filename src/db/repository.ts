@@ -349,55 +349,64 @@ export async function getChapterNumbersForBook(
 export async function upsertBookWithChapters(params: UpsertBookParams): Promise<number> {
   const db = await getDb();
   const now = Date.now();
+  let bookId = 0;
 
-  await db.runAsync(
-    `INSERT INTO languages (ietf_code, english_name, national_name, updated_at)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT(ietf_code) DO UPDATE SET
-       english_name = COALESCE(excluded.english_name, languages.english_name),
-       national_name = COALESCE(excluded.national_name, languages.national_name),
-       updated_at = excluded.updated_at`,
-    params.languageCode,
-    params.languageEnglishName ?? null,
-    params.languageNationalName ?? null,
-    now,
-  );
-
-  await db.runAsync('DELETE FROM books WHERE language_code = ? AND book_slug = ? COLLATE NOCASE', [
-    params.languageCode,
-    params.bookSlug,
-  ]);
-
-  const insertResult = await db.runAsync(
-    `INSERT INTO books (
-       language_code, book_slug, book_name, resource_type, content_name,
-       source_url, local_path, byte_size, downloaded_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    params.languageCode,
-    params.bookSlug,
-    params.bookName,
-    params.resourceType,
-    params.contentName,
-    params.sourceUrl,
-    params.localPath,
-    params.byteSize,
-    now,
-  );
-
-  const bookId = insertResult.lastInsertRowId;
-
-  for (const chapterNumber of params.chapterNumbers) {
+  await db.withTransactionAsync(async () => {
     await db.runAsync(
-      'INSERT INTO chapters (book_id, chapter_number) VALUES (?, ?)',
-      bookId,
-      chapterNumber,
+      `INSERT INTO languages (ietf_code, english_name, national_name, updated_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(ietf_code) DO UPDATE SET
+         english_name = COALESCE(excluded.english_name, languages.english_name),
+         national_name = COALESCE(excluded.national_name, languages.national_name),
+         updated_at = excluded.updated_at`,
+      params.languageCode,
+      params.languageEnglishName ?? null,
+      params.languageNationalName ?? null,
+      now,
     );
-  }
 
-  await upsertBookCatalogEntry(params.languageCode, {
-    slug: params.bookSlug,
-    name: params.bookName,
-    testament: isOldTestament(params.bookSlug) ? 'old' : 'new',
+    await db.runAsync(
+      'DELETE FROM books WHERE language_code = ? AND book_slug = ? COLLATE NOCASE',
+      [params.languageCode, params.bookSlug],
+    );
+
+    const insertResult = await db.runAsync(
+      `INSERT INTO books (
+         language_code, book_slug, book_name, resource_type, content_name,
+         source_url, local_path, byte_size, downloaded_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      params.languageCode,
+      params.bookSlug,
+      params.bookName,
+      params.resourceType,
+      params.contentName,
+      params.sourceUrl,
+      params.localPath,
+      params.byteSize,
+      now,
+    );
+
+    bookId = insertResult.lastInsertRowId;
+
+    for (const chapterNumber of params.chapterNumbers) {
+      await db.runAsync(
+        'INSERT INTO chapters (book_id, chapter_number) VALUES (?, ?)',
+        bookId,
+        chapterNumber,
+      );
+    }
+
+    await db.runAsync(
+      `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(language_code, book_slug) DO UPDATE SET
+         book_name = excluded.book_name,
+         testament = excluded.testament`,
+      params.languageCode,
+      params.bookSlug,
+      params.bookName,
+      isOldTestament(params.bookSlug) ? 'old' : 'new',
+    );
   });
 
   return bookId;
@@ -543,45 +552,48 @@ export async function listAudioChaptersForBook(
 export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams): Promise<number> {
   const db = await getDb();
   const now = Date.now();
+  let audioBookId = 0;
 
-  await db.runAsync(
-    `INSERT INTO languages (ietf_code, updated_at)
-     VALUES (?, ?)
-     ON CONFLICT(ietf_code) DO UPDATE SET updated_at = excluded.updated_at`,
-    params.languageCode,
-    now,
-  );
-
-  await db.runAsync(
-    'DELETE FROM audio_books WHERE language_code = ? AND book_slug = ? COLLATE NOCASE',
-    [params.languageCode, params.bookSlug],
-  );
-
-  const insertResult = await db.runAsync(
-    `INSERT INTO audio_books (language_code, book_slug, book_name, byte_size, downloaded_at)
-     VALUES (?, ?, ?, ?, ?)`,
-    params.languageCode,
-    params.bookSlug,
-    params.bookName,
-    params.byteSize,
-    now,
-  );
-
-  const audioBookId = insertResult.lastInsertRowId;
-
-  for (const chapter of params.chapters) {
+  await db.withTransactionAsync(async () => {
     await db.runAsync(
-      `INSERT INTO audio_chapters (
-         audio_book_id, chapter_number, mp3_path, cue_path, mp3_byte_size, cue_byte_size
-       ) VALUES (?, ?, ?, ?, ?, ?)`,
-      audioBookId,
-      chapter.chapterNumber,
-      chapter.mp3Path,
-      chapter.cuePath,
-      chapter.mp3ByteSize,
-      chapter.cueByteSize,
+      `INSERT INTO languages (ietf_code, updated_at)
+       VALUES (?, ?)
+       ON CONFLICT(ietf_code) DO UPDATE SET updated_at = excluded.updated_at`,
+      params.languageCode,
+      now,
     );
-  }
+
+    await db.runAsync(
+      'DELETE FROM audio_books WHERE language_code = ? AND book_slug = ? COLLATE NOCASE',
+      [params.languageCode, params.bookSlug],
+    );
+
+    const insertResult = await db.runAsync(
+      `INSERT INTO audio_books (language_code, book_slug, book_name, byte_size, downloaded_at)
+       VALUES (?, ?, ?, ?, ?)`,
+      params.languageCode,
+      params.bookSlug,
+      params.bookName,
+      params.byteSize,
+      now,
+    );
+
+    audioBookId = insertResult.lastInsertRowId;
+
+    for (const chapter of params.chapters) {
+      await db.runAsync(
+        `INSERT INTO audio_chapters (
+           audio_book_id, chapter_number, mp3_path, cue_path, mp3_byte_size, cue_byte_size
+         ) VALUES (?, ?, ?, ?, ?, ?)`,
+        audioBookId,
+        chapter.chapterNumber,
+        chapter.mp3Path,
+        chapter.cuePath,
+        chapter.mp3ByteSize,
+        chapter.cueByteSize,
+      );
+    }
+  });
 
   return audioBookId;
 }
