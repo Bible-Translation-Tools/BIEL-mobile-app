@@ -1,0 +1,124 @@
+{
+  "common": {
+    "ok": "OK",
+    "retry": "Appuyer pour réessayer",
+    "clearSearch": "Effacer la recherche",
+    "goBack": "Retour",
+    "back": "Retour",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Parcourir la Bible",
+    "searchPlaceholder": "Rechercher une langue...",
+    "searchAccessibility": "Rechercher des langues",
+    "noLanguagesFound": "Aucune langue trouvée",
+    "failedToLoadLanguages": "Impossible de charger les langues",
+    "accessibility": {
+      "openLanguage": "Ouvrir {{name}}",
+      "downloadInProgress": "Téléchargement en cours pour {{name}}",
+      "downloaded": "{{name}} téléchargé",
+      "download": "Télécharger {{name}}"
+    }
+  },
+  "books": {
+    "title": "Bible",
+    "searchPlaceholder": "Rechercher un livre...",
+    "searchAccessibility": "Rechercher des livres",
+    "oldTestament": "Ancien Testament",
+    "newTestament": "Nouveau Testament",
+    "noBooksFound": "Aucun livre trouvé",
+    "languageNotFound": "Langue introuvable",
+    "failedToLoadBooks": "Impossible de charger les livres",
+    "accessibility": {
+      "expand": "Développer {{name}}",
+      "collapse": "Réduire {{name}}",
+      "downloadInProgress": "Téléchargement en cours pour {{name}}",
+      "delete": "Supprimer {{name}}",
+      "download": "Télécharger {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Écriture",
+    "audio": "Audio",
+    "textSettings": "Paramètres de texte",
+    "textSize": "Taille du texte",
+    "lineHeight": "Interligne",
+    "reset": "Réinitialiser",
+    "verse": "Verset",
+    "play": "Lecture",
+    "pause": "Pause",
+    "failedToLoadChapter": "Impossible de charger le chapitre",
+    "tapToRetry": "Appuyer pour réessayer",
+    "decreaseTextSize": "Réduire la taille du texte",
+    "increaseTextSize": "Augmenter la taille du texte",
+    "decreaseLineHeight": "Réduire l'interligne",
+    "increaseLineHeight": "Augmenter l'interligne",
+    "resetTextSettings": "Réinitialiser les paramètres de texte",
+    "closeTextSettings": "Fermer les paramètres de texte",
+    "downloadChapter": "Télécharger le chapitre",
+    "goBack": "Retour",
+    "previousVerse": "Verset précédent",
+    "nextVerse": "Verset suivant",
+    "volume": "Volume",
+    "partOfFullBookTitle": "Partie du téléchargement du livre entier",
+    "partOfFullBookMessage": "Ce chapitre est disponible hors ligne car le livre entier a été téléchargé. Supprimez-le depuis la liste des livres.",
+    "downloadChapterAudio": "Télécharger l'audio du chapitre",
+    "audioPlayer": "Lecteur audio",
+    "closeAudioPlayer": "Fermer le lecteur audio",
+    "openAudioPlayer": "Ouvrir le lecteur audio",
+    "accessibility": {
+      "textSettings": "Paramètres de texte"
+    }
+  },
+  "download": {
+    "title": "Télécharger",
+    "closeMenu": "Fermer le menu de téléchargement",
+    "allScripture": "Toute l'Écriture",
+    "allAudio": "Tout l'audio",
+    "checking": "Vérification...",
+    "downloading": "Téléchargement...",
+    "downloaded": "Téléchargé",
+    "downloadFailedTitle": "Échec du téléchargement",
+    "downloadFailedMessage": "Impossible de terminer le téléchargement",
+    "deleteFailedTitle": "Échec de la suppression",
+    "deleteFailedMessage": "Impossible de supprimer le téléchargement",
+    "couldNotDownloadChapter": "Impossible de télécharger le chapitre",
+    "couldNotRemoveChapter": "Impossible de supprimer le chapitre téléchargé",
+    "couldNotDownloadAudio": "Impossible de télécharger l'audio",
+    "couldNotRemoveAudio": "Impossible de supprimer l'audio téléchargé",
+    "couldNotDownloadLanguage": "Impossible de télécharger la langue",
+    "couldNotDownloadScripture": "Impossible de télécharger l'écriture",
+    "couldNotRemoveScripture": "Impossible de supprimer l'écriture téléchargée",
+    "accessibility": {
+      "checking": "Vérification de la disponibilité de {{title}}",
+      "cancel": "Annuler le téléchargement de {{title}}",
+      "delete": "Supprimer {{title}} téléchargé",
+      "downloaded": "{{title}} téléchargé",
+      "unavailable": "{{title}} indisponible",
+      "download": "Télécharger {{title}}"
+    }
+  },
+  "settings": {
+    "title": "Paramètres système",
+    "close": "Fermer les paramètres système",
+    "theme": {
+      "system": {
+        "title": "Automatique",
+        "subtitle": "Suivre les paramètres du système"
+      },
+      "light": {
+        "title": "Mode clair",
+        "subtitle": "Ignorer les paramètres du système"
+      },
+      "dark": {
+        "title": "Mode sombre",
+        "subtitle": "Ignorer les paramètres du système"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Langue de l'interface",
+    "changeInterfaceLanguage": "Changer la langue de l'interface",
+    "closePicker": "Fermer le menu de langue de l'interface"
+  }
+}

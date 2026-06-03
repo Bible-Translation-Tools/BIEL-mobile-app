@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import {
   DownloadMenuPopover,
@@ -21,6 +22,8 @@ type AudioOnlyToolbarProps = {
 export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyToolbarProps) {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation('reading');
+  const { t: tc } = useTranslation('common');
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -80,13 +83,13 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
           style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back">
+          accessibilityLabel={t('goBack')}>
           <IconSymbol
             name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
             size={28}
             color={theme.textHeading}
           />
-          <Text style={[styles.backText, { color: theme.textHeading }]}>Back</Text>
+          <Text style={[styles.backText, { color: theme.textHeading }]}>{tc('back')}</Text>
         </Pressable>
 
         <View ref={downloadAnchorRef} collapsable={false}>
@@ -94,7 +97,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
             style={({ pressed }) => [styles.downloadButton, { opacity: pressed ? 0.7 : 1 }]}
             onPress={openDownloadMenu}
             accessibilityRole="button"
-            accessibilityLabel="Download chapter audio">
+            accessibilityLabel={t('downloadChapterAudio')}>
             <IconSymbol
               name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
               size={28}
@@ -110,8 +113,8 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
         onClose={closeDownloadMenu}
         menuProps={{
           hideScripture: true,
-          audioTitle: 'Audio',
-          audioFileSize: audioFileSizeLabel ?? '—',
+          audioTitle: t('audio'),
+          audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus,
           audioProgress,
           onAudioPress: handleAudioPress,

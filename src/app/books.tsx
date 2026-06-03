@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,14 +20,14 @@ export default function BookSelectionScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, name, hasText: hasTextParam } = useLocalSearchParams<{
+  const { languageCode, hasText: hasTextParam } = useLocalSearchParams<{
     languageCode: string | string[];
     name?: string | string[];
     hasText?: string | string[];
   }>();
 
+  const { t } = useTranslation('books');
   const ietfCode = normalizeRouteParam(languageCode);
-  const languageName = normalizeRouteParam(name) ?? 'Language';
   const hasText =
     normalizeRouteParam(hasTextParam) !== '0' && normalizeRouteParam(hasTextParam) !== 'false';
 
@@ -77,7 +78,7 @@ export default function BookSelectionScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <BooksToolbar languageName={languageName} />
+        <BooksToolbar />
         {ietfCode ? (
           <BookList
             books={filteredBooks}
@@ -94,7 +95,7 @@ export default function BookSelectionScreen() {
         ) : (
           <View style={styles.missingLanguage}>
             <Text style={[styles.missingLanguageText, { color: theme.textSecondary }]}>
-              {error ?? 'Language not found'}
+              {error ?? t('languageNotFound')}
             </Text>
           </View>
         )}

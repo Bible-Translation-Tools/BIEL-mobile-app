@@ -1,0 +1,124 @@
+{
+  "common": {
+    "ok": "OK",
+    "retry": "Tap to retry",
+    "clearSearch": "Clear search",
+    "goBack": "Go back",
+    "back": "Back",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Browse the Bible",
+    "searchPlaceholder": "Search language here...",
+    "searchAccessibility": "Search languages",
+    "noLanguagesFound": "No languages found",
+    "failedToLoadLanguages": "Failed to load languages",
+    "accessibility": {
+      "openLanguage": "Open {{name}}",
+      "downloadInProgress": "Download in progress for {{name}}",
+      "downloaded": "{{name}} downloaded",
+      "download": "Download {{name}}"
+    }
+  },
+  "books": {
+    "title": "Bible",
+    "searchPlaceholder": "Search book here...",
+    "searchAccessibility": "Search books",
+    "oldTestament": "Old Testament",
+    "newTestament": "New Testament",
+    "noBooksFound": "No books found",
+    "languageNotFound": "Language not found",
+    "failedToLoadBooks": "Failed to load books",
+    "accessibility": {
+      "expand": "Expand {{name}}",
+      "collapse": "Collapse {{name}}",
+      "downloadInProgress": "Download in progress for {{name}}",
+      "delete": "Delete {{name}}",
+      "download": "Download {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Scripture",
+    "audio": "Audio",
+    "textSettings": "Text Settings",
+    "textSize": "Text Size",
+    "lineHeight": "Line Height",
+    "reset": "Reset",
+    "verse": "Verse",
+    "play": "Play",
+    "pause": "Pause",
+    "failedToLoadChapter": "Failed to load chapter",
+    "tapToRetry": "Tap to retry",
+    "decreaseTextSize": "Decrease text size",
+    "increaseTextSize": "Increase text size",
+    "decreaseLineHeight": "Decrease line height",
+    "increaseLineHeight": "Increase line height",
+    "resetTextSettings": "Reset text settings",
+    "closeTextSettings": "Close text settings",
+    "downloadChapter": "Download chapter",
+    "goBack": "Go back",
+    "previousVerse": "Previous verse",
+    "nextVerse": "Next verse",
+    "volume": "Volume",
+    "partOfFullBookTitle": "Part of full book download",
+    "partOfFullBookMessage": "This chapter is available offline because the full book was downloaded. Remove it from the book list.",
+    "downloadChapterAudio": "Download chapter audio",
+    "audioPlayer": "Audio player",
+    "closeAudioPlayer": "Close audio player",
+    "openAudioPlayer": "Open audio player",
+    "accessibility": {
+      "textSettings": "Text settings"
+    }
+  },
+  "download": {
+    "title": "Download",
+    "closeMenu": "Close download menu",
+    "allScripture": "All Scripture",
+    "allAudio": "All Audio",
+    "checking": "Checking...",
+    "downloading": "Downloading...",
+    "downloaded": "Downloaded",
+    "downloadFailedTitle": "Download failed",
+    "downloadFailedMessage": "Could not complete download",
+    "deleteFailedTitle": "Delete failed",
+    "deleteFailedMessage": "Could not remove download",
+    "couldNotDownloadChapter": "Could not download chapter",
+    "couldNotRemoveChapter": "Could not remove downloaded chapter",
+    "couldNotDownloadAudio": "Could not download audio",
+    "couldNotRemoveAudio": "Could not remove downloaded audio",
+    "couldNotDownloadLanguage": "Could not download language",
+    "couldNotDownloadScripture": "Could not download scripture",
+    "couldNotRemoveScripture": "Could not remove downloaded scripture",
+    "accessibility": {
+      "checking": "Checking {{title}} availability",
+      "cancel": "Cancel {{title}} download",
+      "delete": "Delete downloaded {{title}}",
+      "downloaded": "{{title}} downloaded",
+      "unavailable": "{{title}} unavailable",
+      "download": "Download {{title}}"
+    }
+  },
+  "settings": {
+    "title": "System Settings",
+    "close": "Close system settings",
+    "theme": {
+      "system": {
+        "title": "Automatic",
+        "subtitle": "Follow system settings"
+      },
+      "light": {
+        "title": "Light Mode",
+        "subtitle": "Ignore system settings"
+      },
+      "dark": {
+        "title": "Dark Mode",
+        "subtitle": "Ignore system settings"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Interface language",
+    "changeInterfaceLanguage": "Change interface language",
+    "closePicker": "Close interface language menu"
+  }
+}

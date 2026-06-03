@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { fetchBooksForLanguage, fetchBooksForLanguageOffline } from '@/api/services/books';
 import { listDownloadedBookSlugs } from '@/db';
@@ -18,6 +19,7 @@ async function applyDownloadStatus(
 }
 
 export function useBooks(languageCode: string | undefined) {
+  const { t } = useTranslation('books');
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +42,7 @@ export function useBooks(languageCode: string | undefined) {
     if (!languageCode) {
       setBooks([]);
       setLoading(false);
-      setError('Language not found');
+      setError(t('languageNotFound'));
       return;
     }
 
@@ -75,12 +77,12 @@ export function useBooks(languageCode: string | undefined) {
     } catch (err) {
       if (offlineItems.length === 0) {
         setBooks([]);
-        setError(err instanceof Error ? err.message : 'Failed to load books');
+        setError(err instanceof Error ? err.message : t('failedToLoadBooks'));
       }
     } finally {
       setLoading(false);
     }
-  }, [languageCode]);
+  }, [languageCode, t]);
 
   useEffect(() => {
     refetch();

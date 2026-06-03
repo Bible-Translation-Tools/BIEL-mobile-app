@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MediaPlayerLayout, Typography } from '@/constants/theme';
@@ -30,6 +31,7 @@ export function MediaPlayerControls({
   onNextVerse,
 }: MediaPlayerControlsProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const playDisabled = isLoading || Boolean(error);
 
   return (
@@ -43,7 +45,7 @@ export function MediaPlayerControls({
             { opacity: !canStepVerse ? 0.4 : pressed ? 0.6 : 1 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Previous verse"
+          accessibilityLabel={t('previousVerse')}
           accessibilityState={{ disabled: !canStepVerse }}>
           <IconSymbol
             name={{
@@ -54,7 +56,7 @@ export function MediaPlayerControls({
             size={36}
             color={theme.iconPrimary}
           />
-          <Text style={[styles.verseLabel, { color: theme.text }]}>Verse</Text>
+          <Text style={[styles.verseLabel, { color: theme.text }]}>{t('verse')}</Text>
         </Pressable>
 
         <Pressable
@@ -69,7 +71,7 @@ export function MediaPlayerControls({
           ]}
           accessibilityRole="button"
           accessibilityState={{ disabled: playDisabled }}
-          accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
+          accessibilityLabel={isPlaying ? t('pause') : t('play')}>
           {isLoading ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
@@ -93,14 +95,14 @@ export function MediaPlayerControls({
             { opacity: !canStepVerse ? 0.4 : pressed ? 0.6 : 1 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Next verse"
+          accessibilityLabel={t('nextVerse')}
           accessibilityState={{ disabled: !canStepVerse }}>
           <IconSymbol
             name={{ ios: 'forward.end.fill', android: 'skip-next', web: 'skip-next' }}
             size={36}
             color={theme.iconPrimary}
           />
-          <Text style={[styles.verseLabel, { color: theme.text }]}>Verse</Text>
+          <Text style={[styles.verseLabel, { color: theme.text }]}>{t('verse')}</Text>
         </Pressable>
       </View>
 
@@ -114,7 +116,7 @@ export function MediaPlayerControls({
         </Text>
       ) : null}
 
-      <View style={styles.volumeRow} accessibilityRole="adjustable" accessibilityLabel="Volume">
+      <View style={styles.volumeRow} accessibilityRole="adjustable" accessibilityLabel={t('volume')}>
         <IconSymbol
           name={{ ios: 'speaker.wave.1.fill', android: 'volume-mute', web: 'volume-mute' }}
           size={16}

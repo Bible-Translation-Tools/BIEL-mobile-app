@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import {
   DownloadMenuPopover,
@@ -39,6 +40,8 @@ function ReadingToolbarDownloadButton({
   chapter,
 }: ReadingToolbarDownloadButtonProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
+  const { t: tc } = useTranslation('common');
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -87,10 +90,7 @@ function ReadingToolbarDownloadButton({
 
     if (scriptureStatus === 'downloaded') {
       if (!scriptureStandalone) {
-        Alert.alert(
-          'Part of full book download',
-          'This chapter is available offline because the full book was downloaded. Remove it from the book list.',
-        );
+        Alert.alert(t('partOfFullBookTitle'), t('partOfFullBookMessage'));
         return;
       }
 
@@ -136,7 +136,7 @@ function ReadingToolbarDownloadButton({
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
           onPress={openDownloadMenu}
           accessibilityRole="button"
-          accessibilityLabel="Download chapter">
+          accessibilityLabel={t('downloadChapter')}>
           <IconSymbol
             name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
             size={ReadingLayout.toolbarIconSize}
@@ -150,13 +150,13 @@ function ReadingToolbarDownloadButton({
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
         menuProps={{
-          scriptureTitle: 'Scripture',
-          scriptureFileSize: scriptureFileSizeLabel ?? '—',
+          scriptureTitle: t('scripture'),
+          scriptureFileSize: scriptureFileSizeLabel ?? tc('emDash'),
           scriptureStatus,
           scriptureProgress,
           onScripturePress: handleScripturePress,
-          audioTitle: 'Audio',
-          audioFileSize: audioFileSizeLabel ?? '—',
+          audioTitle: t('audio'),
+          audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus,
           audioProgress,
           onAudioPress: handleAudioPress,
@@ -186,6 +186,7 @@ function DisabledDownloadButton() {
 export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbarProps) {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation('reading');
   const isElevated = chapterTitle != null;
   const textSettingsAnchorRef = useRef<View>(null);
   const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
@@ -228,7 +229,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back">
+          accessibilityLabel={t('goBack')}>
           <IconSymbol
             name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
             size={ReadingLayout.toolbarIconSize}
@@ -257,7 +258,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
             ]}
             onPress={openTextSettings}
             accessibilityRole="button"
-            accessibilityLabel="Text settings"
+            accessibilityLabel={t('accessibility.textSettings')}
             accessibilityState={{ expanded: textSettingsVisible }}>
             <IconSymbol
               name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}

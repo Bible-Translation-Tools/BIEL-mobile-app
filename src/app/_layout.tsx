@@ -2,11 +2,17 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { I18nextProvider } from 'react-i18next';
 
 import { SplashScreenView } from '@/components/splash-screen';
+import { resolveAppLocale, type AppLocale } from '@/constants/locale';
 import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-context';
+import { LocaleProvider } from '@/contexts/locale-context';
 import { ensureOfflineRootExists } from '@/constants/offline-storage';
 import { initDatabase } from '@/db';
+import { loadLocalePreference } from '@/db/locale-preferences';
+import { initI18n, i18n } from '@/i18n';
+import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -22,13 +28,21 @@ function RootNavigation() {
 
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
+  const [initialLocale, setInitialLocale] = useState<AppLocale | null>(null);
 
   useEffect(() => {
     async function prepare() {
       try {
         await initDatabase();
         await ensureOfflineRootExists();
-        // Hold splash briefly so the native splash transitions into the in-app splash.
+
+        const savedLocale = await loadLocalePreference();
+        const resolvedLocale = resolveAppLocale(
+          savedLocale ?? resolveDeviceLocale(),
+        );
+        await initI18n(resolvedLocale);
+        setInitialLocale(resolvedLocale);
+
         await new Promise((resolve) => setTimeout(resolve, 300));
       } finally {
         setAppReady(true);
@@ -39,13 +53,17 @@ export default function RootLayout() {
     prepare();
   }, []);
 
-  if (!appReady) {
+  if (!appReady || initialLocale == null) {
     return <SplashScreenView />;
   }
 
   return (
-    <AppearanceProvider>
-      <RootNavigation />
-    </AppearanceProvider>
+    <I18nextProvider i18n={i18n}>
+      <LocaleProvider initialLocale={initialLocale}>
+        <AppearanceProvider>
+          <RootNavigation />
+        </AppearanceProvider>
+      </LocaleProvider>
+    </I18nextProvider>
   );
 }

@@ -9,14 +9,14 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
-import { DownloadMenuLayout } from '@/constants/theme';
+import { LocaleMenu } from '@/components/locale/locale-menu';
+import { DownloadMenuLayout, SystemSettingsLayout } from '@/constants/theme';
 
-export type TextSettingsAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
+export type LocalePopoverAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
 
-type TextSettingsPopoverProps = {
+type LocalePopoverProps = {
   visible: boolean;
-  anchor: TextSettingsAnchor | null;
+  anchor: LocalePopoverAnchor | null;
   onClose: () => void;
 };
 
@@ -24,20 +24,19 @@ const MENU_ESTIMATED_HEIGHT = 220;
 
 type MenuPosition = {
   top: number;
-  left: number;
+  right: number;
+  width: number;
 };
 
-function computeMenuPosition(anchor: TextSettingsAnchor): MenuPosition {
+function computeMenuPosition(anchor: LocalePopoverAnchor): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
   const menuWidth = Math.min(
+    SystemSettingsLayout.menuWidth,
     screenWidth - horizontalPadding * 2,
-    262,
   );
-
-  const anchorCenterX = anchor.x + anchor.width / 2;
-  let left = anchorCenterX - menuWidth / 2;
-  left = Math.max(horizontalPadding, Math.min(left, screenWidth - horizontalPadding - menuWidth));
+  const anchorRight = anchor.x + anchor.width;
+  const right = Math.max(horizontalPadding, screenWidth - anchorRight);
 
   const spaceBelow =
     screenHeight - (anchor.y + anchor.height + DownloadMenuLayout.anchorGap);
@@ -52,15 +51,15 @@ function computeMenuPosition(anchor: TextSettingsAnchor): MenuPosition {
       )
     : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
 
-  return { top, left };
+  return { top, right, width: menuWidth };
 }
 
-export const TextSettingsPopover = memo(function TextSettingsPopover({
+export const LocalePopover = memo(function LocalePopover({
   visible,
   anchor,
   onClose,
-}: TextSettingsPopoverProps) {
-  const { t } = useTranslation('reading');
+}: LocalePopoverProps) {
+  const { t } = useTranslation('locale');
 
   if (!visible || anchor == null) {
     return null;
@@ -80,17 +79,18 @@ export const TextSettingsPopover = memo(function TextSettingsPopover({
           style={styles.dismissLayer}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel={t('closeTextSettings')}
+          accessibilityLabel={t('closePicker')}
         />
         <View
           style={[
             styles.menuContainer,
             {
               top: position.top,
-              left: position.left,
+              right: position.right,
+              width: position.width,
             },
           ]}>
-          <TextSettingsMenu />
+          <LocaleMenu onSelect={onClose} />
         </View>
       </View>
     </Modal>
@@ -106,5 +106,6 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: 'absolute',
+    alignItems: 'flex-end',
   },
 });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { fetchChaptersForBook } from '@/api/services/chapters';
 import { isChapterAudioDownloaded } from '@/api/services/offline-audio';
@@ -25,6 +26,7 @@ export function useReaderScroll(
   bookSlug: string | undefined,
   initialChapter: number | undefined,
 ) {
+  const { t } = useTranslation('reading');
   const [chapters, setChapters] = useState<ChapterContent[]>([]);
   const [availableChapters, setAvailableChapters] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,12 +142,12 @@ export function useReaderScroll(
         setAvailableChapters(numbers.length > 0 ? numbers : [initialChapter]);
       } else {
         setChapters([]);
-        setError(err instanceof Error ? err.message : 'Failed to load chapter');
+        setError(err instanceof Error ? err.message : t('failedToLoadChapter'));
       }
     } finally {
       setLoading(false);
     }
-  }, [languageCode, bookSlug, initialChapter, prefetchChapter]);
+  }, [languageCode, bookSlug, initialChapter, prefetchChapter, t]);
 
   useEffect(() => {
     loadInitial();

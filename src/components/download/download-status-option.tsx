@@ -7,6 +7,7 @@ import {
   View,
   type DimensionValue,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
@@ -35,6 +36,8 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
   allowDelete = true,
 }: DownloadStatusOptionProps) {
   const theme = useTheme();
+  const { t } = useTranslation('download');
+  const { t: tc } = useTranslation('common');
   const isChecking = status === 'checking';
   const isDownloading = status === 'downloading';
   const isDownloaded = status === 'downloaded';
@@ -52,16 +55,16 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
   const metaColor = isMuted ? theme.iconTertiary : theme.textSecondary;
 
   const accessibilityLabel = isChecking
-    ? `Checking ${title} availability`
+    ? t('accessibility.checking', { title })
     : isDownloading
-      ? `Cancel ${title} download`
+      ? t('accessibility.cancel', { title })
       : isDownloaded
         ? allowDelete
-          ? `Delete downloaded ${title}`
-          : `${title} downloaded`
+          ? t('accessibility.delete', { title })
+          : t('accessibility.downloaded', { title })
         : isUnavailable
-          ? `${title} unavailable`
-          : `Download ${title}`;
+          ? t('accessibility.unavailable', { title })
+          : t('accessibility.download', { title });
 
   return (
     <Pressable
@@ -84,16 +87,16 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
           <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
           <View style={styles.metaRow}>
             <Text style={[styles.fileSize, { color: metaColor }]}>
-              {isChecking ? '—' : fileSize}
+              {isChecking ? tc('emDash') : fileSize}
             </Text>
             {isChecking ? (
-              <Text style={[styles.status, { color: metaColor }]}>Checking...</Text>
+              <Text style={[styles.status, { color: metaColor }]}>{t('checking')}</Text>
             ) : null}
             {isDownloading ? (
-              <Text style={[styles.status, { color: theme.tabActive }]}>Downloading...</Text>
+              <Text style={[styles.status, { color: theme.tabActive }]}>{t('downloading')}</Text>
             ) : null}
             {isDownloaded ? (
-              <Text style={[styles.status, { color: theme.iconSuccess }]}>Downloaded</Text>
+              <Text style={[styles.status, { color: theme.iconSuccess }]}>{t('downloaded')}</Text>
             ) : null}
           </View>
         </View>

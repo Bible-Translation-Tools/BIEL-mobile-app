@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   deleteChapterAudio,
@@ -29,6 +30,7 @@ export function useChapterDownload({
   bookSlug,
   chapter,
 }: UseChapterDownloadOptions) {
+  const { t } = useTranslation('download');
   const [scriptureStandalone, setScriptureStandalone] = useState(false);
 
   const refreshStandalone = useCallback(async () => {
@@ -43,8 +45,8 @@ export function useChapterDownload({
   }, [refreshStandalone]);
 
   const scripture = useContentDownload({
-    downloadFailedMessage: 'Could not download chapter',
-    deleteFailedMessage: 'Could not remove downloaded chapter',
+    downloadFailedMessage: t('couldNotDownloadChapter'),
+    deleteFailedMessage: t('couldNotRemoveChapter'),
     onComplete: refreshStandalone,
     download: (options) =>
       downloadChapterScripture(languageCode, bookSlug, chapter, options),
@@ -56,8 +58,8 @@ export function useChapterDownload({
   });
 
   const audio = useContentDownload({
-    downloadFailedMessage: 'Could not download audio',
-    deleteFailedMessage: 'Could not remove downloaded audio',
+    downloadFailedMessage: t('couldNotDownloadAudio'),
+    deleteFailedMessage: t('couldNotRemoveAudio'),
     download: (options) => downloadChapterAudio(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterAudio(languageCode, bookSlug, chapter),
     getDownloadedBytes: () =>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MediaPlayerPanel } from '@/components/reading/media-player-panel';
@@ -41,6 +42,7 @@ export function AudioPlayButton({
   playVerseAtRef,
 }: AudioPlayButtonProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const insets = useSafeAreaInsets();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [activeChapter, setActiveChapter] = useState<number | undefined>(undefined);
@@ -253,7 +255,7 @@ export function AudioPlayButton({
           onCurrentChapterChange?.(chapterToPlay ?? null);
         }}
         accessibilityRole="button"
-        accessibilityLabel="Open audio player">
+        accessibilityLabel={t('openAudioPlayer')}>
         <IconSymbol
           name={{ ios: 'speaker.wave.2.fill', android: 'volume-up', web: 'volume-up' }}
           size={28}

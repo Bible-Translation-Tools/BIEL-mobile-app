@@ -1,5 +1,6 @@
 import { memo, useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import {
   DownloadMenuPopover,
@@ -26,6 +27,8 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   onDownloadStatusChange,
 }: LanguageCardRowProps) {
   const theme = useTheme();
+  const { t } = useTranslation('home');
+  const { t: tc } = useTranslation('common');
   const isScriptureDownloaded = language.downloadStatus === 'downloaded';
   const canDownloadText = language.hasText;
   const canDownloadAudio = language.hasAudio;
@@ -129,7 +132,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         style={({ pressed }) => [cardStyle, styles.mainCard, { opacity: pressed ? 0.9 : 1 }]}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`Open ${language.name}`}>
+        accessibilityLabel={t('accessibility.openLanguage', { name: language.name })}>
         <View style={styles.mainContent}>
           <View style={styles.titleLine}>
             <Text style={[styles.languageName, { color: theme.text }]} numberOfLines={1}>
@@ -179,10 +182,10 @@ export const LanguageCardRow = memo(function LanguageCardRow({
             accessibilityRole="button"
             accessibilityLabel={
               isAnyDownloadActive
-                ? `Download in progress for ${language.name}`
+                ? t('accessibility.downloadInProgress', { name: language.name })
                 : isFullyDownloaded
-                  ? `${language.name} downloaded`
-                  : `Download ${language.name}`
+                  ? t('accessibility.downloaded', { name: language.name })
+                  : t('accessibility.download', { name: language.name })
             }>
             {isAnyDownloadActive ? (
               <ActivityIndicator size="small" color={theme.tabActive} />
@@ -216,7 +219,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
         menuProps={{
-          scriptureFileSize: fileSizeLabel ?? '—',
+          scriptureFileSize: fileSizeLabel ?? tc('emDash'),
           scriptureStatus: resolveDownloadStatus(
             isDownloading,
             isScriptureDownloaded,
@@ -225,7 +228,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
           scriptureProgress: progress,
           onScripturePress: canDownloadText ? handleScripturePress : undefined,
           scriptureDisabled: !canDownloadText,
-          audioFileSize: audioFileSizeLabel ?? '—',
+          audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus: resolveDownloadStatus(
             isAudioDownloading,
             isAudioDownloaded,

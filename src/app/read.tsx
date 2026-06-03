@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -30,6 +31,7 @@ import type { ChapterContent } from '@/types/reading';
 
 export default function ReadingScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const colorScheme = useColorScheme();
   const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam } =
     useLocalSearchParams<{
@@ -324,7 +326,7 @@ export default function ReadingScreen() {
           <View style={styles.centered}>
             <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
             <Pressable onPress={refetch} accessibilityRole="button">
-              <Text style={[styles.retry, { color: theme.text }]}>Tap to retry</Text>
+              <Text style={[styles.retry, { color: theme.text }]}>{t('tapToRetry')}</Text>
             </Pressable>
           </View>
         ) : chapters.length > 0 ? (

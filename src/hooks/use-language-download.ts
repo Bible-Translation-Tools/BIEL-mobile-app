@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import {
   deleteLanguageScripture,
   downloadLanguageScripture,
@@ -17,10 +19,12 @@ export function useLanguageDownload({
   enabled = true,
   onComplete,
 }: UseLanguageDownloadOptions) {
+  const { t } = useTranslation('download');
+
   return useContentDownload({
     enabled,
     partialSizeLabel: true,
-    downloadFailedMessage: 'Could not download language',
+    downloadFailedMessage: t('couldNotDownloadLanguage'),
     onComplete,
     download: (options) => downloadLanguageScripture(languageCode, options),
     deleteContent: () => deleteLanguageScripture(languageCode),

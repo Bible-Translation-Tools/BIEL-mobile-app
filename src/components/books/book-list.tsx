@@ -9,6 +9,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { BookLayout } from '@/constants/theme';
 import { useBookChapters } from '@/hooks/use-book-chapters';
@@ -38,6 +39,8 @@ type BookListEmptyProps = {
 
 function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
+  const { t: tc } = useTranslation('common');
 
   if (loading) {
     return (
@@ -53,7 +56,7 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
         <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
         {onRetry ? (
           <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-            Tap to retry
+            {tc('retry')}
           </Text>
         ) : null}
       </View>
@@ -62,7 +65,7 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
 
   return (
     <View style={styles.centered}>
-      <Text style={[styles.message, { color: theme.textSecondary }]}>No books found</Text>
+      <Text style={[styles.message, { color: theme.textSecondary }]}>{t('noBooksFound')}</Text>
     </View>
   );
 }

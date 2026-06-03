@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
@@ -60,10 +61,10 @@ function isAbortError(err: unknown): boolean {
 export function useContentDownload({
   enabled = true,
   partialSizeLabel = false,
-  downloadFailedTitle = 'Download failed',
-  downloadFailedMessage = 'Could not complete download',
-  deleteFailedTitle = 'Delete failed',
-  deleteFailedMessage = 'Could not remove download',
+  downloadFailedTitle,
+  downloadFailedMessage,
+  deleteFailedTitle,
+  deleteFailedMessage,
   onComplete,
   download,
   deleteContent,
@@ -72,6 +73,13 @@ export function useContentDownload({
   getIsDownloaded,
   getCanDownload,
 }: UseContentDownloadOptions) {
+  const { t } = useTranslation('download');
+  const resolvedDownloadFailedTitle = downloadFailedTitle ?? t('downloadFailedTitle');
+  const resolvedDownloadFailedMessage =
+    downloadFailedMessage ?? t('downloadFailedMessage');
+  const resolvedDeleteFailedTitle = deleteFailedTitle ?? t('deleteFailedTitle');
+  const resolvedDeleteFailedMessage = deleteFailedMessage ?? t('deleteFailedMessage');
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fileSizeLabel, setFileSizeLabel] = useState<string | null>(null);
@@ -186,8 +194,8 @@ export function useContentDownload({
     } catch (err) {
       if (!isAbortError(err)) {
         setError({
-          title: downloadFailedTitle,
-          message: toErrorMessage(err, downloadFailedMessage),
+          title: resolvedDownloadFailedTitle,
+          message: toErrorMessage(err, resolvedDownloadFailedMessage),
         });
       }
     } finally {
@@ -199,8 +207,8 @@ export function useContentDownload({
     canDownload,
     clearError,
     download,
-    downloadFailedMessage,
-    downloadFailedTitle,
+    resolvedDownloadFailedMessage,
+    resolvedDownloadFailedTitle,
     enabled,
     isDownloading,
     onComplete,
@@ -220,15 +228,15 @@ export function useContentDownload({
       onComplete?.();
     } catch (err) {
       setError({
-        title: deleteFailedTitle,
-        message: toErrorMessage(err, deleteFailedMessage),
+        title: resolvedDeleteFailedTitle,
+        message: toErrorMessage(err, resolvedDeleteFailedMessage),
       });
     }
   }, [
     clearError,
     deleteContent,
-    deleteFailedMessage,
-    deleteFailedTitle,
+    resolvedDeleteFailedMessage,
+    resolvedDeleteFailedTitle,
     getIsDownloaded,
     onComplete,
     refresh,

@@ -1,5 +1,6 @@
 import { memo, useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import {
   DownloadMenuPopover,
@@ -38,6 +39,8 @@ export const BookCardRow = memo(function BookCardRow({
   onDownloadStatusChange,
 }: BookCardRowProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
+  const { t: tc } = useTranslation('common');
   const isScriptureDownloaded = book.downloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -191,7 +194,9 @@ export const BookCardRow = memo(function BookCardRow({
   const toggleProps = {
     onPress: onToggleExpand,
     accessibilityRole: 'button' as const,
-    accessibilityLabel: `${isExpanded ? 'Collapse' : 'Expand'} ${book.name}`,
+    accessibilityLabel: isExpanded
+      ? t('accessibility.collapse', { name: book.name })
+      : t('accessibility.expand', { name: book.name }),
     accessibilityState: { expanded: isExpanded },
   };
 
@@ -237,10 +242,10 @@ export const BookCardRow = memo(function BookCardRow({
           accessibilityRole="button"
           accessibilityLabel={
             isAnyDownloadActive
-              ? `Download in progress for ${book.name}`
+              ? t('accessibility.downloadInProgress', { name: book.name })
               : isFullyDownloaded
-                ? `Delete ${book.name}`
-                : `Download ${book.name}`
+                ? t('accessibility.delete', { name: book.name })
+                : t('accessibility.download', { name: book.name })
           }>
           {isAnyDownloadActive ? (
             <ActivityIndicator size="small" color={theme.tabActive} />
@@ -269,7 +274,7 @@ export const BookCardRow = memo(function BookCardRow({
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
         menuProps={{
-          scriptureFileSize: scriptureFileSizeLabel ?? '—',
+          scriptureFileSize: scriptureFileSizeLabel ?? tc('emDash'),
           scriptureStatus: resolveDownloadStatus(
             isScriptureDownloading,
             isScriptureDownloaded,
@@ -277,7 +282,7 @@ export const BookCardRow = memo(function BookCardRow({
           ),
           scriptureProgress,
           onScripturePress: handleScripturePress,
-          audioFileSize: audioFileSizeLabel ?? '—',
+          audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus: resolveDownloadStatus(
             isAudioDownloading,
             isAudioDownloaded,

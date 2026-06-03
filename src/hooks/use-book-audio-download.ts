@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import {
   deleteBookAudio,
   downloadBookAudio,
@@ -18,14 +20,15 @@ export function useBookAudioDownload({
   bookSlug,
   onComplete,
 }: UseBookAudioDownloadOptions) {
+  const { t } = useTranslation('download');
   const {
     canDownload,
     deleteDownload: deleteAudioDownload,
     ...rest
   } = useContentDownload({
     partialSizeLabel: true,
-    downloadFailedMessage: 'Could not download audio',
-    deleteFailedMessage: 'Could not remove downloaded audio',
+    downloadFailedMessage: t('couldNotDownloadAudio'),
+    deleteFailedMessage: t('couldNotRemoveAudio'),
     onComplete,
     download: (options) => downloadBookAudio(languageCode, bookSlug, options),
     deleteContent: () => deleteBookAudio(languageCode, bookSlug),

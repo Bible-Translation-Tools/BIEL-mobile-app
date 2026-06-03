@@ -9,6 +9,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { HomeLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -39,6 +40,8 @@ type LanguageListEmptyProps = {
 
 function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) {
   const theme = useTheme();
+  const { t } = useTranslation('home');
+  const { t: tc } = useTranslation('common');
 
   if (loading) {
     return (
@@ -54,7 +57,7 @@ function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) 
         <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
         {onRetry ? (
           <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-            Tap to retry
+            {tc('retry')}
           </Text>
         ) : null}
       </View>
@@ -63,7 +66,7 @@ function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) 
 
   return (
     <View style={styles.centered}>
-      <Text style={[styles.message, { color: theme.textSecondary }]}>No languages found</Text>
+      <Text style={[styles.message, { color: theme.textSecondary }]}>{t('noLanguagesFound')}</Text>
     </View>
   );
 }

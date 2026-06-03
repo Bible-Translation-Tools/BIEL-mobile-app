@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,15 +27,15 @@ type DownloadMenuProps = {
 };
 
 export const DownloadMenu = memo(function DownloadMenu({
-  scriptureTitle = 'All Scripture',
-  scriptureFileSize = '—',
+  scriptureTitle,
+  scriptureFileSize,
   scriptureStatus = 'pending',
   scriptureProgress = 0,
   onScripturePress,
   scriptureDisabled = false,
   allowDelete = true,
-  audioTitle = 'All Audio',
-  audioFileSize = '—',
+  audioTitle,
+  audioFileSize,
   audioStatus = 'pending',
   audioProgress = 0,
   onAudioPress,
@@ -42,6 +43,12 @@ export const DownloadMenu = memo(function DownloadMenu({
   hideScripture = false,
 }: DownloadMenuProps) {
   const theme = useTheme();
+  const { t } = useTranslation('download');
+  const { t: tc } = useTranslation('common');
+
+  const resolvedScriptureTitle = scriptureTitle ?? t('allScripture');
+  const resolvedAudioTitle = audioTitle ?? t('allAudio');
+  const emDash = tc('emDash');
 
   return (
     <View
@@ -53,11 +60,11 @@ export const DownloadMenu = memo(function DownloadMenu({
         },
         styles.menuShadow,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>Download</Text>
+      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
       {hideScripture ? null : (
         <DownloadStatusOption
-          title={scriptureTitle}
-          fileSize={scriptureFileSize}
+          title={resolvedScriptureTitle}
+          fileSize={scriptureFileSize ?? emDash}
           status={scriptureStatus}
           progress={scriptureProgress}
           onActionPress={onScripturePress}
@@ -66,8 +73,8 @@ export const DownloadMenu = memo(function DownloadMenu({
         />
       )}
       <DownloadStatusOption
-        title={audioTitle}
-        fileSize={audioFileSize}
+        title={resolvedAudioTitle}
+        fileSize={audioFileSize ?? emDash}
         status={audioStatus}
         progress={audioProgress}
         onActionPress={onAudioPress}

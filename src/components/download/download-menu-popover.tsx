@@ -7,6 +7,7 @@ import {
   View,
   type LayoutRectangle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { DownloadMenuLayout } from '@/constants/theme';
 
@@ -64,6 +65,8 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
   onClose,
   menuProps,
 }: DownloadMenuPopoverProps) {
+  const { t } = useTranslation('download');
+
   if (!visible || anchor == null) {
     return null;
   }
@@ -82,7 +85,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
           style={styles.dismissLayer}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close download menu"
+          accessibilityLabel={t('closeMenu')}
         />
         <View
           style={[

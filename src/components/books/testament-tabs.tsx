@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { BookLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,18 +12,19 @@ type TestamentTabsProps = {
 
 export function TestamentTabs({ activeTestament, onTestamentChange }: TestamentTabsProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
 
   return (
     <View style={styles.tabs}>
       <TabButton
-        label="Old Testament"
+        label={t('oldTestament')}
         isActive={activeTestament === 'old'}
         activeColor={theme.tabActive}
         inactiveColor={theme.tabInactive}
         onPress={() => onTestamentChange('old')}
       />
       <TabButton
-        label="New Testament"
+        label={t('newTestament')}
         isActive={activeTestament === 'new'}
         activeColor={theme.tabActive}
         inactiveColor={theme.tabInactive}

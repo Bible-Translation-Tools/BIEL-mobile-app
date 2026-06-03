@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { fetchLanguages, fetchLanguagesOffline } from '@/api/services/languages';
 import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage } from '@/db';
@@ -25,6 +26,7 @@ function applyLanguageDownloadStatus(
 }
 
 export function useLanguages() {
+  const { t } = useTranslation('home');
   const [languages, setLanguages] = useState<LanguageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +78,12 @@ export function useLanguages() {
     } catch (err) {
       if (offlineItems.length === 0) {
         setLanguages([]);
-        setError(err instanceof Error ? err.message : 'Failed to load languages');
+        setError(err instanceof Error ? err.message : t('failedToLoadLanguages'));
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     refetch();

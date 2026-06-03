@@ -1,5 +1,6 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import type { ThemePreference } from '@/constants/appearance';
@@ -9,8 +10,8 @@ import { useTheme } from '@/hooks/use-theme';
 
 type ThemeOption = {
   value: ThemePreference;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   icon: {
     ios: string;
     android: string;
@@ -19,25 +20,25 @@ type ThemeOption = {
   iconSize: number;
 };
 
-const THEME_OPTIONS: ThemeOption[] = [
+const THEME_OPTION_CONFIG: ThemeOption[] = [
   {
     value: 'system',
-    title: 'Automatic',
-    subtitle: 'Follow system settings',
+    titleKey: 'theme.system.title',
+    subtitleKey: 'theme.system.subtitle',
     icon: { ios: 'gearshape', android: 'settings', web: 'settings' },
     iconSize: SystemSettingsLayout.optionIconSize,
   },
   {
     value: 'light',
-    title: 'Light Mode',
-    subtitle: 'Ignore system settings',
+    titleKey: 'theme.light.title',
+    subtitleKey: 'theme.light.subtitle',
     icon: { ios: 'sun.max', android: 'light-mode', web: 'light-mode' },
     iconSize: SystemSettingsLayout.themeIconSize,
   },
   {
     value: 'dark',
-    title: 'Dark Mode',
-    subtitle: 'Ignore system settings',
+    titleKey: 'theme.dark.title',
+    subtitleKey: 'theme.dark.subtitle',
     icon: { ios: 'moon', android: 'dark-mode', web: 'dark-mode' },
     iconSize: SystemSettingsLayout.themeIconSize,
   },
@@ -46,6 +47,17 @@ const THEME_OPTIONS: ThemeOption[] = [
 export const SystemSettingsMenu = memo(function SystemSettingsMenu() {
   const theme = useTheme();
   const { themePreference, setThemePreference } = useAppearance();
+  const { t } = useTranslation('settings');
+
+  const themeOptions = useMemo(
+    () =>
+      THEME_OPTION_CONFIG.map((option) => ({
+        ...option,
+        title: t(option.titleKey),
+        subtitle: t(option.subtitleKey),
+      })),
+    [t],
+  );
 
   return (
     <View
@@ -57,9 +69,9 @@ export const SystemSettingsMenu = memo(function SystemSettingsMenu() {
         },
         styles.menuShadow,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>System Settings</Text>
+      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
 
-      {THEME_OPTIONS.map((option) => {
+      {themeOptions.map((option) => {
         const selected = themePreference === option.value;
 
         return (
