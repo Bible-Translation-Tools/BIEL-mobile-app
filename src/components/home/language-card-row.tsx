@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -9,6 +9,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
+import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import { resolveDownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
@@ -33,12 +34,20 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
 
-  const { isDownloading, progress, fileSizeLabel, isChecking: isScriptureChecking, startDownload, cancelDownload } =
-    useLanguageDownload({
-      languageCode: language.code,
-      enabled: canDownloadText,
-      onComplete: onDownloadStatusChange,
-    });
+  const {
+    isDownloading,
+    progress,
+    fileSizeLabel,
+    isChecking: isScriptureChecking,
+    error: scriptureError,
+    clearError: clearScriptureError,
+    startDownload,
+    cancelDownload,
+  } = useLanguageDownload({
+    languageCode: language.code,
+    enabled: canDownloadText,
+    onComplete: onDownloadStatusChange,
+  });
 
   const {
     isDownloading: isAudioDownloading,
@@ -47,6 +56,8 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     isDownloaded: isAudioDownloaded,
     hasAudio,
     isChecking: isAudioChecking,
+    error: audioError,
+    clearError: clearAudioError,
     startDownload: startAudioDownload,
     cancelDownload: cancelAudioDownload,
   } = useLanguageAudioDownload({
@@ -54,6 +65,9 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     enabled: canDownloadAudio,
     onComplete: onDownloadStatusChange,
   });
+
+  useDownloadErrorAlert(scriptureError, clearScriptureError);
+  useDownloadErrorAlert(audioError, clearAudioError);
 
   const needsAudioDownload = canDownloadAudio && hasAudio;
   const isFullyDownloaded =
@@ -82,17 +96,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
       return;
     }
 
-    try {
-      await startDownload();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download language',
-      );
-    }
+    await startDownload();
   }, [cancelDownload, isScriptureDownloaded, isDownloading, startDownload]);
 
   const handleAudioPress = useCallback(async () => {
@@ -107,17 +111,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
       return;
     }
 
-    try {
-      await startAudioDownload();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download audio',
-      );
-    }
+    await startAudioDownload();
   }, [cancelAudioDownload, hasAudio, isAudioDownloaded, isAudioDownloading, startAudioDownload]);
 
   const cardStyle = [

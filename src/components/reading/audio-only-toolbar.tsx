@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -9,6 +9,7 @@ import {
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
+import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 
 type AudioOnlyToolbarProps = {
@@ -32,7 +33,11 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
     startAudioDownload,
     cancelAudioDownload,
     deleteAudioDownload,
+    audioError,
+    clearAudioError,
   } = useChapterDownload({ languageCode, bookSlug, chapter });
+
+  useDownloadErrorAlert(audioError, clearAudioError);
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -55,28 +60,11 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
     }
 
     if (audioStatus === 'downloaded') {
-      try {
-        await deleteAudioDownload();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded audio',
-        );
-      }
+      await deleteAudioDownload();
       return;
     }
 
-    try {
-      await startAudioDownload();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download audio',
-      );
-    }
+    await startAudioDownload();
   }, [
     audioStatus,
     cancelAudioDownload,

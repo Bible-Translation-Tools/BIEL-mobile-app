@@ -17,6 +17,7 @@ import {
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
+import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ChapterDownloadContext = {
@@ -50,6 +51,8 @@ function ReadingToolbarDownloadButton({
     startScriptureDownload,
     cancelScriptureDownload,
     deleteScriptureDownload,
+    scriptureError,
+    clearScriptureError,
     audioFileSizeLabel,
     audioStatus,
     audioProgress,
@@ -57,7 +60,12 @@ function ReadingToolbarDownloadButton({
     startAudioDownload,
     cancelAudioDownload,
     deleteAudioDownload,
+    audioError,
+    clearAudioError,
   } = useChapterDownload({ languageCode, bookSlug, chapter });
+
+  useDownloadErrorAlert(scriptureError, clearScriptureError);
+  useDownloadErrorAlert(audioError, clearAudioError);
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -86,28 +94,11 @@ function ReadingToolbarDownloadButton({
         return;
       }
 
-      try {
-        await deleteScriptureDownload();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded chapter',
-        );
-      }
+      await deleteScriptureDownload();
       return;
     }
 
-    try {
-      await startScriptureDownload();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download chapter',
-      );
-    }
+    await startScriptureDownload();
   }, [
     cancelScriptureDownload,
     deleteScriptureDownload,
@@ -125,28 +116,11 @@ function ReadingToolbarDownloadButton({
     }
 
     if (audioStatus === 'downloaded') {
-      try {
-        await deleteAudioDownload();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded audio',
-        );
-      }
+      await deleteAudioDownload();
       return;
     }
 
-    try {
-      await startAudioDownload();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download audio',
-      );
-    }
+    await startAudioDownload();
   }, [
     audioStatus,
     cancelAudioDownload,

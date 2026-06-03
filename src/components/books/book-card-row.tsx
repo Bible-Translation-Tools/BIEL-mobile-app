@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -9,6 +9,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
+import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
 import { resolveDownloadStatus } from '@/types/download';
@@ -47,6 +48,8 @@ export const BookCardRow = memo(function BookCardRow({
     progress: scriptureProgress,
     fileSizeLabel: scriptureFileSizeLabel,
     isChecking: isScriptureChecking,
+    error: scriptureError,
+    clearError: clearScriptureError,
     startDownload: startScriptureDownload,
     cancelDownload: cancelScriptureDownload,
     deleteScriptureDownload,
@@ -63,6 +66,8 @@ export const BookCardRow = memo(function BookCardRow({
     isDownloaded: isAudioDownloaded,
     hasAudio,
     isChecking: isAudioChecking,
+    error: audioError,
+    clearError: clearAudioError,
     startDownload: startAudioDownload,
     cancelDownload: cancelAudioDownload,
     deleteAudioDownload,
@@ -71,6 +76,9 @@ export const BookCardRow = memo(function BookCardRow({
     bookSlug: book.slug,
     onComplete: onDownloadStatusChange,
   });
+
+  useDownloadErrorAlert(scriptureError, clearScriptureError);
+  useDownloadErrorAlert(audioError, clearAudioError);
 
   const isFullyDownloaded = isScriptureDownloaded && (!hasAudio || isAudioDownloaded);
 
@@ -93,30 +101,13 @@ export const BookCardRow = memo(function BookCardRow({
     }
 
     if (isScriptureDownloaded) {
-      try {
-        await deleteScriptureDownload();
-        closeDownloadMenu();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded scripture',
-        );
-      }
+      await deleteScriptureDownload();
+      closeDownloadMenu();
       return;
     }
 
-    try {
-      await startScriptureDownload();
-      closeDownloadMenu();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download scripture',
-      );
-    }
+    await startScriptureDownload();
+    closeDownloadMenu();
   }, [
     cancelScriptureDownload,
     closeDownloadMenu,
@@ -141,30 +132,13 @@ export const BookCardRow = memo(function BookCardRow({
     }
 
     if (isAudioDownloaded) {
-      try {
-        await deleteAudioDownload();
-        closeDownloadMenu();
-      } catch (err) {
-        Alert.alert(
-          'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded audio',
-        );
-      }
+      await deleteAudioDownload();
+      closeDownloadMenu();
       return;
     }
 
-    try {
-      await startAudioDownload();
-      closeDownloadMenu();
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-      Alert.alert(
-        'Download failed',
-        err instanceof Error ? err.message : 'Could not download audio',
-      );
-    }
+    await startAudioDownload();
+    closeDownloadMenu();
   }, [
     cancelAudioDownload,
     closeDownloadMenu,

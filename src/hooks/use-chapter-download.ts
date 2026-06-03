@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   deleteChapterAudio,
@@ -15,7 +15,7 @@ import {
   hasStandaloneChapterScripture,
   isChapterScriptureDownloaded,
 } from '@/api/services/offline-text';
-import { formatByteSize } from '@/api/services/whole-book-parser';
+import { useContentDownload } from '@/hooks/use-content-download';
 import { resolveDownloadStatus } from '@/types/download';
 
 type UseChapterDownloadOptions = {
@@ -29,171 +29,80 @@ export function useChapterDownload({
   bookSlug,
   chapter,
 }: UseChapterDownloadOptions) {
-  const [scriptureDownloading, setScriptureDownloading] = useState(false);
-  const [scriptureProgress, setScriptureProgress] = useState(0);
-  const [scriptureFileSizeLabel, setScriptureFileSizeLabel] = useState<string | null>(null);
-  const [scriptureDownloaded, setScriptureDownloaded] = useState(false);
   const [scriptureStandalone, setScriptureStandalone] = useState(false);
 
-  const [audioDownloading, setAudioDownloading] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
-  const [audioFileSizeLabel, setAudioFileSizeLabel] = useState<string | null>(null);
-  const [audioDownloaded, setAudioDownloaded] = useState(false);
-  const [hasAudio, setHasAudio] = useState(false);
-  const [scriptureChecking, setScriptureChecking] = useState(true);
-  const [audioChecking, setAudioChecking] = useState(true);
-
-  const scriptureAbortRef = useRef<AbortController | null>(null);
-  const audioAbortRef = useRef<AbortController | null>(null);
-
-  const refreshState = useCallback(async () => {
-    setScriptureChecking(true);
-    setAudioChecking(true);
-
-    try {
-      const [scriptureDone, standalone, scriptureBytes, audioDone, audioBytes, audioTotal] =
-        await Promise.all([
-          isChapterScriptureDownloaded(languageCode, bookSlug, chapter),
-          hasStandaloneChapterScripture(languageCode, bookSlug, chapter),
-          getDownloadedChapterScriptureByteSize(languageCode, bookSlug, chapter),
-          isChapterAudioDownloaded(languageCode, bookSlug, chapter),
-          getDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
-          getChapterAudioTotalBytes(languageCode, bookSlug, chapter).catch(() => 0),
-        ]);
-
-      setScriptureDownloaded(scriptureDone);
-      setScriptureStandalone(standalone);
-
-      if (scriptureBytes != null) {
-        setScriptureFileSizeLabel(formatByteSize(scriptureBytes));
-      } else if (scriptureDone) {
-        const remoteBytes = await getChapterScriptureFileSizeBytes(
-          languageCode,
-          bookSlug,
-          chapter,
-        ).catch(() => 0);
-        setScriptureFileSizeLabel(remoteBytes > 0 ? formatByteSize(remoteBytes) : '—');
-      } else {
-        const remoteBytes = await getChapterScriptureFileSizeBytes(
-          languageCode,
-          bookSlug,
-          chapter,
-        ).catch(() => 0);
-        setScriptureFileSizeLabel(remoteBytes > 0 ? formatByteSize(remoteBytes) : null);
-      }
-
-      setAudioDownloaded(audioDone);
-      setHasAudio(audioTotal > 0);
-
-      if (audioBytes != null) {
-        setAudioFileSizeLabel(formatByteSize(audioBytes));
-      } else {
-        setAudioFileSizeLabel(audioTotal > 0 ? formatByteSize(audioTotal) : null);
-      }
-    } finally {
-      setScriptureChecking(false);
-      setAudioChecking(false);
-    }
+  const refreshStandalone = useCallback(async () => {
+    const standalone = await hasStandaloneChapterScripture(languageCode, bookSlug, chapter);
+    setScriptureStandalone(standalone);
   }, [bookSlug, chapter, languageCode]);
 
   useEffect(() => {
-    refreshState().catch(() => {
-      setScriptureFileSizeLabel(null);
-      setScriptureDownloaded(false);
+    refreshStandalone().catch(() => {
       setScriptureStandalone(false);
-      setAudioFileSizeLabel(null);
-      setAudioDownloaded(false);
-      setHasAudio(false);
-      setScriptureChecking(false);
-      setAudioChecking(false);
     });
-  }, [refreshState]);
+  }, [refreshStandalone]);
 
-  const cancelScriptureDownload = useCallback(() => {
-    scriptureAbortRef.current?.abort();
-    scriptureAbortRef.current = null;
-    setScriptureDownloading(false);
-    setScriptureProgress(0);
-  }, []);
+  const scripture = useContentDownload({
+    downloadFailedMessage: 'Could not download chapter',
+    deleteFailedMessage: 'Could not remove downloaded chapter',
+    onComplete: refreshStandalone,
+    download: (options) =>
+      downloadChapterScripture(languageCode, bookSlug, chapter, options),
+    deleteContent: () => deleteChapterScripture(languageCode, bookSlug, chapter),
+    getDownloadedBytes: () =>
+      getDownloadedChapterScriptureByteSize(languageCode, bookSlug, chapter),
+    getTotalBytes: () => getChapterScriptureFileSizeBytes(languageCode, bookSlug, chapter),
+    getIsDownloaded: () => isChapterScriptureDownloaded(languageCode, bookSlug, chapter),
+  });
 
-  const cancelAudioDownload = useCallback(() => {
-    audioAbortRef.current?.abort();
-    audioAbortRef.current = null;
-    setAudioDownloading(false);
-    setAudioProgress(0);
-  }, []);
+  const audio = useContentDownload({
+    downloadFailedMessage: 'Could not download audio',
+    deleteFailedMessage: 'Could not remove downloaded audio',
+    download: (options) => downloadChapterAudio(languageCode, bookSlug, chapter, options),
+    deleteContent: () => deleteChapterAudio(languageCode, bookSlug, chapter),
+    getDownloadedBytes: () =>
+      getDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
+    getTotalBytes: () => getChapterAudioTotalBytes(languageCode, bookSlug, chapter),
+    getIsDownloaded: () => isChapterAudioDownloaded(languageCode, bookSlug, chapter),
+    getCanDownload: async () => {
+      const totalBytes = await getChapterAudioTotalBytes(languageCode, bookSlug, chapter).catch(
+        () => 0,
+      );
+      return totalBytes > 0;
+    },
+  });
 
-  const startScriptureDownload = useCallback(async () => {
-    if (scriptureDownloading) return;
-
-    const controller = new AbortController();
-    scriptureAbortRef.current = controller;
-    setScriptureDownloading(true);
-    setScriptureProgress(0);
-
-    try {
-      await downloadChapterScripture(languageCode, bookSlug, chapter, {
-        signal: controller.signal,
-        onProgress: setScriptureProgress,
-      });
-      await refreshState();
-    } finally {
-      scriptureAbortRef.current = null;
-      setScriptureDownloading(false);
-      setScriptureProgress(0);
-    }
-  }, [bookSlug, chapter, languageCode, refreshState, scriptureDownloading]);
-
-  const deleteScriptureDownload = useCallback(async () => {
-    await deleteChapterScripture(languageCode, bookSlug, chapter);
-    await refreshState();
-  }, [bookSlug, chapter, languageCode, refreshState]);
-
-  const startAudioDownload = useCallback(async () => {
-    if (audioDownloading || !hasAudio) return;
-
-    const controller = new AbortController();
-    audioAbortRef.current = controller;
-    setAudioDownloading(true);
-    setAudioProgress(0);
-
-    try {
-      await downloadChapterAudio(languageCode, bookSlug, chapter, {
-        signal: controller.signal,
-        onProgress: setAudioProgress,
-      });
-      await refreshState();
-    } finally {
-      audioAbortRef.current = null;
-      setAudioDownloading(false);
-      setAudioProgress(0);
-    }
-  }, [audioDownloading, bookSlug, chapter, hasAudio, languageCode, refreshState]);
-
-  const deleteAudioDownload = useCallback(async () => {
-    await deleteChapterAudio(languageCode, bookSlug, chapter);
-    await refreshState();
-  }, [bookSlug, chapter, languageCode, refreshState]);
+  const refreshState = useCallback(async () => {
+    await Promise.all([scripture.refresh(), audio.refresh(), refreshStandalone()]);
+  }, [audio, refreshStandalone, scripture]);
 
   return {
-    scriptureFileSizeLabel,
+    scriptureFileSizeLabel: scripture.fileSizeLabel,
     scriptureStatus: resolveDownloadStatus(
-      scriptureDownloading,
-      scriptureDownloaded,
-      scriptureChecking,
+      scripture.isDownloading,
+      scripture.isDownloaded,
+      scripture.isChecking,
     ),
-    scriptureProgress,
+    scriptureProgress: scripture.progress,
     scriptureStandalone,
-    startScriptureDownload,
-    cancelScriptureDownload,
-    deleteScriptureDownload,
-    audioFileSizeLabel,
-    audioStatus: resolveDownloadStatus(audioDownloading, audioDownloaded, audioChecking),
-    audioProgress,
-    hasAudio,
-    startAudioDownload,
-    cancelAudioDownload,
-    deleteAudioDownload,
+    startScriptureDownload: scripture.startDownload,
+    cancelScriptureDownload: scripture.cancelDownload,
+    deleteScriptureDownload: scripture.deleteDownload,
+    scriptureError: scripture.error,
+    clearScriptureError: scripture.clearError,
+    audioFileSizeLabel: audio.fileSizeLabel,
+    audioStatus: resolveDownloadStatus(
+      audio.isDownloading,
+      audio.isDownloaded,
+      audio.isChecking,
+    ),
+    audioProgress: audio.progress,
+    hasAudio: audio.canDownload,
+    startAudioDownload: audio.startDownload,
+    cancelAudioDownload: audio.cancelDownload,
+    deleteAudioDownload: audio.deleteDownload,
+    audioError: audio.error,
+    clearAudioError: audio.clearError,
     refreshState,
   };
 }
