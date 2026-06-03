@@ -7,16 +7,17 @@ import { BOOK_CONTENT_QUERY, CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries
 import { pickRendering } from '@/api/services/resource-selection';
 import { offlineBookChapterHtmlMap, parseWholeBookJson } from '@/api/services/whole-book-parser';
 import {
-  ensureOfflineBookDirectory,
   ensureOfflineRootExists,
   ensureOfflineScriptureDirectory,
   getChapterHtmlFile,
-  getOfflineBookDirectory,
   getWholeJsonFile,
   normalizeBookSlug,
+  removeBookScriptureDirectory,
+  resolveExistingWholeJsonFile,
 } from '@/constants/offline-storage';
 import {
   deleteBook as deleteBookRecord,
+  deleteScriptureChaptersForBook,
   deleteScriptureChapter as deleteScriptureChapterRecord,
   getBookDownloadRecord,
   getChapterNumbersForBook,
@@ -91,7 +92,7 @@ export async function isBookDownloaded(
 ): Promise<boolean> {
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   if (!record) return false;
-  return getWholeJsonFile(languageCode, bookSlug).exists;
+  return resolveExistingWholeJsonFile(languageCode, bookSlug) != null;
 }
 
 export async function loadWholeBookChapters(
@@ -102,8 +103,8 @@ export async function loadWholeBookChapters(
   const cached = wholeBookCache.get(key);
   if (cached) return offlineBookChapterHtmlMap(cached);
 
-  const file = getWholeJsonFile(languageCode, bookSlug);
-  if (!file.exists) {
+  const file = resolveExistingWholeJsonFile(languageCode, bookSlug);
+  if (!file) {
     return new Map();
   }
 
@@ -151,8 +152,7 @@ export async function getOfflineChapterHtml(
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   if (!record) return null;
 
-  const file = getWholeJsonFile(languageCode, bookSlug);
-  if (!file.exists) return null;
+  if (!resolveExistingWholeJsonFile(languageCode, bookSlug)) return null;
 
   const chapters = await loadWholeBookChapters(languageCode, bookSlug);
   const html = chapters.get(chapter);
@@ -176,7 +176,7 @@ export async function isChapterScriptureDownloaded(
   }
 
   const bookRecord = await getBookDownloadRecord(languageCode, bookSlug);
-  if (!bookRecord || !getWholeJsonFile(languageCode, bookSlug).exists) {
+  if (!bookRecord || !resolveExistingWholeJsonFile(languageCode, bookSlug)) {
     return false;
   }
 
@@ -380,7 +380,7 @@ export async function downloadBookScripture(
     throw new Error('Downloaded book has no chapters');
   }
 
-  ensureOfflineBookDirectory(languageCode, canonicalSlug);
+  ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
 
   const bookJsonFile = getWholeJsonFile(languageCode, canonicalSlug);
   const tempFile = new File(bookJsonFile.parentDirectory, 'whole.json.tmp');
@@ -418,12 +418,10 @@ export async function deleteBookScripture(languageCode: string, bookSlug: string
   const canonicalSlug = normalizeBookSlug(bookSlug);
   wholeBookCache.delete(cacheKey(languageCode, canonicalSlug));
 
-  const bookDir = getOfflineBookDirectory(languageCode, canonicalSlug);
-  if (bookDir.exists) {
-    bookDir.delete();
-  }
+  removeBookScriptureDirectory(languageCode, canonicalSlug);
 
   await deleteBookRecord(languageCode, canonicalSlug);
+  await deleteScriptureChaptersForBook(languageCode, canonicalSlug);
 }
 
 export async function getOfflineChapterNumbers(

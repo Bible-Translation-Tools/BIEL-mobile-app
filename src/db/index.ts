@@ -14,6 +14,7 @@ export {
   deleteAudioChapter,
   deleteBook,
   deleteScriptureChapter,
+  deleteScriptureChaptersForBook,
   getAudioBookRecord,
   getScriptureChapterRecord,
   getBookCatalogCountsByLanguage,

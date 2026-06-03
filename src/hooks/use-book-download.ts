@@ -99,7 +99,7 @@ export function useBookDownload({
     }
   }, [bookSlug, isDownloading, languageCode, onComplete]);
 
-  const deleteDownload = useCallback(async () => {
+  const deleteScriptureDownload = useCallback(async () => {
     await deleteBookScripture(languageCode, bookSlug);
     setFileSizeLabel(null);
     onComplete?.();
@@ -112,6 +112,6 @@ export function useBookDownload({
     isChecking,
     startDownload,
     cancelDownload,
-    deleteDownload,
+    deleteScriptureDownload,
   };
 }

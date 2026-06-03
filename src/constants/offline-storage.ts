@@ -16,8 +16,29 @@ export function getOfflineBookDirectory(languageCode: string, bookSlug: string):
 }
 
 export function getWholeJsonFile(languageCode: string, bookSlug: string): File {
-  const dir = getOfflineBookDirectory(languageCode, bookSlug);
-  return new File(dir, 'whole.json');
+  return new File(getOfflineScriptureDirectory(languageCode, bookSlug), 'whole.json');
+}
+
+function getLegacyWholeJsonFile(languageCode: string, bookSlug: string): File {
+  return new File(getOfflineBookDirectory(languageCode, bookSlug), 'whole.json');
+}
+
+/** `scripture/whole.json` first, then legacy `whole.json` at book root. */
+export function resolveExistingWholeJsonFile(
+  languageCode: string,
+  bookSlug: string,
+): File | null {
+  const current = getWholeJsonFile(languageCode, bookSlug);
+  if (current.exists) {
+    return current;
+  }
+
+  const legacy = getLegacyWholeJsonFile(languageCode, bookSlug);
+  if (legacy.exists) {
+    return legacy;
+  }
+
+  return null;
 }
 
 export function ensureOfflineBookDirectory(languageCode: string, bookSlug: string): Directory {
@@ -81,4 +102,21 @@ export function ensureOfflineScriptureDirectory(languageCode: string, bookSlug: 
     dir.create({ intermediates: true, idempotent: true });
   }
   return dir;
+}
+
+/** Removes all scripture content (`whole.json`, chapter HTML); leaves `audio/` intact. */
+export function removeBookScriptureDirectory(languageCode: string, bookSlug: string): void {
+  const scriptureDir = getOfflineScriptureDirectory(languageCode, bookSlug);
+  if (scriptureDir.exists) {
+    scriptureDir.delete();
+  }
+
+  // Legacy layout: whole.json at book root before scripture/whole.json
+  const bookDir = getOfflineBookDirectory(languageCode, bookSlug);
+  for (const name of ['whole.json', 'whole.json.tmp'] as const) {
+    const file = new File(bookDir, name);
+    if (file.exists) {
+      file.delete();
+    }
+  }
 }

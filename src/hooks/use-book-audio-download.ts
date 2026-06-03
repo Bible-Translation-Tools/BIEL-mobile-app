@@ -131,7 +131,7 @@ export function useBookAudioDownload({
     }
   }, [bookSlug, hasAudio, isDownloading, languageCode, onComplete]);
 
-  const deleteDownload = useCallback(async () => {
+  const deleteAudioDownload = useCallback(async () => {
     await deleteBookAudio(languageCode, bookSlug);
     setFileSizeLabel(null);
     setIsDownloaded(false);
@@ -147,6 +147,6 @@ export function useBookAudioDownload({
     isChecking,
     startDownload,
     cancelDownload,
-    deleteDownload,
+    deleteAudioDownload,
   };
 }

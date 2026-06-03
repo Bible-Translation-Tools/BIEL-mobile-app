@@ -42,8 +42,15 @@ export const BookCardRow = memo(function BookCardRow({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
 
-  const { isDownloading, progress, fileSizeLabel, isChecking: isScriptureChecking, startDownload, cancelDownload, deleteDownload } =
-    useBookDownload({
+  const {
+    isDownloading: isScriptureDownloading,
+    progress: scriptureProgress,
+    fileSizeLabel: scriptureFileSizeLabel,
+    isChecking: isScriptureChecking,
+    startDownload: startScriptureDownload,
+    cancelDownload: cancelScriptureDownload,
+    deleteScriptureDownload,
+  } = useBookDownload({
       languageCode,
       bookSlug: book.slug,
       onComplete: onDownloadStatusChange,
@@ -58,7 +65,7 @@ export const BookCardRow = memo(function BookCardRow({
     isChecking: isAudioChecking,
     startDownload: startAudioDownload,
     cancelDownload: cancelAudioDownload,
-    deleteDownload: deleteAudioDownload,
+    deleteAudioDownload,
   } = useBookAudioDownload({
     languageCode,
     bookSlug: book.slug,
@@ -79,66 +86,51 @@ export const BookCardRow = memo(function BookCardRow({
     setMenuAnchor(null);
   }, []);
 
-  const handleDeletePress = useCallback(async () => {
-    try {
-      if (isAudioDownloaded) {
-        await deleteAudioDownload();
-      }
-      if (isScriptureDownloaded) {
-        await deleteDownload();
-      }
-    } catch (err) {
-      Alert.alert(
-        'Delete failed',
-        err instanceof Error ? err.message : 'Could not remove downloaded content',
-      );
-    }
-  }, [deleteAudioDownload, deleteDownload, isAudioDownloaded, isScriptureDownloaded]);
-
   const handleScripturePress = useCallback(async () => {
-    if (isDownloading) {
-      cancelDownload();
+    if (isScriptureDownloading) {
+      cancelScriptureDownload();
       return;
     }
 
     if (isScriptureDownloaded) {
       try {
-        await deleteDownload();
+        await deleteScriptureDownload();
+        closeDownloadMenu();
       } catch (err) {
         Alert.alert(
           'Delete failed',
-          err instanceof Error ? err.message : 'Could not remove downloaded book',
+          err instanceof Error ? err.message : 'Could not remove downloaded scripture',
         );
       }
       return;
     }
 
     try {
-      await startDownload();
+      await startScriptureDownload();
+      closeDownloadMenu();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
       }
       Alert.alert(
         'Download failed',
-        err instanceof Error ? err.message : 'Could not download book',
+        err instanceof Error ? err.message : 'Could not download scripture',
       );
     }
-  }, [cancelDownload, deleteDownload, isScriptureDownloaded, isDownloading, startDownload]);
+  }, [
+    cancelScriptureDownload,
+    closeDownloadMenu,
+    deleteScriptureDownload,
+    isScriptureDownloaded,
+    isScriptureDownloading,
+    startScriptureDownload,
+  ]);
 
-  const isAnyDownloadActive = isDownloading || isAudioDownloading;
+  const isAnyDownloadActive = isScriptureDownloading || isAudioDownloading;
 
   const handleDownloadButtonPress = useCallback(() => {
-    if (isAnyDownloadActive) {
-      openDownloadMenu();
-      return;
-    }
-    if (isFullyDownloaded) {
-      handleDeletePress();
-      return;
-    }
     openDownloadMenu();
-  }, [handleDeletePress, isAnyDownloadActive, isFullyDownloaded, openDownloadMenu]);
+  }, [openDownloadMenu]);
 
   const handleAudioPress = useCallback(async () => {
     if (!hasAudio) return;
@@ -151,6 +143,7 @@ export const BookCardRow = memo(function BookCardRow({
     if (isAudioDownloaded) {
       try {
         await deleteAudioDownload();
+        closeDownloadMenu();
       } catch (err) {
         Alert.alert(
           'Delete failed',
@@ -162,6 +155,7 @@ export const BookCardRow = memo(function BookCardRow({
 
     try {
       await startAudioDownload();
+      closeDownloadMenu();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
@@ -173,6 +167,7 @@ export const BookCardRow = memo(function BookCardRow({
     }
   }, [
     cancelAudioDownload,
+    closeDownloadMenu,
     deleteAudioDownload,
     hasAudio,
     isAudioDownloaded,
@@ -300,13 +295,13 @@ export const BookCardRow = memo(function BookCardRow({
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
         menuProps={{
-          scriptureFileSize: fileSizeLabel ?? '—',
+          scriptureFileSize: scriptureFileSizeLabel ?? '—',
           scriptureStatus: resolveDownloadStatus(
-            isDownloading,
+            isScriptureDownloading,
             isScriptureDownloaded,
             isScriptureChecking,
           ),
-          scriptureProgress: progress,
+          scriptureProgress,
           onScripturePress: handleScripturePress,
           audioFileSize: audioFileSizeLabel ?? '—',
           audioStatus: resolveDownloadStatus(

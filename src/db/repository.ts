@@ -769,6 +769,18 @@ export async function deleteScriptureChapter(
   );
 }
 
+export async function deleteScriptureChaptersForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `DELETE FROM scripture_chapters
+     WHERE language_code = ? AND book_slug = ? COLLATE NOCASE`,
+    [languageCode, bookSlug],
+  );
+}
+
 export async function listScriptureChapterNumbersForBook(
   languageCode: string,
   bookSlug: string,
