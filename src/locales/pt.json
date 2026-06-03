@@ -1,0 +1,124 @@
+{
+  "common": {
+    "ok": "OK",
+    "retry": "Toque para tentar novamente",
+    "clearSearch": "Limpar pesquisa",
+    "goBack": "Voltar",
+    "back": "Voltar",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Explorar a Bíblia",
+    "searchPlaceholder": "Pesquisar idioma aqui...",
+    "searchAccessibility": "Pesquisar idiomas",
+    "noLanguagesFound": "Nenhum idioma encontrado",
+    "failedToLoadLanguages": "Falha ao carregar idiomas",
+    "accessibility": {
+      "openLanguage": "Abrir {{name}}",
+      "downloadInProgress": "Download em andamento de {{name}}",
+      "downloaded": "{{name}} baixado",
+      "download": "Baixar {{name}}"
+    }
+  },
+  "books": {
+    "title": "Bíblia",
+    "searchPlaceholder": "Pesquisar livro aqui...",
+    "searchAccessibility": "Pesquisar livros",
+    "oldTestament": "Antigo Testamento",
+    "newTestament": "Novo Testamento",
+    "noBooksFound": "Nenhum livro encontrado",
+    "languageNotFound": "Idioma não encontrado",
+    "failedToLoadBooks": "Falha ao carregar livros",
+    "accessibility": {
+      "expand": "Expandir {{name}}",
+      "collapse": "Recolher {{name}}",
+      "downloadInProgress": "Download em andamento de {{name}}",
+      "delete": "Excluir {{name}}",
+      "download": "Baixar {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Escritura",
+    "audio": "Áudio",
+    "textSettings": "Configurações de texto",
+    "textSize": "Tamanho do texto",
+    "lineHeight": "Altura da linha",
+    "reset": "Redefinir",
+    "verse": "Versículo",
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "failedToLoadChapter": "Falha ao carregar capítulo",
+    "tapToRetry": "Toque para tentar novamente",
+    "decreaseTextSize": "Diminuir tamanho do texto",
+    "increaseTextSize": "Aumentar tamanho do texto",
+    "decreaseLineHeight": "Diminuir altura da linha",
+    "increaseLineHeight": "Aumentar altura da linha",
+    "resetTextSettings": "Redefinir configurações de texto",
+    "closeTextSettings": "Fechar configurações de texto",
+    "downloadChapter": "Baixar capítulo",
+    "goBack": "Voltar",
+    "previousVerse": "Versículo anterior",
+    "nextVerse": "Próximo versículo",
+    "volume": "Volume",
+    "partOfFullBookTitle": "Parte do download do livro completo",
+    "partOfFullBookMessage": "Este capítulo está disponível offline porque o livro completo foi baixado. Remova-o na lista de livros.",
+    "downloadChapterAudio": "Baixar áudio do capítulo",
+    "audioPlayer": "Reprodutor de áudio",
+    "closeAudioPlayer": "Fechar reprodutor de áudio",
+    "openAudioPlayer": "Abrir reprodutor de áudio",
+    "accessibility": {
+      "textSettings": "Configurações de texto"
+    }
+  },
+  "download": {
+    "title": "Download",
+    "closeMenu": "Fechar menu de download",
+    "allScripture": "Toda a Escritura",
+    "allAudio": "Todo o áudio",
+    "checking": "Verificando...",
+    "downloading": "Baixando...",
+    "downloaded": "Baixado",
+    "downloadFailedTitle": "Falha no download",
+    "downloadFailedMessage": "Não foi possível concluir o download",
+    "deleteFailedTitle": "Falha ao excluir",
+    "deleteFailedMessage": "Não foi possível remover o download",
+    "couldNotDownloadChapter": "Não foi possível baixar o capítulo",
+    "couldNotRemoveChapter": "Não foi possível remover o capítulo baixado",
+    "couldNotDownloadAudio": "Não foi possível baixar o áudio",
+    "couldNotRemoveAudio": "Não foi possível remover o áudio baixado",
+    "couldNotDownloadLanguage": "Não foi possível baixar o idioma",
+    "couldNotDownloadScripture": "Não foi possível baixar a escritura",
+    "couldNotRemoveScripture": "Não foi possível remover a escritura baixada",
+    "accessibility": {
+      "checking": "Verificando disponibilidade de {{title}}",
+      "cancel": "Cancelar download de {{title}}",
+      "delete": "Excluir {{title}} baixado",
+      "downloaded": "{{title}} baixado",
+      "unavailable": "{{title}} indisponível",
+      "download": "Baixar {{title}}"
+    }
+  },
+  "settings": {
+    "title": "Configurações do sistema",
+    "close": "Fechar configurações do sistema",
+    "theme": {
+      "system": {
+        "title": "Automático",
+        "subtitle": "Seguir configurações do sistema"
+      },
+      "light": {
+        "title": "Modo claro",
+        "subtitle": "Ignorar configurações do sistema"
+      },
+      "dark": {
+        "title": "Modo escuro",
+        "subtitle": "Ignorar configurações do sistema"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Idioma da interface",
+    "changeInterfaceLanguage": "Alterar idioma da interface",
+    "closePicker": "Fechar menu de idioma da interface"
+  }
+}

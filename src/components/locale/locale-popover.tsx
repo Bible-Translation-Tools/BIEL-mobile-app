@@ -20,7 +20,7 @@ type LocalePopoverProps = {
   onClose: () => void;
 };
 
-const MENU_ESTIMATED_HEIGHT = 220;
+const MENU_ESTIMATED_HEIGHT = 420;
 
 type MenuPosition = {
   top: number;

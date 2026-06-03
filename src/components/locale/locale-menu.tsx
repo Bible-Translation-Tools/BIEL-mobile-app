@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import {
@@ -15,6 +15,8 @@ import { useTranslation } from 'react-i18next';
 type LocaleMenuProps = {
   onSelect?: () => void;
 };
+
+const MENU_MAX_HEIGHT = 360;
 
 export const LocaleMenu = memo(function LocaleMenu({ onSelect }: LocaleMenuProps) {
   const theme = useTheme();
@@ -33,7 +35,12 @@ export const LocaleMenu = memo(function LocaleMenu({ onSelect }: LocaleMenuProps
       ]}>
       <Text style={[styles.title, { color: theme.textSecondary }]}>{t('pickerTitle')}</Text>
 
-      {SUPPORTED_LOCALE_CODES.map((code) => {
+      <ScrollView
+        style={styles.optionsScroll}
+        contentContainerStyle={styles.optionsContent}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}>
+        {SUPPORTED_LOCALE_CODES.map((code) => {
         const selected = uiLocale === code;
         const { nativeLabel } = SUPPORTED_LOCALES[code as AppLocale];
 
@@ -70,6 +77,7 @@ export const LocaleMenu = memo(function LocaleMenu({ onSelect }: LocaleMenuProps
           </Pressable>
         );
       })}
+      </ScrollView>
     </View>
   );
 });
@@ -92,6 +100,12 @@ const styles = StyleSheet.create({
   title: {
     ...Typography.headingH7,
     width: '100%',
+  },
+  optionsScroll: {
+    maxHeight: MENU_MAX_HEIGHT,
+  },
+  optionsContent: {
+    gap: DownloadMenuLayout.menuGap,
   },
   option: {
     flexDirection: 'row',

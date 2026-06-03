@@ -1,0 +1,124 @@
+{
+  "common": {
+    "ok": "OK",
+    "retry": "Chạm để thử lại",
+    "clearSearch": "Xóa tìm kiếm",
+    "goBack": "Quay lại",
+    "back": "Quay lại",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Đọc Kinh Thánh",
+    "searchPlaceholder": "Tìm ngôn ngữ tại đây...",
+    "searchAccessibility": "Tìm ngôn ngữ",
+    "noLanguagesFound": "Không tìm thấy ngôn ngữ",
+    "failedToLoadLanguages": "Không thể tải ngôn ngữ",
+    "accessibility": {
+      "openLanguage": "Mở {{name}}",
+      "downloadInProgress": "Đang tải xuống {{name}}",
+      "downloaded": "Đã tải xuống {{name}}",
+      "download": "Tải xuống {{name}}"
+    }
+  },
+  "books": {
+    "title": "Kinh Thánh",
+    "searchPlaceholder": "Tìm sách tại đây...",
+    "searchAccessibility": "Tìm sách",
+    "oldTestament": "Cựu Ước",
+    "newTestament": "Tân Ước",
+    "noBooksFound": "Không tìm thấy sách",
+    "languageNotFound": "Không tìm thấy ngôn ngữ",
+    "failedToLoadBooks": "Không thể tải sách",
+    "accessibility": {
+      "expand": "Mở rộng {{name}}",
+      "collapse": "Thu gọn {{name}}",
+      "downloadInProgress": "Đang tải xuống {{name}}",
+      "delete": "Xóa {{name}}",
+      "download": "Tải xuống {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Kinh văn",
+    "audio": "Âm thanh",
+    "textSettings": "Cài đặt văn bản",
+    "textSize": "Cỡ chữ",
+    "lineHeight": "Chiều cao dòng",
+    "reset": "Đặt lại",
+    "verse": "Câu",
+    "play": "Phát",
+    "pause": "Tạm dừng",
+    "failedToLoadChapter": "Không thể tải chương",
+    "tapToRetry": "Chạm để thử lại",
+    "decreaseTextSize": "Giảm cỡ chữ",
+    "increaseTextSize": "Tăng cỡ chữ",
+    "decreaseLineHeight": "Giảm chiều cao dòng",
+    "increaseLineHeight": "Tăng chiều cao dòng",
+    "resetTextSettings": "Đặt lại cài đặt văn bản",
+    "closeTextSettings": "Đóng cài đặt văn bản",
+    "downloadChapter": "Tải xuống chương",
+    "goBack": "Quay lại",
+    "previousVerse": "Câu trước",
+    "nextVerse": "Câu tiếp theo",
+    "volume": "Âm lượng",
+    "partOfFullBookTitle": "Một phần của bản tải toàn bộ sách",
+    "partOfFullBookMessage": "Chương này có sẵn ngoại tuyến vì toàn bộ sách đã được tải xuống. Hãy xóa trong danh sách sách.",
+    "downloadChapterAudio": "Tải xuống âm thanh chương",
+    "audioPlayer": "Trình phát âm thanh",
+    "closeAudioPlayer": "Đóng trình phát âm thanh",
+    "openAudioPlayer": "Mở trình phát âm thanh",
+    "accessibility": {
+      "textSettings": "Cài đặt văn bản"
+    }
+  },
+  "download": {
+    "title": "Tải xuống",
+    "closeMenu": "Đóng menu tải xuống",
+    "allScripture": "Toàn bộ Kinh văn",
+    "allAudio": "Toàn bộ âm thanh",
+    "checking": "Đang kiểm tra...",
+    "downloading": "Đang tải xuống...",
+    "downloaded": "Đã tải xuống",
+    "downloadFailedTitle": "Tải xuống thất bại",
+    "downloadFailedMessage": "Không thể hoàn tất tải xuống",
+    "deleteFailedTitle": "Xóa thất bại",
+    "deleteFailedMessage": "Không thể xóa bản tải xuống",
+    "couldNotDownloadChapter": "Không thể tải xuống chương",
+    "couldNotRemoveChapter": "Không thể xóa chương đã tải xuống",
+    "couldNotDownloadAudio": "Không thể tải xuống âm thanh",
+    "couldNotRemoveAudio": "Không thể xóa âm thanh đã tải xuống",
+    "couldNotDownloadLanguage": "Không thể tải xuống ngôn ngữ",
+    "couldNotDownloadScripture": "Không thể tải xuống kinh văn",
+    "couldNotRemoveScripture": "Không thể xóa kinh văn đã tải xuống",
+    "accessibility": {
+      "checking": "Đang kiểm tra khả dụng của {{title}}",
+      "cancel": "Hủy tải xuống {{title}}",
+      "delete": "Xóa {{title}} đã tải xuống",
+      "downloaded": "Đã tải xuống {{title}}",
+      "unavailable": "{{title}} không khả dụng",
+      "download": "Tải xuống {{title}}"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt hệ thống",
+    "close": "Đóng cài đặt hệ thống",
+    "theme": {
+      "system": {
+        "title": "Tự động",
+        "subtitle": "Theo cài đặt hệ thống"
+      },
+      "light": {
+        "title": "Sáng",
+        "subtitle": "Bỏ qua cài đặt hệ thống"
+      },
+      "dark": {
+        "title": "Tối",
+        "subtitle": "Bỏ qua cài đặt hệ thống"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Ngôn ngữ giao diện",
+    "changeInterfaceLanguage": "Thay đổi ngôn ngữ giao diện",
+    "closePicker": "Đóng menu ngôn ngữ giao diện"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "common": {
+    "ok": "OK",
+    "retry": "Ketuk untuk coba lagi",
+    "clearSearch": "Hapus pencarian",
+    "goBack": "Kembali",
+    "back": "Kembali",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Jelajahi Alkitab",
+    "searchPlaceholder": "Cari bahasa di sini...",
+    "searchAccessibility": "Cari bahasa",
+    "noLanguagesFound": "Tidak ada bahasa ditemukan",
+    "failedToLoadLanguages": "Gagal memuat bahasa",
+    "accessibility": {
+      "openLanguage": "Buka {{name}}",
+      "downloadInProgress": "Unduhan {{name}} sedang berlangsung",
+      "downloaded": "{{name}} telah diunduh",
+      "download": "Unduh {{name}}"
+    }
+  },
+  "books": {
+    "title": "Alkitab",
+    "searchPlaceholder": "Cari kitab di sini...",
+    "searchAccessibility": "Cari kitab",
+    "oldTestament": "Perjanjian Lama",
+    "newTestament": "Perjanjian Baru",
+    "noBooksFound": "Tidak ada kitab ditemukan",
+    "languageNotFound": "Bahasa tidak ditemukan",
+    "failedToLoadBooks": "Gagal memuat kitab",
+    "accessibility": {
+      "expand": "Perluas {{name}}",
+      "collapse": "Ciutkan {{name}}",
+      "downloadInProgress": "Unduhan {{name}} sedang berlangsung",
+      "delete": "Hapus {{name}}",
+      "download": "Unduh {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Kitab Suci",
+    "audio": "Audio",
+    "textSettings": "Pengaturan teks",
+    "textSize": "Ukuran teks",
+    "lineHeight": "Tinggi baris",
+    "reset": "Atur ulang",
+    "verse": "Ayat",
+    "play": "Putar",
+    "pause": "Jeda",
+    "failedToLoadChapter": "Gagal memuat pasal",
+    "tapToRetry": "Ketuk untuk coba lagi",
+    "decreaseTextSize": "Perkecil ukuran teks",
+    "increaseTextSize": "Perbesar ukuran teks",
+    "decreaseLineHeight": "Perkecil tinggi baris",
+    "increaseLineHeight": "Perbesar tinggi baris",
+    "resetTextSettings": "Atur ulang pengaturan teks",
+    "closeTextSettings": "Tutup pengaturan teks",
+    "downloadChapter": "Unduh pasal",
+    "goBack": "Kembali",
+    "previousVerse": "Ayat sebelumnya",
+    "nextVerse": "Ayat berikutnya",
+    "volume": "Volume",
+    "partOfFullBookTitle": "Bagian dari unduhan kitab lengkap",
+    "partOfFullBookMessage": "Pasal ini tersedia offline karena kitab lengkap telah diunduh. Hapus dari daftar kitab.",
+    "downloadChapterAudio": "Unduh audio pasal",
+    "audioPlayer": "Pemutar audio",
+    "closeAudioPlayer": "Tutup pemutar audio",
+    "openAudioPlayer": "Buka pemutar audio",
+    "accessibility": {
+      "textSettings": "Pengaturan teks"
+    }
+  },
+  "download": {
+    "title": "Unduh",
+    "closeMenu": "Tutup menu unduhan",
+    "allScripture": "Semua Kitab Suci",
+    "allAudio": "Semua audio",
+    "checking": "Memeriksa...",
+    "downloading": "Mengunduh...",
+    "downloaded": "Diunduh",
+    "downloadFailedTitle": "Unduhan gagal",
+    "downloadFailedMessage": "Tidak dapat menyelesaikan unduhan",
+    "deleteFailedTitle": "Penghapusan gagal",
+    "deleteFailedMessage": "Tidak dapat menghapus unduhan",
+    "couldNotDownloadChapter": "Tidak dapat mengunduh pasal",
+    "couldNotRemoveChapter": "Tidak dapat menghapus pasal yang diunduh",
+    "couldNotDownloadAudio": "Tidak dapat mengunduh audio",
+    "couldNotRemoveAudio": "Tidak dapat menghapus audio yang diunduh",
+    "couldNotDownloadLanguage": "Tidak dapat mengunduh bahasa",
+    "couldNotDownloadScripture": "Tidak dapat mengunduh kitab suci",
+    "couldNotRemoveScripture": "Tidak dapat menghapus kitab suci yang diunduh",
+    "accessibility": {
+      "checking": "Memeriksa ketersediaan {{title}}",
+      "cancel": "Batalkan unduhan {{title}}",
+      "delete": "Hapus {{title}} yang diunduh",
+      "downloaded": "{{title}} diunduh",
+      "unavailable": "{{title}} tidak tersedia",
+      "download": "Unduh {{title}}"
+    }
+  },
+  "settings": {
+    "title": "Pengaturan sistem",
+    "close": "Tutup pengaturan sistem",
+    "theme": {
+      "system": {
+        "title": "Otomatis",
+        "subtitle": "Ikuti pengaturan sistem"
+      },
+      "light": {
+        "title": "Mode terang",
+        "subtitle": "Abaikan pengaturan sistem"
+      },
+      "dark": {
+        "title": "Mode gelap",
+        "subtitle": "Abaikan pengaturan sistem"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Bahasa antarmuka",
+    "changeInterfaceLanguage": "Ubah bahasa antarmuka",
+    "closePicker": "Tutup menu bahasa antarmuka"
+  }
+}

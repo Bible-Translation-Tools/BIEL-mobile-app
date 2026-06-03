@@ -2,26 +2,13 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { DEFAULT_LOCALE, resolveAppLocale, type AppLocale } from '@/constants/locale';
+import { localeResources } from '@/locales';
 
-import en from '@/locales/en.json';
-import es from '@/locales/es.json';
-import fr from '@/locales/fr.json';
+export const i18nNamespaces = Object.keys(localeResources.en) as Array<
+  keyof typeof localeResources.en
+>;
 
-export const i18nNamespaces = [
-  'common',
-  'home',
-  'books',
-  'reading',
-  'download',
-  'settings',
-  'locale',
-] as const;
-
-const resources = {
-  en,
-  es,
-  fr,
-} as const;
+const resources = localeResources;
 
 let initialized = false;
 
@@ -34,7 +21,7 @@ export async function initI18n(locale: string): Promise<AppLocale> {
       lng: resolved,
       fallbackLng: DEFAULT_LOCALE,
       defaultNS: 'common',
-      ns: [...i18nNamespaces],
+      ns: i18nNamespaces,
       compatibilityJSON: 'v4',
       interpolation: {
         escapeValue: false,
