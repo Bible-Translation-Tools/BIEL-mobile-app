@@ -68,7 +68,9 @@ export function useBooks(languageCode: string | undefined) {
     try {
       const items = await fetchBooksForLanguage(languageCode);
       const withStatus = await applyDownloadStatus(items, languageCode);
-      setBooks(withStatus);
+      if (items.length > 0 || offlineItems.length === 0) {
+        setBooks(withStatus);
+      }
       setError(null);
     } catch (err) {
       if (offlineItems.length === 0) {
