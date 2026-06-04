@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { TextSettingsStepper } from '@/components/reading/text-settings-stepper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, TextSettingsLayout, Typography } from '@/constants/theme';
-import { useReadingTextSettingsActions } from '@/contexts/reading-text-settings-context';
+import { useReadingTextSettingsActions } from '@/stores/reading-text-settings-store';
 import { useTheme } from '@/hooks/use-theme';
 
 export const TextSettingsMenu = memo(function TextSettingsMenu() {

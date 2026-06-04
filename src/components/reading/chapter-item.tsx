@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
   Modal,
@@ -12,6 +12,7 @@ import {
 
 import { ReadingLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useReadingTextStyles } from '@/stores/reading-text-settings-store';
 import type { ChapterContent, ScriptureInlinePart, ScriptureLine } from '@/types/reading';
 
 type ChapterItemProps = {
@@ -19,34 +20,10 @@ type ChapterItemProps = {
   chapter: ChapterContent;
   isFirst?: boolean;
   highlightedVerse?: number | null;
-  fontSize: number;
-  lineHeight: number;
-  verseNumberFontSize: number;
-  footnoteMarkerFontSize: number;
-  verseLayoutReportsPaused: boolean;
   onRootRef?: (node: View | null) => void;
   onVerseLayout?: (chapterNumber: number, verseToY: Map<number, number>) => void;
   onVersePress?: (verse: number) => void;
 };
-
-const VERSE_LAYOUT_REPORT_DEBOUNCE_MS = 80;
-
-function chapterItemPropsAreEqual(prev: ChapterItemProps, next: ChapterItemProps): boolean {
-  return (
-    prev.chapter === next.chapter &&
-    prev.bookName === next.bookName &&
-    prev.isFirst === next.isFirst &&
-    prev.highlightedVerse === next.highlightedVerse &&
-    prev.fontSize === next.fontSize &&
-    prev.lineHeight === next.lineHeight &&
-    prev.verseNumberFontSize === next.verseNumberFontSize &&
-    prev.footnoteMarkerFontSize === next.footnoteMarkerFontSize &&
-    prev.verseLayoutReportsPaused === next.verseLayoutReportsPaused &&
-    prev.onVersePress === next.onVersePress &&
-    prev.onRootRef === next.onRootRef &&
-    prev.onVerseLayout === next.onVerseLayout
-  );
-}
 
 const SUPERSCRIPT_DIGITS: Record<string, string> = {
   '0': '⁰',
@@ -81,21 +58,18 @@ function toSuperscript(value: number): string {
 // parsing line text from onTextLayout.
 const VERSE_NUMBER_MARKER = '⁠';
 
-function ChapterItemInner({
+export const ChapterItem = memo(function ChapterItem({
   bookName,
   chapter,
   isFirst = false,
   highlightedVerse = null,
-  fontSize,
-  lineHeight,
-  verseNumberFontSize,
-  footnoteMarkerFontSize,
-  verseLayoutReportsPaused,
   onRootRef,
   onVerseLayout,
   onVersePress,
 }: ChapterItemProps) {
   const theme = useTheme();
+  const { fontSize, lineHeight, verseNumberFontSize, footnoteMarkerFontSize } =
+    useReadingTextStyles();
   const [activeFootnoteId, setActiveFootnoteId] = useState<string | null>(null);
 
   const paragraphStyle = useMemo(
@@ -126,28 +100,15 @@ function ChapterItemInner({
   // (i.e. the y of the line where the verse starts). Populated by onTextLayout.
   const verseLineYsRef = useRef<Map<string, Map<number, number>>>(new Map());
   const onVerseLayoutRef = useRef(onVerseLayout);
-  const verseLayoutReportsPausedRef = useRef(verseLayoutReportsPaused);
-  const reportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   onVerseLayoutRef.current = onVerseLayout;
-  verseLayoutReportsPausedRef.current = verseLayoutReportsPaused;
 
   useEffect(() => {
     verseLineYsRef.current.clear();
   }, [fontSize, lineHeight]);
 
-  useEffect(
-    () => () => {
-      if (reportTimerRef.current != null) {
-        clearTimeout(reportTimerRef.current);
-      }
-    },
-    [],
-  );
-
-  const reportVerseLayouts = useCallback(() => {
+  const reportVerseLayouts = () => {
     const report = onVerseLayoutRef.current;
-    if (!report || verseLayoutReportsPausedRef.current) return;
+    if (!report) return;
     const verseToY = new Map<number, number>();
     chapter.sections.forEach((section, sectionIndex) => {
       const sectionY = sectionYsRef.current.get(sectionIndex) ?? 0;
@@ -163,32 +124,13 @@ function ChapterItemInner({
       });
     });
     report(chapter.chapter, verseToY);
-  }, [chapter]);
-
-  const scheduleReportVerseLayouts = useCallback(() => {
-    if (verseLayoutReportsPausedRef.current) return;
-    if (reportTimerRef.current != null) {
-      clearTimeout(reportTimerRef.current);
-    }
-    reportTimerRef.current = setTimeout(() => {
-      reportTimerRef.current = null;
-      reportVerseLayouts();
-    }, VERSE_LAYOUT_REPORT_DEBOUNCE_MS);
-  }, [reportVerseLayouts]);
-
-  useEffect(() => {
-    if (!verseLayoutReportsPaused) {
-      scheduleReportVerseLayouts();
-    }
-  }, [verseLayoutReportsPaused, scheduleReportVerseLayouts]);
+  };
 
   const handleParagraphTextLayout = (
     sectionIndex: number,
     paragraphIndex: number,
     event: NativeSyntheticEvent<TextLayoutEventData>,
   ) => {
-    if (verseLayoutReportsPausedRef.current) return;
-
     const lines = event.nativeEvent.lines;
     if (!lines || lines.length === 0) return;
 
@@ -199,22 +141,44 @@ function ChapterItemInner({
     let searchLineIdx = 0;
     let searchCharIdx = 0;
 
-    for (const verse of paragraph.verses) {
-      const needle = `${VERSE_NUMBER_MARKER}${toSuperscript(verse.number)}`;
-      let foundLineIdx = -1;
-      let foundCharIdx = -1;
+      for (const verse of paragraph.verses) {
+        const superscript = toSuperscript(verse.number);
+        const needle = `${VERSE_NUMBER_MARKER}${superscript}`;
+        let foundLineIdx = -1;
+        let foundCharIdx = -1;
 
-      for (let i = searchLineIdx; i < lines.length; i += 1) {
-        const startAt = i === searchLineIdx ? searchCharIdx : 0;
-        const idx = lines[i].text.indexOf(needle, startAt);
-        if (idx !== -1) {
-          foundLineIdx = i;
-          foundCharIdx = idx;
-          break;
+        for (let i = searchLineIdx; i < lines.length; i += 1) {
+          const startAt = i === searchLineIdx ? searchCharIdx : 0;
+          const idx = lines[i].text.indexOf(needle, startAt);
+          if (idx !== -1) {
+            foundLineIdx = i;
+            foundCharIdx = idx;
+            break;
+          }
         }
-      }
 
-      if (foundLineIdx === -1) {
+        // Word Joiner is sometimes stripped from onTextLayout line text; fall back to
+        // superscript search, skipping footnote markers (those follow a regular space).
+        if (foundLineIdx === -1) {
+          for (let i = searchLineIdx; i < lines.length; i += 1) {
+            const startAt = i === searchLineIdx ? searchCharIdx : 0;
+            let from = startAt;
+            while (from < lines[i].text.length) {
+              const idx = lines[i].text.indexOf(superscript, from);
+              if (idx === -1) break;
+              const before = idx > 0 ? lines[i].text[idx - 1] : '\n';
+              if (before !== ' ') {
+                foundLineIdx = i;
+                foundCharIdx = idx;
+                break;
+              }
+              from = idx + superscript.length;
+            }
+            if (foundLineIdx !== -1) break;
+          }
+        }
+
+        if (foundLineIdx === -1) {
         // Fallback: assume verse starts at the previous match's line so we
         // don't lose track of subsequent verses.
         verseToLineY.set(verse.number, lines[searchLineIdx]?.y ?? 0);
@@ -227,22 +191,22 @@ function ChapterItemInner({
     }
 
     verseLineYsRef.current.set(`${sectionIndex}-${paragraphIndex}`, verseToLineY);
-    scheduleReportVerseLayouts();
+    reportVerseLayouts();
   };
 
   const handleSectionsLayout = (event: LayoutChangeEvent) => {
     sectionsContainerYRef.current = event.nativeEvent.layout.y;
-    scheduleReportVerseLayouts();
+    reportVerseLayouts();
   };
 
   const handleSectionLayout = (sectionIndex: number, event: LayoutChangeEvent) => {
     sectionYsRef.current.set(sectionIndex, event.nativeEvent.layout.y);
-    scheduleReportVerseLayouts();
+    reportVerseLayouts();
   };
 
   const handleParagraphLayout = (key: string, event: LayoutChangeEvent) => {
     paragraphYsRef.current.set(key, event.nativeEvent.layout.y);
-    scheduleReportVerseLayouts();
+    reportVerseLayouts();
   };
 
   const renderLineParts = (parts: ScriptureInlinePart[], verseKey: string) =>
@@ -352,9 +316,7 @@ function ChapterItemInner({
       </Modal>
     </View>
   );
-}
-
-export const ChapterItem = memo(ChapterItemInner, chapterItemPropsAreEqual);
+});
 
 const styles = StyleSheet.create({
   chapterBlock: {
