@@ -47,6 +47,7 @@ export function AudioPlayButton({
   const insets = useSafeAreaInsets();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [activeChapter, setActiveChapter] = useState<number | undefined>(undefined);
+  const [shouldAutoPlayOnOpen, setShouldAutoPlayOnOpen] = useState(false);
   const [shouldAutoPlayNextChapter, setShouldAutoPlayNextChapter] = useState(false);
   const [seekTarget, setSeekTarget] = useState<SeekTarget | null>(null);
   const isAdvancingRef = useRef(false);
@@ -64,6 +65,24 @@ export function AudioPlayButton({
   useEffect(() => {
     onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
   }, [audio.currentVerse, isPanelOpen, onCurrentVerseChange]);
+
+  useEffect(() => {
+    if (!isPanelOpen || !shouldAutoPlayOnOpen || !activeChapter) return;
+    if (audio.isFetching || !audio.audioUrl || audio.error) return;
+    if (audio.loadedChapter !== activeChapter) return;
+
+    audio.play();
+    setShouldAutoPlayOnOpen(false);
+  }, [
+    activeChapter,
+    audio.audioUrl,
+    audio.error,
+    audio.isFetching,
+    audio.loadedChapter,
+    audio.play,
+    isPanelOpen,
+    shouldAutoPlayOnOpen,
+  ]);
 
   useEffect(() => {
     if (!isPanelOpen || !seekTarget || !activeChapter) return;
@@ -215,11 +234,14 @@ export function AudioPlayButton({
 
   const closePanel = () => {
     audio.pause();
-    setIsPanelOpen(false);
-    setShouldAutoPlayNextChapter(false);
-    setSeekTarget(null);
+    onPanelOpenChange?.(false);
+    onCurrentVerseChange?.(null);
     onCurrentChapterChange?.(null);
     onPanelHeightChange?.(0);
+    setIsPanelOpen(false);
+    setShouldAutoPlayOnOpen(false);
+    setShouldAutoPlayNextChapter(false);
+    setSeekTarget(null);
   };
 
   if (isPanelOpen) {
@@ -256,6 +278,7 @@ export function AudioPlayButton({
         onPress={() => {
           const chapterToPlay = getCurrentChapter?.();
           setActiveChapter(chapterToPlay);
+          setShouldAutoPlayOnOpen(true);
           setIsPanelOpen(true);
           onCurrentChapterChange?.(chapterToPlay ?? null);
         }}

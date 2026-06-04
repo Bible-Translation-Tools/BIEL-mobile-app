@@ -100,6 +100,7 @@ export default function ReadingScreen() {
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
   const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
+  const isAudioPanelOpenRef = useRef(false);
   const playVerseAtRef = useRef<((chapter: number, verse: number) => void) | undefined>(undefined);
   const currentPlayingVerseRef = useRef(currentPlayingVerse);
   const currentPlayingChapterRef = useRef(currentPlayingChapter);
@@ -142,6 +143,8 @@ export default function ReadingScreen() {
   const scrollRetryCountRef = useRef(0);
 
   const scrollToPlayingVerse = useCallback(() => {
+    if (!isAudioPanelOpenRef.current || audioPanelHeightRef.current <= 0) return;
+
     const verse = currentPlayingVerseRef.current;
     const chapter = currentPlayingChapterRef.current;
     if (verse == null || chapter == null) return;
@@ -281,6 +284,7 @@ export default function ReadingScreen() {
   };
 
   useEffect(() => {
+    if (!isAudioPanelOpen || currentPlayingVerse == null || currentPlayingChapter == null) return;
     scrollRetryCountRef.current = 0;
     scrollToPlayingVerse();
   }, [currentPlayingVerse, currentPlayingChapter, isAudioPanelOpen, scrollToPlayingVerse]);
@@ -471,9 +475,12 @@ export default function ReadingScreen() {
             onCurrentChapterChange={setCurrentPlayingChapter}
             onPanelHeightChange={(height) => {
               audioPanelHeightRef.current = height;
-              scrollToPlayingVerse();
+              if (height > 0) scrollToPlayingVerse();
             }}
-            onPanelOpenChange={setIsAudioPanelOpen}
+            onPanelOpenChange={(open) => {
+              isAudioPanelOpenRef.current = open;
+              setIsAudioPanelOpen(open);
+            }}
             playVerseAtRef={playVerseAtRef}
           />
         ) : null}
