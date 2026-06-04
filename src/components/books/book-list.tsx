@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { BookLayout } from '@/constants/theme';
 import { useBookChapters } from '@/hooks/use-book-chapters';
 import { useTheme } from '@/hooks/use-theme';
+import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import type { BookItem, ChapterItem } from '@/types/book';
 
 import { BookCardRow } from './book-card-row';
@@ -26,7 +27,7 @@ type BookListProps = {
   error?: string | null;
   onRetry?: () => void;
   onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
-  onDownloadStatusChange?: () => void;
+  onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -114,9 +115,13 @@ export function BookList({
           isExpanded={isExpanded}
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
-          onToggleExpand={() =>
-            setExpandedBookId((current) => (current === item.id ? null : item.id))
-          }
+          onToggleExpand={() => {
+            const willExpand = expandedBookId !== item.id;
+            if (willExpand) {
+              void loadChapters(item.slug);
+            }
+            setExpandedBookId((current) => (current === item.id ? null : item.id));
+          }}
           onChapterPress={
             onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
           }
@@ -124,7 +129,15 @@ export function BookList({
         />
       );
     },
-    [expandedBookId, getChapters, isLoading, languageCode, onChapterPress, onDownloadStatusChange],
+    [
+      expandedBookId,
+      getChapters,
+      isLoading,
+      languageCode,
+      loadChapters,
+      onChapterPress,
+      onDownloadStatusChange,
+    ],
   );
 
   const listHeader = ListHeaderComponent;

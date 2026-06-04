@@ -5,7 +5,12 @@ import { graphqlRequest } from '@/api/graphql/client';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { BOOK_CONTENT_QUERY, CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
 import { pickRendering } from '@/api/services/resource-selection';
-import { offlineBookChapterHtmlMap, parseWholeBookJson } from '@/api/services/whole-book-parser';
+import {
+  extractChapterNumbersFromWholeBookJson,
+  offlineBookChapterHtmlMap,
+  parseWholeBookJson,
+} from '@/api/services/whole-book-parser';
+import { yieldToUi } from '@/utils/yield-to-ui';
 import {
   ensureOfflineRootExists,
   ensureOfflineScriptureDirectory,
@@ -357,6 +362,8 @@ export async function downloadBookScripture(
 
   options?.onProgress?.(0.6);
 
+  await yieldToUi();
+
   let payload: unknown;
   try {
     payload = JSON.parse(jsonText) as unknown;
@@ -370,12 +377,11 @@ export async function downloadBookScripture(
     }
     throw new Error('Downloaded book data is not valid JSON');
   }
+
+  await yieldToUi();
+
   const canonicalSlug = normalizeBookSlug(bookSlug);
-  const offlineBook = withOfflineBookIdentity(parseWholeBookJson(payload), {
-    slug: canonicalSlug,
-    name: resolved.bookName,
-  });
-  const chapterNumbers = [...offlineBook.chapters.keys()].sort((a, b) => a - b);
+  const chapterNumbers = extractChapterNumbersFromWholeBookJson(payload);
   if (chapterNumbers.length === 0) {
     throw new Error('Downloaded book has no chapters');
   }
@@ -393,11 +399,13 @@ export async function downloadBookScripture(
   }
   tempFile.move(bookJsonFile);
 
-  wholeBookCache.set(cacheKey(languageCode, canonicalSlug), offlineBook);
+  wholeBookCache.delete(cacheKey(languageCode, canonicalSlug));
 
   options?.onProgress?.(0.9);
 
-  const byteSize = new TextEncoder().encode(jsonText).length;
+  await yieldToUi();
+
+  const byteSize = jsonText.length;
 
   await upsertBookWithChapters({
     languageCode,

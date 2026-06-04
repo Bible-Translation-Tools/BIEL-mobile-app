@@ -7,6 +7,7 @@ import {
   CHAPTER_AUDIO_FILE_QUERY,
 } from '@/api/graphql/queries';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
+import { yieldToUi } from '@/utils/yield-to-ui';
 import {
   ensureOfflineAudioDirectory,
   ensureOfflineRootExists,
@@ -382,6 +383,10 @@ export async function downloadBookAudio(
       });
 
       options?.onProgress?.((index + 1) / totalChapters);
+
+      if ((index + 1) % 2 === 0) {
+        await yieldToUi();
+      }
     }
   } catch (err) {
     removeAudioDirectory(languageCode, canonicalSlug);

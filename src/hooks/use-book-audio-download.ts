@@ -12,12 +12,14 @@ import { useContentDownload } from '@/hooks/use-content-download';
 type UseBookAudioDownloadOptions = {
   languageCode: string;
   bookSlug: string;
+  enabled?: boolean;
   onComplete?: () => void;
 };
 
 export function useBookAudioDownload({
   languageCode,
   bookSlug,
+  enabled = true,
   onComplete,
 }: UseBookAudioDownloadOptions) {
   const { t } = useTranslation('download');
@@ -26,6 +28,7 @@ export function useBookAudioDownload({
     deleteDownload: deleteAudioDownload,
     ...rest
   } = useContentDownload({
+    enabled,
     partialSizeLabel: true,
     downloadFailedMessage: t('couldNotDownloadAudio'),
     deleteFailedMessage: t('couldNotRemoveAudio'),

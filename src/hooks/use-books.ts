@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import { InteractionManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { fetchBooksForLanguage, fetchBooksForLanguageOffline } from '@/api/services/books';
 import { listDownloadedBookSlugs } from '@/db';
 import type { BookItem } from '@/types/book';
+import type { DownloadStatus } from '@/types/download';
+
+export type BookDownloadStatusChange = {
+  bookSlug: string;
+  status: DownloadStatus;
+};
 
 async function applyDownloadStatus(
   items: BookItem[],
@@ -24,19 +31,37 @@ export function useBooks(languageCode: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshDownloadStatus = useCallback(async () => {
-    if (!languageCode) return;
+  const refreshDownloadStatus = useCallback(
+    async (change?: BookDownloadStatusChange) => {
+      if (!languageCode) return;
 
-    const downloadedSlugs = await listDownloadedBookSlugs(languageCode).catch(() => []);
-    const downloadedSet = new Set(downloadedSlugs.map((slug) => slug.toUpperCase()));
+      if (change) {
+        InteractionManager.runAfterInteractions(() => {
+          setBooks((current) =>
+            current.map((book) =>
+              book.slug.toUpperCase() === change.bookSlug.toUpperCase()
+                ? { ...book, downloadStatus: change.status }
+                : book,
+            ),
+          );
+        });
+        return;
+      }
 
-    setBooks((current) =>
-      current.map((book) => ({
-        ...book,
-        downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
-      })),
-    );
-  }, [languageCode]);
+      const downloadedSlugs = await listDownloadedBookSlugs(languageCode).catch(() => []);
+      const downloadedSet = new Set(downloadedSlugs.map((slug) => slug.toUpperCase()));
+
+      InteractionManager.runAfterInteractions(() => {
+        setBooks((current) =>
+          current.map((book) => ({
+            ...book,
+            downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
+          })),
+        );
+      });
+    },
+    [languageCode],
+  );
 
   const refetch = useCallback(async () => {
     if (!languageCode) {

@@ -12,7 +12,12 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
   const loadChapters = useCallback(
     async (bookSlug: string) => {
       const cached = cacheRef.current[bookSlug];
-      if (cached) return;
+      if (cached) {
+        setChaptersByBook((prev) =>
+          prev[bookSlug] === cached ? prev : { ...prev, [bookSlug]: cached },
+        );
+        return;
+      }
 
       setLoadingSlug(bookSlug);
       setErrorSlug(null);

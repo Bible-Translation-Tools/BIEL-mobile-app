@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { InteractionManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
+
+const PROGRESS_MIN_DELTA = 0.05;
+const PROGRESS_MIN_INTERVAL_MS = 200;
 
 import { formatByteSize } from '@/api/services/whole-book-parser';
 
@@ -29,6 +33,7 @@ export type UseContentDownloadOptions = ContentDownloadHandlers & {
   deleteFailedTitle?: string;
   deleteFailedMessage?: string;
   onComplete?: () => void;
+  onDeleteComplete?: () => void;
 };
 
 function computeFileSizeLabel(
@@ -66,6 +71,7 @@ export function useContentDownload({
   deleteFailedTitle,
   deleteFailedMessage,
   onComplete,
+  onDeleteComplete,
   download,
   deleteContent,
   getDownloadedBytes,
@@ -88,6 +94,27 @@ export function useContentDownload({
   const [canDownload, setCanDownload] = useState(true);
   const [error, setError] = useState<ContentDownloadError | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const progressSampleRef = useRef({ value: -1, at: 0 });
+
+  const scheduleOnComplete = useCallback((callback?: () => void) => {
+    if (!callback) return;
+    InteractionManager.runAfterInteractions(() => {
+      callback();
+    });
+  }, []);
+
+  const reportProgress = useCallback((value: number) => {
+    const now = Date.now();
+    const last = progressSampleRef.current;
+    if (
+      value >= 1 ||
+      value - last.value >= PROGRESS_MIN_DELTA ||
+      now - last.at >= PROGRESS_MIN_INTERVAL_MS
+    ) {
+      progressSampleRef.current = { value, at: now };
+      setProgress(value);
+    }
+  }, []);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -183,14 +210,19 @@ export function useContentDownload({
     abortRef.current = controller;
     setIsDownloading(true);
     setProgress(0);
+    progressSampleRef.current = { value: -1, at: 0 };
 
     try {
       await download({
         signal: controller.signal,
-        onProgress: setProgress,
+        onProgress: reportProgress,
       });
-      await refresh();
-      onComplete?.();
+      if (enabled) {
+        await refresh();
+      } else if (getIsDownloaded) {
+        setIsDownloaded(true);
+      }
+      scheduleOnComplete(onComplete);
     } catch (err) {
       if (!isAbortError(err)) {
         setError({
@@ -211,8 +243,11 @@ export function useContentDownload({
     resolvedDownloadFailedTitle,
     enabled,
     isDownloading,
+    getIsDownloaded,
     onComplete,
     refresh,
+    reportProgress,
+    scheduleOnComplete,
   ]);
 
   const deleteDownload = useCallback(async () => {
@@ -224,8 +259,10 @@ export function useContentDownload({
       if (getIsDownloaded) {
         setIsDownloaded(false);
       }
-      await refresh();
-      onComplete?.();
+      if (enabled) {
+        await refresh();
+      }
+      scheduleOnComplete(onDeleteComplete ?? onComplete);
     } catch (err) {
       setError({
         title: resolvedDeleteFailedTitle,
@@ -235,11 +272,14 @@ export function useContentDownload({
   }, [
     clearError,
     deleteContent,
+    enabled,
     resolvedDeleteFailedMessage,
     resolvedDeleteFailedTitle,
     getIsDownloaded,
     onComplete,
+    onDeleteComplete,
     refresh,
+    scheduleOnComplete,
   ]);
 
   return {

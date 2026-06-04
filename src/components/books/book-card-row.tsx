@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
+import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import type { BookItem, ChapterItem } from '@/types/book';
 import { resolveDownloadStatus } from '@/types/download';
 
@@ -25,8 +26,26 @@ type BookCardRowProps = {
   chaptersLoading?: boolean;
   onToggleExpand?: () => void;
   onChapterPress?: (chapter: ChapterItem) => void;
-  onDownloadStatusChange?: () => void;
+  onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
 };
+
+function areBookCardRowPropsEqual(
+  prev: BookCardRowProps,
+  next: BookCardRowProps,
+): boolean {
+  return (
+    prev.book.id === next.book.id &&
+    prev.book.name === next.book.name &&
+    prev.book.downloadStatus === next.book.downloadStatus &&
+    prev.languageCode === next.languageCode &&
+    prev.isExpanded === next.isExpanded &&
+    prev.chaptersLoading === next.chaptersLoading &&
+    prev.chapters === next.chapters &&
+    prev.onToggleExpand === next.onToggleExpand &&
+    prev.onChapterPress === next.onChapterPress &&
+    prev.onDownloadStatusChange === next.onDownloadStatusChange
+  );
+}
 
 export const BookCardRow = memo(function BookCardRow({
   book,
@@ -45,6 +64,7 @@ export const BookCardRow = memo(function BookCardRow({
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const [downloadSessionActive, setDownloadSessionActive] = useState(false);
 
   const {
     isDownloading: isScriptureDownloading,
@@ -57,10 +77,14 @@ export const BookCardRow = memo(function BookCardRow({
     cancelDownload: cancelScriptureDownload,
     deleteScriptureDownload,
   } = useBookDownload({
-      languageCode,
-      bookSlug: book.slug,
-      onComplete: onDownloadStatusChange,
-    });
+    languageCode,
+    bookSlug: book.slug,
+    enabled: menuVisible || downloadSessionActive,
+    onComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded' }),
+    onDeleteComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'pending' }),
+  });
 
   const {
     isDownloading: isAudioDownloading,
@@ -77,8 +101,18 @@ export const BookCardRow = memo(function BookCardRow({
   } = useBookAudioDownload({
     languageCode,
     bookSlug: book.slug,
-    onComplete: onDownloadStatusChange,
+    enabled: menuVisible || downloadSessionActive,
   });
+
+  useEffect(() => {
+    if (isScriptureDownloading || isAudioDownloading) {
+      setDownloadSessionActive(true);
+      return;
+    }
+    if (!menuVisible) {
+      setDownloadSessionActive(false);
+    }
+  }, [isAudioDownloading, isScriptureDownloading, menuVisible]);
 
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);
@@ -295,7 +329,7 @@ export const BookCardRow = memo(function BookCardRow({
       />
     </View>
   );
-});
+}, areBookCardRowPropsEqual);
 
 const styles = StyleSheet.create({
   row: {

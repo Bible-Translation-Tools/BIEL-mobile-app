@@ -388,11 +388,12 @@ export async function upsertBookWithChapters(params: UpsertBookParams): Promise<
 
     bookId = insertResult.lastInsertRowId;
 
-    for (const chapterNumber of params.chapterNumbers) {
+    if (params.chapterNumbers.length > 0) {
+      const placeholders = params.chapterNumbers.map(() => '(?, ?)').join(', ');
+      const values = params.chapterNumbers.flatMap((chapterNumber) => [bookId, chapterNumber]);
       await db.runAsync(
-        'INSERT INTO chapters (book_id, chapter_number) VALUES (?, ?)',
-        bookId,
-        chapterNumber,
+        `INSERT INTO chapters (book_id, chapter_number) VALUES ${placeholders}`,
+        values,
       );
     }
 
