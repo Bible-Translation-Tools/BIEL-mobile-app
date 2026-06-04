@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/api/services/audio';
 import { getChapterAudioTotalBytes } from '@/api/services/offline-audio';
+import { isSystemVolumeAvailable } from '@/services/system-audio-volume';
+import { useAudioVolume, useSetAudioVolume } from '@/stores/audio-volume-store';
 import type { VerseTiming } from '@/types/audio';
 
 type UseChapterHasAudioParams = {
@@ -71,6 +73,13 @@ export function useChapterAudio({
 
   const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
+  const volume = useAudioVolume();
+  const setVolume = useSetAudioVolume();
+
+  useEffect(() => {
+    // On native, loudness follows OS media volume; keep player gain at 100%.
+    player.volume = isSystemVolumeAvailable() ? 1 : volume;
+  }, [player, volume]);
 
   const currentTimeRef = useRef(0);
   useEffect(() => {
@@ -250,5 +259,7 @@ export function useChapterAudio({
     seekToLastVerse,
     seekToNextVerse,
     seekToPreviousVerse,
+    volume,
+    setVolume,
   };
 }

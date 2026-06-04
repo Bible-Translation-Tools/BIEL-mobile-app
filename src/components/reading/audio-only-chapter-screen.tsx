@@ -6,6 +6,7 @@ import { AudioOnlyToolbar } from '@/components/reading/audio-only-toolbar';
 import { MediaPlayerControls } from '@/components/reading/media-player-controls';
 import { ReadingLayout } from '@/constants/theme';
 import { useAudioChapterReader } from '@/hooks/use-audio-chapter-reader';
+import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
 
 type AudioOnlyChapterScreenProps = {
@@ -35,6 +36,9 @@ export function AudioOnlyChapterScreen({
     handlePreviousVerse,
     refetchChapters,
   } = useAudioChapterReader(languageCode, bookSlug, displayBookName, chapter);
+
+  const showPlayer = !loading && !error;
+  useSystemVolumeSync(showPlayer);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
@@ -67,6 +71,8 @@ export function AudioOnlyChapterScreen({
             onTogglePlay={audio.togglePlay}
             onPreviousVerse={handlePreviousVerse}
             onNextVerse={handleNextVerse}
+            volume={audio.volume}
+            onVolumeChange={audio.setVolume}
           />
         </View>
       )}

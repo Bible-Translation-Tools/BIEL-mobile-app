@@ -7,6 +7,7 @@ import { MediaPlayerPanel } from '@/components/reading/media-player-panel';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout } from '@/constants/theme';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
+import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
 
 type SeekTarget = {
@@ -57,6 +58,8 @@ export function AudioPlayButton({
     chapter: activeChapter,
     enabled: isPanelOpen,
   });
+
+  useSystemVolumeSync(isPanelOpen);
 
   useEffect(() => {
     onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
@@ -231,6 +234,8 @@ export function AudioPlayButton({
         onTogglePlay={audio.togglePlay}
         onPreviousVerse={handlePreviousVerse}
         onNextVerse={handleNextVerse}
+        volume={audio.volume}
+        onVolumeChange={audio.setVolume}
         onHeightChange={onPanelHeightChange}
       />
     );

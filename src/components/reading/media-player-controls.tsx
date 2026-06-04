@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { VolumeSlider } from '@/components/reading/volume-slider';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MediaPlayerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,13 +12,13 @@ type MediaPlayerControlsProps = {
   isLoading?: boolean;
   error?: string | null;
   canStepVerse?: boolean;
+  volume?: number;
   playIconSize?: number;
   onTogglePlay?: () => void;
   onPreviousVerse?: () => void;
   onNextVerse?: () => void;
+  onVolumeChange?: (volume: number) => void;
 };
-
-const VOLUME_PLACEHOLDER = 0.5;
 
 export function MediaPlayerControls({
   passage,
@@ -25,10 +26,12 @@ export function MediaPlayerControls({
   isLoading = false,
   error,
   canStepVerse = false,
+  volume = 1,
   playIconSize = 24,
   onTogglePlay,
   onPreviousVerse,
   onNextVerse,
+  onVolumeChange,
 }: MediaPlayerControlsProps) {
   const theme = useTheme();
   const { t } = useTranslation('reading');
@@ -116,26 +119,13 @@ export function MediaPlayerControls({
         </Text>
       ) : null}
 
-      <View style={styles.volumeRow} accessibilityRole="adjustable" accessibilityLabel={t('volume')}>
-        <IconSymbol
-          name={{ ios: 'speaker.wave.1.fill', android: 'volume-mute', web: 'volume-mute' }}
-          size={16}
-          color={theme.iconPrimary}
+      {onVolumeChange ? (
+        <VolumeSlider
+          value={volume}
+          onValueChange={onVolumeChange}
+          accessibilityLabel={t('volume')}
         />
-        <View style={[styles.volumeTrack, { backgroundColor: theme.background }]}>
-          <View
-            style={[
-              styles.volumeFill,
-              { backgroundColor: theme.tabActive, width: `${VOLUME_PLACEHOLDER * 100}%` },
-            ]}
-          />
-        </View>
-        <IconSymbol
-          name={{ ios: 'speaker.wave.3.fill', android: 'volume-up', web: 'volume-up' }}
-          size={16}
-          color={theme.iconPrimary}
-        />
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -177,21 +167,5 @@ const styles = StyleSheet.create({
   errorText: {
     ...Typography.bodySm,
     textAlign: 'center',
-  },
-  volumeRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  volumeTrack: {
-    flex: 1,
-    height: 4,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  volumeFill: {
-    height: '100%',
-    borderRadius: 5,
   },
 });

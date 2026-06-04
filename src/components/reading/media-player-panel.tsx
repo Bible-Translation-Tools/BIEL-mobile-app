@@ -18,6 +18,8 @@ type MediaPlayerPanelProps = {
   onTogglePlay?: () => void;
   onPreviousVerse?: () => void;
   onNextVerse?: () => void;
+  volume?: number;
+  onVolumeChange?: (volume: number) => void;
   onHeightChange?: (height: number) => void;
 };
 
@@ -31,6 +33,8 @@ export function MediaPlayerPanel({
   onTogglePlay,
   onPreviousVerse,
   onNextVerse,
+  volume,
+  onVolumeChange,
   onHeightChange,
 }: MediaPlayerPanelProps) {
   const theme = useTheme();
@@ -73,6 +77,8 @@ export function MediaPlayerPanel({
           onTogglePlay={onTogglePlay}
           onPreviousVerse={onPreviousVerse}
           onNextVerse={onNextVerse}
+          volume={volume}
+          onVolumeChange={onVolumeChange}
         />
       </View>
     </View>

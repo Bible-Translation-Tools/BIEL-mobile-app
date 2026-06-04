@@ -11,6 +11,7 @@ import { LocaleProvider } from '@/contexts/locale-context';
 import { ensureOfflineRootExists } from '@/constants/offline-storage';
 import { initDatabase } from '@/db';
 import { loadLocalePreference } from '@/db/locale-preferences';
+import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
 import { initI18n, i18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
@@ -35,7 +36,7 @@ export default function RootLayout() {
     async function prepare() {
       try {
         await initDatabase();
-        await initReadingTextSettingsStore();
+        await Promise.all([initReadingTextSettingsStore(), initAudioVolumeStore()]);
         await ensureOfflineRootExists();
 
         const savedLocale = await loadLocalePreference();
