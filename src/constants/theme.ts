@@ -168,7 +168,8 @@ export const ReadingLayout = {
   toolbarTitleScrollThreshold: 32,
   playButtonSize: 54,
   playButtonBottom: 20,
-  scrollBottomInset: 100,
+  /** Bottom padding on the chapter list so the audio panel / FAB does not cover text. */
+  scrollBottomInset: 220,
 } as const;
 
 export const MediaPlayerLayout = {
