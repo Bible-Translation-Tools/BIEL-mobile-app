@@ -18,7 +18,19 @@ export default function HomeScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [listKey, setListKey] = useState(0);
   const { languages, loading, error, refetch, refreshDownloadStatus } = useLanguages();
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+      setListKey((current) => current + 1);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   const filteredLanguages = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -78,10 +90,13 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <HomeToolbar />
         <LanguageList
+          key={listKey}
           languages={filteredLanguages}
           loading={loading}
           error={error}
           onRetry={refetch}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
           onLanguagePress={handleLanguagePress}
           onDownloadStatusChange={refreshDownloadStatus}
           ListHeaderComponent={listHeader}

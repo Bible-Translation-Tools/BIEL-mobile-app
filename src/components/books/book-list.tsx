@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Keyboard,
+  RefreshControl,
   StyleSheet,
   Text,
   type ListRenderItem,
@@ -29,22 +30,25 @@ type BookListProps = {
   onRetry?: () => void;
   onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
   onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
+  onRefresh?: () => void | Promise<void>;
+  refreshing?: boolean;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type BookListEmptyProps = {
   loading: boolean;
+  refreshing: boolean;
   error: string | null;
   onRetry?: () => void;
 };
 
-function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
+function BookListEmpty({ loading, refreshing, error, onRetry }: BookListEmptyProps) {
   const theme = useTheme();
   const { t } = useTranslation('books');
   const { t: tc } = useTranslation('common');
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={theme.iconPrimary} />
@@ -81,11 +85,14 @@ export function BookList({
   onRetry,
   onChapterPress,
   onDownloadStatusChange,
+  onRefresh,
+  refreshing = false,
   ListHeaderComponent,
   contentContainerStyle,
 }: BookListProps) {
+  const theme = useTheme();
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
-  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode, audioOnly);
+  const { loadChapters, getChapters, isLoading, clearCache } = useBookChapters(languageCode, audioOnly);
 
   const expandedBook = books.find((book) => book.id === expandedBookId);
 
@@ -104,6 +111,13 @@ export function BookList({
       loadChapters(expandedBook.slug);
     }
   }, [expandedBook, loadChapters]);
+
+  const handleRefresh = useCallback(async () => {
+    if (!onRefresh) return;
+
+    clearCache();
+    await onRefresh();
+  }, [clearCache, onRefresh]);
 
   const renderItem: ListRenderItem<BookItem> = useCallback(
     ({ item }) => {
@@ -158,7 +172,22 @@ export function BookList({
       extraData={expandedBookId}
       ListHeaderComponent={listHeader}
       ListEmptyComponent={
-        <BookListEmpty loading={loading} error={error} onRetry={onRetry} />
+        <BookListEmpty
+          loading={loading}
+          refreshing={refreshing}
+          error={error}
+          onRetry={onRetry}
+        />
+      }
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.iconPrimary}
+            colors={[theme.tabActive]}
+          />
+        ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
       contentContainerStyle={[styles.content, contentContainerStyle]}

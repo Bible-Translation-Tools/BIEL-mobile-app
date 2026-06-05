@@ -33,7 +33,19 @@ export default function BookSelectionScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
+  const [refreshing, setRefreshing] = useState(false);
+  const [listKey, setListKey] = useState(0);
   const { books, loading, error, refetch, refreshDownloadStatus } = useBooks(ietfCode);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+      setListKey((current) => current + 1);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleChapterPress = useCallback(
     (book: BookItem, chapter: ChapterItem) => {
@@ -81,12 +93,15 @@ export default function BookSelectionScreen() {
         <BooksToolbar />
         {ietfCode ? (
           <BookList
+            key={listKey}
             books={filteredBooks}
             languageCode={ietfCode}
             audioOnly={!hasText}
             loading={loading}
             error={error}
             onRetry={refetch}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
             onChapterPress={handleChapterPress}
             onDownloadStatusChange={refreshDownloadStatus}
             ListHeaderComponent={listHeader}
