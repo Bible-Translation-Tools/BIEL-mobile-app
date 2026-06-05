@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -7,25 +7,72 @@ import {
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
+import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
+import { useLanguageDownload } from '@/hooks/use-language-download';
+import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
+import { resolveDownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
 
 type LanguageCardRowProps = {
   language: LanguageItem;
   onPress?: () => void;
-  onDownloadPress?: () => void;
+  onDownloadStatusChange?: () => void;
 };
 
 export const LanguageCardRow = memo(function LanguageCardRow({
   language,
   onPress,
-  onDownloadPress,
+  onDownloadStatusChange,
 }: LanguageCardRowProps) {
   const theme = useTheme();
-  const isDownloaded = language.downloadStatus === 'downloaded';
+  const isScriptureDownloaded = language.downloadStatus === 'downloaded';
+  const canDownloadText = language.hasText;
+  const canDownloadAudio = language.hasAudio;
+  const canDownload = canDownloadText || canDownloadAudio;
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+
+  const {
+    isDownloading,
+    progress,
+    fileSizeLabel,
+    isChecking: isScriptureChecking,
+    error: scriptureError,
+    clearError: clearScriptureError,
+    startDownload,
+    cancelDownload,
+  } = useLanguageDownload({
+    languageCode: language.code,
+    enabled: canDownloadText,
+    onComplete: onDownloadStatusChange,
+  });
+
+  const {
+    isDownloading: isAudioDownloading,
+    progress: audioProgress,
+    fileSizeLabel: audioFileSizeLabel,
+    isDownloaded: isAudioDownloaded,
+    hasAudio,
+    isChecking: isAudioChecking,
+    error: audioError,
+    clearError: clearAudioError,
+    startDownload: startAudioDownload,
+    cancelDownload: cancelAudioDownload,
+  } = useLanguageAudioDownload({
+    languageCode: language.code,
+    enabled: canDownloadAudio,
+    onComplete: onDownloadStatusChange,
+  });
+
+  useDownloadErrorAlert(scriptureError, clearScriptureError);
+  useDownloadErrorAlert(audioError, clearAudioError);
+
+  const needsAudioDownload = canDownloadAudio && hasAudio;
+  const isFullyDownloaded =
+    (!canDownloadText || isScriptureDownloaded) && (!needsAudioDownload || isAudioDownloaded);
+  const isAnyDownloadActive = isDownloading || isAudioDownloading;
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -38,6 +85,34 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     setMenuVisible(false);
     setMenuAnchor(null);
   }, []);
+
+  const handleScripturePress = useCallback(async () => {
+    if (isDownloading) {
+      cancelDownload();
+      return;
+    }
+
+    if (isScriptureDownloaded) {
+      return;
+    }
+
+    await startDownload();
+  }, [cancelDownload, isScriptureDownloaded, isDownloading, startDownload]);
+
+  const handleAudioPress = useCallback(async () => {
+    if (!hasAudio) return;
+
+    if (isAudioDownloading) {
+      cancelAudioDownload();
+      return;
+    }
+
+    if (isAudioDownloaded) {
+      return;
+    }
+
+    await startAudioDownload();
+  }, [cancelAudioDownload, hasAudio, isAudioDownloaded, isAudioDownloading, startAudioDownload]);
 
   const cardStyle = [
     styles.card,
@@ -92,34 +167,75 @@ export const LanguageCardRow = memo(function LanguageCardRow({
         />
       </Pressable>
 
-      <View ref={downloadAnchorRef} collapsable={false}>
-        <Pressable
-          style={({ pressed }) => [
-            cardStyle,
-            styles.downloadCard,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
-          onPress={openDownloadMenu}
-          accessibilityRole="button"
-          accessibilityLabel={
-            isDownloaded ? `${language.name} downloaded` : `Download ${language.name}`
-          }>
-          <IconSymbol
-            name={
-              isDownloaded
-                ? { ios: 'checkmark.circle.fill', android: 'download_done', web: 'download_done' }
-                : { ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }
-            }
-            size={28}
-            color={isDownloaded ? theme.iconSuccess : theme.iconPrimary}
-          />
-        </Pressable>
-      </View>
+      {canDownload ? (
+        <View ref={downloadAnchorRef} collapsable={false}>
+          <Pressable
+            style={({ pressed }) => [
+              cardStyle,
+              styles.downloadCard,
+              { opacity: pressed ? 0.9 : 1 },
+            ]}
+            onPress={openDownloadMenu}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isAnyDownloadActive
+                ? `Download in progress for ${language.name}`
+                : isFullyDownloaded
+                  ? `${language.name} downloaded`
+                  : `Download ${language.name}`
+            }>
+            {isAnyDownloadActive ? (
+              <ActivityIndicator size="small" color={theme.tabActive} />
+            ) : isFullyDownloaded ? (
+              <IconSymbol
+                name={{
+                  ios: 'checkmark.circle.fill',
+                  android: 'download_done',
+                  web: 'download_done',
+                }}
+                size={28}
+                color={theme.iconSuccess}
+              />
+            ) : (
+              <IconSymbol
+                name={{
+                  ios: 'arrow.down.circle',
+                  android: 'file_download',
+                  web: 'file_download',
+                }}
+                size={28}
+                color={theme.iconPrimary}
+              />
+            )}
+          </Pressable>
+        </View>
+      ) : null}
 
       <DownloadMenuPopover
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        menuProps={{
+          scriptureFileSize: fileSizeLabel ?? '—',
+          scriptureStatus: resolveDownloadStatus(
+            isDownloading,
+            isScriptureDownloaded,
+            isScriptureChecking,
+          ),
+          scriptureProgress: progress,
+          onScripturePress: canDownloadText ? handleScripturePress : undefined,
+          scriptureDisabled: !canDownloadText,
+          audioFileSize: audioFileSizeLabel ?? '—',
+          audioStatus: resolveDownloadStatus(
+            isAudioDownloading,
+            isAudioDownloaded,
+            isAudioChecking,
+          ),
+          audioProgress,
+          onAudioPress: handleAudioPress,
+          audioDisabled: !hasAudio && !isAudioChecking,
+          allowDelete: false,
+        }}
       />
     </View>
   );

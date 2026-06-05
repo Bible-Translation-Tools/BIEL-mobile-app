@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 
-import { fetchChaptersForBook } from '@/api/services/chapters';
+import { fetchAudioChaptersForBook, fetchChaptersForBook } from '@/api/services/chapters';
 import type { ChapterItem } from '@/types/book';
 
-export function useBookChapters(languageCode: string | undefined) {
+export function useBookChapters(languageCode: string, audioOnly: boolean) {
   const cacheRef = useRef<Record<string, ChapterItem[]>>({});
   const [chaptersByBook, setChaptersByBook] = useState<Record<string, ChapterItem[]>>({});
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -11,8 +11,6 @@ export function useBookChapters(languageCode: string | undefined) {
 
   const loadChapters = useCallback(
     async (bookSlug: string) => {
-      if (!languageCode) return;
-
       const cached = cacheRef.current[bookSlug];
       if (cached) return;
 
@@ -20,7 +18,9 @@ export function useBookChapters(languageCode: string | undefined) {
       setErrorSlug(null);
 
       try {
-        const chapters = await fetchChaptersForBook(languageCode, bookSlug);
+        const chapters = audioOnly
+          ? await fetchAudioChaptersForBook(languageCode, bookSlug)
+          : await fetchChaptersForBook(languageCode, bookSlug);
         cacheRef.current[bookSlug] = chapters;
         setChaptersByBook((prev) => ({ ...prev, [bookSlug]: chapters }));
       } catch {
@@ -31,7 +31,7 @@ export function useBookChapters(languageCode: string | undefined) {
         setLoadingSlug(null);
       }
     },
-    [languageCode],
+    [audioOnly, languageCode],
   );
 
   const getChapters = useCallback(

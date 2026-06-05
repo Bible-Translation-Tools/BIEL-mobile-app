@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -29,22 +30,17 @@ export function HomeToolbar() {
           <Text style={[styles.languageText, { color: theme.text }]}>English</Text>
         </View>
         <IconSymbol
-          name={{ ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down' }}
+          name={{
+            ios: 'chevron.down',
+            android: 'keyboard_arrow_down',
+            web: 'keyboard_arrow_down',
+          }}
           size={16}
           color={theme.iconPrimary}
         />
       </Pressable>
 
-      <Pressable
-        style={({ pressed }) => [styles.settingsButton, { opacity: pressed ? 0.7 : 1 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Settings">
-        <IconSymbol
-          name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
-          size={28}
-          color={theme.iconPrimary}
-        />
-      </Pressable>
+      <SettingsToolbarButton iconSize={28} hitSize={28} />
     </View>
   );
 }
@@ -73,11 +69,5 @@ const styles = StyleSheet.create({
   },
   languageText: {
     ...Typography.bodyMdSemibold,
-  },
-  settingsButton: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

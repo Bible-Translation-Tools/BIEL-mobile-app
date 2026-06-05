@@ -19,11 +19,13 @@ import { BookCardRow } from './book-card-row';
 
 type BookListProps = {
   books: BookItem[];
-  languageCode?: string;
-  loading?: boolean;
+  languageCode: string;
+  audioOnly: boolean;
+  loading: boolean;
   error?: string | null;
   onRetry?: () => void;
   onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
+  onDownloadStatusChange?: () => void;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -68,21 +70,29 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
 export function BookList({
   books,
   languageCode,
-  loading = false,
+  audioOnly,
+  loading,
   error = null,
   onRetry,
   onChapterPress,
+  onDownloadStatusChange,
   ListHeaderComponent,
   contentContainerStyle,
 }: BookListProps) {
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
-  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode);
+  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode, audioOnly);
 
   const expandedBook = books.find((book) => book.id === expandedBookId);
 
   useEffect(() => {
     setExpandedBookId(null);
-  }, [books]);
+  }, [languageCode]);
+
+  useEffect(() => {
+    if (expandedBookId && !books.some((book) => book.id === expandedBookId)) {
+      setExpandedBookId(null);
+    }
+  }, [books, expandedBookId]);
 
   useEffect(() => {
     if (expandedBook) {
@@ -97,6 +107,7 @@ export function BookList({
       return (
         <BookCardRow
           book={item}
+          languageCode={languageCode}
           isExpanded={isExpanded}
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
@@ -106,10 +117,11 @@ export function BookList({
           onChapterPress={
             onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
           }
+          onDownloadStatusChange={onDownloadStatusChange}
         />
       );
     },
-    [expandedBookId, getChapters, isLoading, onChapterPress],
+    [expandedBookId, getChapters, isLoading, languageCode, onChapterPress, onDownloadStatusChange],
   );
 
   const listHeader = ListHeaderComponent;

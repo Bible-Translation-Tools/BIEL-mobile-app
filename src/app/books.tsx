@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BookList } from '@/components/books/book-list';
@@ -13,22 +13,26 @@ import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
+import { normalizeRouteParam } from '@/utils/route-params';
 
 export default function BookSelectionScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, name } = useLocalSearchParams<{
-    languageCode: string;
-    name?: string;
+  const { languageCode, name, hasText: hasTextParam } = useLocalSearchParams<{
+    languageCode: string | string[];
+    name?: string | string[];
+    hasText?: string | string[];
   }>();
 
-  const ietfCode = languageCode;
-  const languageName = name ?? 'Language';
+  const ietfCode = normalizeRouteParam(languageCode);
+  const languageName = normalizeRouteParam(name) ?? 'Language';
+  const hasText =
+    normalizeRouteParam(hasTextParam) !== '0' && normalizeRouteParam(hasTextParam) !== 'false';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
-  const { books, loading, error, refetch } = useBooks(ietfCode);
+  const { books, loading, error, refetch, refreshDownloadStatus } = useBooks(ietfCode);
 
   const handleChapterPress = useCallback(
     (book: BookItem, chapter: ChapterItem) => {
@@ -39,10 +43,11 @@ export default function BookSelectionScreen() {
           bookSlug: book.slug,
           bookName: book.name,
           chapter: String(chapter.number),
+          ...(hasText ? {} : { audioOnly: '1' }),
         },
       });
     },
-    [router, ietfCode],
+    [hasText, router, ietfCode],
   );
 
   const filteredBooks = useMemo(() => {
@@ -73,16 +78,26 @@ export default function BookSelectionScreen() {
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <BooksToolbar languageName={languageName} />
-        <BookList
-          books={filteredBooks}
-          languageCode={ietfCode}
-          loading={loading}
-          error={error}
-          onRetry={refetch}
-          onChapterPress={handleChapterPress}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.listContent}
-        />
+        {ietfCode ? (
+          <BookList
+            books={filteredBooks}
+            languageCode={ietfCode}
+            audioOnly={!hasText}
+            loading={loading}
+            error={error}
+            onRetry={refetch}
+            onChapterPress={handleChapterPress}
+            onDownloadStatusChange={refreshDownloadStatus}
+            ListHeaderComponent={listHeader}
+            contentContainerStyle={styles.listContent}
+          />
+        ) : (
+          <View style={styles.missingLanguage}>
+            <Text style={[styles.missingLanguageText, { color: theme.textSecondary }]}>
+              {error ?? 'Language not found'}
+            </Text>
+          </View>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -101,5 +116,15 @@ const styles = StyleSheet.create({
   listHeader: {
     gap: BookLayout.contentGap,
     paddingBottom: BookLayout.contentGap,
+  },
+  missingLanguage: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: BookLayout.padding,
+  },
+  missingLanguageText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

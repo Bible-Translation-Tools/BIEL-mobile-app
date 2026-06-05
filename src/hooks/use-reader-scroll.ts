@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fetchChaptersForBook } from '@/api/services/chapters';
+import { isChapterAudioDownloaded } from '@/api/services/offline-audio';
 import { fetchChapterContent } from '@/api/services/reader';
 import type { ChapterContent } from '@/types/reading';
 
@@ -30,6 +31,7 @@ export function useReaderScroll(
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [audioOnlyFallback, setAudioOnlyFallback] = useState(false);
   const [initialScrollIndex, setInitialScrollIndex] = useState<number | null>(null);
 
   const prefetchNextRef = useRef<{ chapter: number; promise: Promise<ChapterContent> } | null>(
@@ -66,6 +68,7 @@ export function useReaderScroll(
 
     setLoading(true);
     setError(null);
+    setAudioOnlyFallback(false);
     setChapters([]);
     setAvailableChapters([]);
     setInitialScrollIndex(null);
@@ -73,25 +76,41 @@ export function useReaderScroll(
     prefetchPrevRef.current = null;
     lastScrollYRef.current = 0;
 
+    let numbers: number[] = [];
+
     try {
       const chapterList = await fetchChaptersForBook(languageCode, bookSlug);
-      const numbers = chapterList.map((item) => item.number).sort((a, b) => a - b);
+      numbers = chapterList.map((item) => item.number).sort((a, b) => a - b);
       const previous =
         initialChapter > 1 ? getPreviousChapterNumber(numbers, initialChapter) : null;
 
       let initialChapters: ChapterContent[];
 
       if (previous != null) {
-        const [previousContent, currentContent] = await Promise.all([
-          fetchChapterContent(languageCode, bookSlug, previous),
-          fetchChapterContent(languageCode, bookSlug, initialChapter),
-        ]);
-        initialChapters = [previousContent, currentContent];
-        setInitialScrollIndex(1);
+        const currentContent = await fetchChapterContent(
+          languageCode,
+          bookSlug,
+          initialChapter,
+        );
 
-        const beforePrevious = getPreviousChapterNumber(numbers, previous);
-        if (beforePrevious != null) {
-          prefetchChapter(beforePrevious, 'prev');
+        let previousContent: ChapterContent | null = null;
+        try {
+          previousContent = await fetchChapterContent(languageCode, bookSlug, previous);
+        } catch {
+          // Previous chapter may not be available offline when only this chapter was downloaded.
+        }
+
+        if (previousContent != null) {
+          initialChapters = [previousContent, currentContent];
+          setInitialScrollIndex(1);
+
+          const beforePrevious = getPreviousChapterNumber(numbers, previous);
+          if (beforePrevious != null) {
+            prefetchChapter(beforePrevious, 'prev');
+          }
+        } else {
+          initialChapters = [currentContent];
+          setInitialScrollIndex(0);
         }
       } else {
         const currentContent = await fetchChapterContent(
@@ -111,8 +130,18 @@ export function useReaderScroll(
         prefetchChapter(next, 'next');
       }
     } catch (err) {
-      setChapters([]);
-      setError(err instanceof Error ? err.message : 'Failed to load chapter');
+      if (
+        initialChapter != null &&
+        (await isChapterAudioDownloaded(languageCode, bookSlug, initialChapter))
+      ) {
+        setAudioOnlyFallback(true);
+        setChapters([]);
+        setError(null);
+        setAvailableChapters(numbers.length > 0 ? numbers : [initialChapter]);
+      } else {
+        setChapters([]);
+        setError(err instanceof Error ? err.message : 'Failed to load chapter');
+      }
     } finally {
       setLoading(false);
     }
@@ -250,6 +279,7 @@ export function useReaderScroll(
     loadingMore,
     loadingPrevious,
     error,
+    audioOnlyFallback,
     hasMore,
     hasPrevious,
     loadMore,

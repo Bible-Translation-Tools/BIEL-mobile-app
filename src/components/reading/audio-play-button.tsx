@@ -47,6 +47,7 @@ export function AudioPlayButton({
   const [shouldAutoPlayNextChapter, setShouldAutoPlayNextChapter] = useState(false);
   const [seekTarget, setSeekTarget] = useState<SeekTarget | null>(null);
   const isAdvancingRef = useRef(false);
+  const prevDidJustFinishRef = useRef(false);
 
   const audio = useChapterAudio({
     languageCode,
@@ -84,12 +85,8 @@ export function AudioPlayButton({
     setSeekTarget(null);
 
     if (!shouldAutoPlayNextChapter) return;
-    if (audio.isPlaying) {
-      setShouldAutoPlayNextChapter(false);
-      return;
-    }
 
-    audio.togglePlay();
+    audio.play();
     setShouldAutoPlayNextChapter(false);
   }, [
     activeChapter,
@@ -97,19 +94,21 @@ export function AudioPlayButton({
     audio.duration,
     audio.hasVerseTimings,
     audio.isFetching,
-    audio.isPlaying,
     audio.loadedChapter,
+    audio.play,
     audio.seekToFirstVerse,
     audio.seekToLastVerse,
     audio.seekToVerse,
-    audio.togglePlay,
     isPanelOpen,
     seekTarget,
     shouldAutoPlayNextChapter,
   ]);
 
   useEffect(() => {
-    if (!isPanelOpen || !audio.didJustFinish) return;
+    const justFinished = audio.didJustFinish && !prevDidJustFinishRef.current;
+    prevDidJustFinishRef.current = audio.didJustFinish;
+
+    if (!isPanelOpen || !justFinished) return;
     if (!activeChapter || !getNextChapter || isAdvancingRef.current) return;
 
     isAdvancingRef.current = true;
@@ -119,6 +118,7 @@ export function AudioPlayButton({
       try {
         const nextChapter = await getNextChapter(chapterAtFinish);
         if (nextChapter == null) {
+          audio.pause();
           onCurrentChapterChange?.(chapterAtFinish);
           return;
         }
@@ -129,7 +129,15 @@ export function AudioPlayButton({
         isAdvancingRef.current = false;
       }
     })();
-  }, [activeChapter, audio.didJustFinish, getNextChapter, isPanelOpen, onCurrentChapterChange]);
+  }, [
+    activeChapter,
+    audio.didJustFinish,
+    audio.pause,
+    audio.play,
+    getNextChapter,
+    isPanelOpen,
+    onCurrentChapterChange,
+  ]);
 
   const changeChapter = useCallback(
     (chapter: number, position: 'start' | 'end' | number, resumePlayback: boolean) => {

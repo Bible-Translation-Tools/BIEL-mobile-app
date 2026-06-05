@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -7,35 +7,80 @@ import {
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
+import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
+import { useBookDownload } from '@/hooks/use-book-download';
+import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
+import { resolveDownloadStatus } from '@/types/download';
 
 import { ChapterGrid } from './chapter-grid';
 
 type BookCardRowProps = {
   book: BookItem;
+  languageCode: string;
   isExpanded?: boolean;
   chapters?: ChapterItem[];
   chaptersLoading?: boolean;
   onToggleExpand?: () => void;
   onChapterPress?: (chapter: ChapterItem) => void;
-  onDownloadPress?: () => void;
+  onDownloadStatusChange?: () => void;
 };
 
 export const BookCardRow = memo(function BookCardRow({
   book,
+  languageCode,
   isExpanded = false,
   chapters = [],
   chaptersLoading = false,
   onToggleExpand,
   onChapterPress,
-  onDownloadPress,
+  onDownloadStatusChange,
 }: BookCardRowProps) {
   const theme = useTheme();
-  const isDownloaded = book.downloadStatus === 'downloaded';
+  const isScriptureDownloaded = book.downloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+
+  const {
+    isDownloading: isScriptureDownloading,
+    progress: scriptureProgress,
+    fileSizeLabel: scriptureFileSizeLabel,
+    isChecking: isScriptureChecking,
+    error: scriptureError,
+    clearError: clearScriptureError,
+    startDownload: startScriptureDownload,
+    cancelDownload: cancelScriptureDownload,
+    deleteScriptureDownload,
+  } = useBookDownload({
+      languageCode,
+      bookSlug: book.slug,
+      onComplete: onDownloadStatusChange,
+    });
+
+  const {
+    isDownloading: isAudioDownloading,
+    progress: audioProgress,
+    fileSizeLabel: audioFileSizeLabel,
+    isDownloaded: isAudioDownloaded,
+    hasAudio,
+    isChecking: isAudioChecking,
+    error: audioError,
+    clearError: clearAudioError,
+    startDownload: startAudioDownload,
+    cancelDownload: cancelAudioDownload,
+    deleteAudioDownload,
+  } = useBookAudioDownload({
+    languageCode,
+    bookSlug: book.slug,
+    onComplete: onDownloadStatusChange,
+  });
+
+  useDownloadErrorAlert(scriptureError, clearScriptureError);
+  useDownloadErrorAlert(audioError, clearAudioError);
+
+  const isFullyDownloaded = isScriptureDownloaded && (!hasAudio || isAudioDownloaded);
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -49,6 +94,61 @@ export const BookCardRow = memo(function BookCardRow({
     setMenuAnchor(null);
   }, []);
 
+  const handleScripturePress = useCallback(async () => {
+    if (isScriptureDownloading) {
+      cancelScriptureDownload();
+      return;
+    }
+
+    if (isScriptureDownloaded) {
+      await deleteScriptureDownload();
+      closeDownloadMenu();
+      return;
+    }
+
+    await startScriptureDownload();
+    closeDownloadMenu();
+  }, [
+    cancelScriptureDownload,
+    closeDownloadMenu,
+    deleteScriptureDownload,
+    isScriptureDownloaded,
+    isScriptureDownloading,
+    startScriptureDownload,
+  ]);
+
+  const isAnyDownloadActive = isScriptureDownloading || isAudioDownloading;
+
+  const handleDownloadButtonPress = useCallback(() => {
+    openDownloadMenu();
+  }, [openDownloadMenu]);
+
+  const handleAudioPress = useCallback(async () => {
+    if (!hasAudio) return;
+
+    if (isAudioDownloading) {
+      cancelAudioDownload();
+      return;
+    }
+
+    if (isAudioDownloaded) {
+      await deleteAudioDownload();
+      closeDownloadMenu();
+      return;
+    }
+
+    await startAudioDownload();
+    closeDownloadMenu();
+  }, [
+    cancelAudioDownload,
+    closeDownloadMenu,
+    deleteAudioDownload,
+    hasAudio,
+    isAudioDownloaded,
+    isAudioDownloading,
+    startAudioDownload,
+  ]);
+
   const cardStyle = [
     styles.card,
     {
@@ -61,7 +161,7 @@ export const BookCardRow = memo(function BookCardRow({
   const header = (
     <View style={styles.header}>
       <View style={styles.titleGroup}>
-        {isDownloaded ? (
+        {isFullyDownloaded ? (
           <IconSymbol
             name={{
               ios: 'checkmark.circle.fill',
@@ -133,12 +233,18 @@ export const BookCardRow = memo(function BookCardRow({
             styles.downloadCard,
             { opacity: pressed ? 0.9 : 1 },
           ]}
-          onPress={isDownloaded ? onDownloadPress : openDownloadMenu}
+          onPress={handleDownloadButtonPress}
           accessibilityRole="button"
           accessibilityLabel={
-            isDownloaded ? `Delete ${book.name}` : `Download ${book.name}`
+            isAnyDownloadActive
+              ? `Download in progress for ${book.name}`
+              : isFullyDownloaded
+                ? `Delete ${book.name}`
+                : `Download ${book.name}`
           }>
-          {isDownloaded ? (
+          {isAnyDownloadActive ? (
+            <ActivityIndicator size="small" color={theme.tabActive} />
+          ) : isFullyDownloaded ? (
             <IconSymbol
               name={{ ios: 'trash', android: 'delete', web: 'delete' }}
               size={24}
@@ -162,6 +268,25 @@ export const BookCardRow = memo(function BookCardRow({
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        menuProps={{
+          scriptureFileSize: scriptureFileSizeLabel ?? '—',
+          scriptureStatus: resolveDownloadStatus(
+            isScriptureDownloading,
+            isScriptureDownloaded,
+            isScriptureChecking,
+          ),
+          scriptureProgress,
+          onScripturePress: handleScripturePress,
+          audioFileSize: audioFileSizeLabel ?? '—',
+          audioStatus: resolveDownloadStatus(
+            isAudioDownloading,
+            isAudioDownloaded,
+            isAudioChecking,
+          ),
+          audioProgress,
+          onAudioPress: handleAudioPress,
+          audioDisabled: !hasAudio && !isAudioChecking,
+        }}
       />
     </View>
   );

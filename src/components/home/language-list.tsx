@@ -26,6 +26,7 @@ type LanguageListProps = {
   error?: string | null;
   onRetry?: () => void;
   onLanguagePress?: (language: LanguageItem) => void;
+  onDownloadStatusChange?: () => void;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -73,12 +74,19 @@ export function LanguageList({
   error = null,
   onRetry,
   onLanguagePress,
+  onDownloadStatusChange,
   ListHeaderComponent,
   contentContainerStyle,
 }: LanguageListProps) {
   const renderItem: ListRenderItem<LanguageItem> = useCallback(
-    ({ item }) => <LanguageCardRow language={item} onPress={() => onLanguagePress?.(item)} />,
-    [onLanguagePress],
+    ({ item }) => (
+      <LanguageCardRow
+        language={item}
+        onPress={() => onLanguagePress?.(item)}
+        onDownloadStatusChange={onDownloadStatusChange}
+      />
+    ),
+    [onDownloadStatusChange, onLanguagePress],
   );
 
   const getItemLayout = useCallback(

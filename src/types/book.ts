@@ -1,4 +1,4 @@
-import type { DownloadStatus } from '@/types/language';
+import type { DownloadStatus } from '@/types/download';
 
 export type Testament = 'old' | 'new';
 

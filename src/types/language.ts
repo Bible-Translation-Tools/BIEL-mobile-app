@@ -1,4 +1,6 @@
-export type DownloadStatus = 'pending' | 'downloaded';
+import type { DownloadStatus } from '@/types/download';
+
+export type { DownloadStatus };
 
 export type LanguageItem = {
   code: string;

@@ -14,10 +14,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AudioOnlyChapterScreen } from '@/components/reading/audio-only-chapter-screen';
 import { AudioPlayButton } from '@/components/reading/audio-play-button';
-import { ChapterItem } from '@/components/reading/chapter-item';
+import { ReadingChapterList } from '@/components/reading/reading-chapter-list';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
+import { ReadingTextSettingsProvider } from '@/contexts/reading-text-settings-context';
+import { normalizeRouteParam } from '@/utils/route-params';
 import { ReadingLayout } from '@/constants/theme';
+import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
@@ -27,14 +31,21 @@ import type { ChapterContent } from '@/types/reading';
 export default function ReadingScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, bookSlug, bookName, chapter } = useLocalSearchParams<{
-    languageCode: string;
-    bookSlug: string;
-    bookName?: string;
-    chapter: string;
-  }>();
+  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam } =
+    useLocalSearchParams<{
+      languageCode: string;
+      bookSlug: string;
+      bookName?: string;
+      chapter: string;
+      audioOnly?: string;
+    }>();
 
-  const chapterNumber = Number.parseInt(chapter, 10);
+  const ietfCode = normalizeRouteParam(languageCode) ?? '';
+  const resolvedBookSlug = normalizeRouteParam(bookSlug) ?? '';
+  const resolvedBookName = normalizeRouteParam(bookName);
+  const audioOnly = audioOnlyParam === '1' || audioOnlyParam === 'true';
+  const chapterNumber = Number.parseInt(normalizeRouteParam(chapter) ?? '', 10);
+
   const {
     chapters,
     loading,
@@ -49,10 +60,11 @@ export default function ReadingScreen() {
     initialScrollIndex,
     clearInitialScrollIndex,
     refetch,
+    audioOnlyFallback,
   } = useReaderScroll(
-    languageCode,
-    bookSlug,
-    Number.isFinite(chapterNumber) ? chapterNumber : undefined,
+    audioOnly ? undefined : languageCode,
+    audioOnly ? undefined : bookSlug,
+    audioOnly || !Number.isFinite(chapterNumber) ? undefined : chapterNumber,
   );
 
   const displayBookName =
@@ -63,6 +75,14 @@ export default function ReadingScreen() {
 
   const { toolbarChapterTitle, visibleChapter, updateScrollY, onViewableItemsChanged, viewabilityConfig } =
     useReaderToolbar(displayBookName);
+
+  const currentAudioChapter =
+    visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined);
+  const currentChapterHasAudio = useChapterHasAudio({
+    languageCode,
+    bookSlug,
+    chapter: currentAudioChapter,
+  });
 
   const listRef = useRef<FlatListType<ChapterContent>>(null);
   const didInitialScrollRef = useRef(false);
@@ -259,44 +279,42 @@ export default function ReadingScreen() {
     playVerseAtRef.current?.(chapter, verse);
   }, []);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: ChapterContent; index: number }) => (
-      <ChapterItem
-        bookName={displayBookName}
-        chapter={item}
-        isFirst={index === 0}
-        highlightedVerse={item.chapter === currentPlayingChapter ? currentPlayingVerse : null}
-        onRootRef={getChapterRefSetter(item.chapter)}
-        onVerseLayout={handleVerseLayout}
-        onVersePress={
-          isAudioPanelOpen ? (verse) => handleVersePress(item.chapter, verse) : undefined
-        }
-      />
-    ),
-    [
-      displayBookName,
-      currentPlayingChapter,
-      currentPlayingVerse,
-      getChapterRefSetter,
-      handleVerseLayout,
-      handleVersePress,
-      isAudioPanelOpen,
-    ],
-  );
-
-  const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
-
-  const ListFooter = loadingMore ? (
-    <View style={styles.footerLoader}>
-      <ActivityIndicator size="small" color={theme.iconPrimary} />
-    </View>
-  ) : null;
+  if (
+    (audioOnly || audioOnlyFallback) &&
+    ietfCode &&
+    resolvedBookSlug &&
+    Number.isFinite(chapterNumber)
+  ) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <AudioOnlyChapterScreen
+          languageCode={ietfCode}
+          bookSlug={resolvedBookSlug}
+          bookName={resolvedBookName}
+          chapter={chapterNumber}
+        />
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ReadingToolbar chapterTitle={toolbarChapterTitle} />
+    <ReadingTextSettingsProvider>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+          <ReadingToolbar
+            chapterTitle={toolbarChapterTitle}
+            downloadContext={
+              ietfCode && resolvedBookSlug && Number.isFinite(chapterNumber)
+                ? {
+                    languageCode: ietfCode,
+                    bookSlug: resolvedBookSlug,
+                    chapter: visibleChapter ?? chapterNumber,
+                  }
+                : undefined
+            }
+          />
 
         {loading ? (
           <View style={styles.centered}>
@@ -310,24 +328,22 @@ export default function ReadingScreen() {
             </Pressable>
           </View>
         ) : chapters.length > 0 ? (
-          <FlatList
-            ref={listRef}
-            data={chapters}
-            keyExtractor={keyExtractor}
-            renderItem={renderItem}
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            maintainVisibleContentPosition={{
-              minIndexForVisible: 0,
-              autoscrollToTopThreshold: 10,
-            }}
+          <ReadingChapterList
+            listRef={listRef}
+            chapters={chapters}
+            displayBookName={displayBookName}
+            currentPlayingChapter={currentPlayingChapter}
+            currentPlayingVerse={currentPlayingVerse}
+            isAudioPanelOpen={isAudioPanelOpen}
+            loadingMore={loadingMore}
+            themeIconPrimary={theme.iconPrimary}
+            getChapterRefSetter={getChapterRefSetter}
+            handleVerseLayout={handleVerseLayout}
+            handleVersePress={handleVersePress}
             onScroll={onScroll}
-            scrollEventThrottle={16}
             onEndReached={() => {
               if (hasMore) loadMore();
             }}
-            onEndReachedThreshold={0.3}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
             onScrollToIndexFailed={onScrollToIndexFailed}
@@ -339,11 +355,10 @@ export default function ReadingScreen() {
               contentHeightRef.current = height;
               checkFillViewport(viewportHeightRef.current, contentHeightRef.current);
             }}
-            ListFooterComponent={ListFooter}
           />
         ) : null}
 
-        {chapters.length > 0 ? (
+        {chapters.length > 0 && (currentChapterHasAudio) ? (
           <AudioPlayButton
             languageCode={languageCode}
             bookSlug={bookSlug}
@@ -360,8 +375,9 @@ export default function ReadingScreen() {
             playVerseAtRef={playVerseAtRef}
           />
         ) : null}
-      </SafeAreaView>
-    </View>
+        </SafeAreaView>
+      </View>
+    </ReadingTextSettingsProvider>
   );
 }
 
@@ -371,18 +387,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    paddingHorizontal: ReadingLayout.padding,
-    paddingTop: ReadingLayout.padding,
-    paddingBottom: ReadingLayout.scrollBottomInset,
-  },
-  footerLoader: {
-    paddingVertical: ReadingLayout.contentGap,
-    alignItems: 'center',
   },
   centered: {
     flex: 1,

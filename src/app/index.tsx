@@ -18,7 +18,7 @@ export default function HomeScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const { languages, loading, error, refetch } = useLanguages();
+  const { languages, loading, error, refetch, refreshDownloadStatus } = useLanguages();
 
   const filteredLanguages = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -53,7 +53,11 @@ export default function HomeScreen() {
     (language: LanguageItem) => {
       router.push({
         pathname: '/books',
-        params: { languageCode: language.code, name: language.name },
+        params: {
+          languageCode: language.code,
+          name: language.name,
+          hasText: language.hasText ? '1' : '0',
+        },
       });
     },
     [router],
@@ -79,6 +83,7 @@ export default function HomeScreen() {
           error={error}
           onRetry={refetch}
           onLanguagePress={handleLanguagePress}
+          onDownloadStatusChange={refreshDownloadStatus}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
         />

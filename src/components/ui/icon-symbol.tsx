@@ -6,17 +6,22 @@ type MaterialIconName = keyof typeof MaterialIcons.glyphMap;
 
 /** Legacy underscore names used in the app → Material Icons glyph names. */
 const MATERIAL_ICON_ALIASES: Record<string, MaterialIconName> = {
+  add: 'add',
   arrow_back: 'arrow-back',
   chevron_right: 'chevron-right',
   download_done: 'download-done',
   file_download: 'file-download',
   format_align_left: 'format-align-left',
+  format_line_spacing: 'format-line-spacing',
   format_size: 'format-size',
+  remove: 'remove',
   keyboard_arrow_down: 'keyboard-arrow-down',
   keyboard_arrow_right: 'keyboard-arrow-right',
   keyboard_arrow_up: 'keyboard-arrow-up',
   volume_up: 'volume-up',
   close: 'close',
+  'light-mode': 'light-mode',
+  'dark-mode': 'dark-mode',
 };
 
 export type IconSymbolName =
