@@ -1,4 +1,5 @@
 allowBuilds:
+  sharp: true
   unrs-resolver: set this to true or false
 minimumReleaseAgeExclude:
   - i18next@26.3.1
