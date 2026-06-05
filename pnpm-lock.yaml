@@ -117,6 +117,9 @@ importers:
         specifier: 0.7.4
         version: 0.7.4(@babel/core@7.29.0)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.15)(react@19.2.0))(react@19.2.0)
     devDependencies:
+      '@expo/config-plugins':
+        specifier: ~55.0.9
+        version: 55.0.10
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.15
@@ -685,9 +688,6 @@ packages:
   '@expo/config-plugins@55.0.10':
     resolution: {integrity: sha512-1txnRnMLIO5lM/Of/VyvDkCwZap0YFvCyfSTIlUQamhwhx6Rh7r8TXfcIstaDYUQ7X6GTMkNxLXWbcYS6ZAFDw==}
 
-  '@expo/config-plugins@55.0.9':
-    resolution: {integrity: sha512-jLfpxru8dTo7eU0cqeTWuQav7byyjb37eF/mbXl1/3eTBHBvFU1VGxpeKxanUdTQAAjqzH8KGgWb0fWcce+z1w==}
-
   '@expo/config-types@55.0.5':
     resolution: {integrity: sha512-sCmSUZG4mZ/ySXvfyyBdhjivz8Q539X1NondwDdYG7s3SBsk+wsgPJzYsqgAG/P9+l0xWjUD2F+kQ1cAJ6NNLg==}
 
@@ -774,9 +774,6 @@ packages:
 
   '@expo/package-manager@1.10.5':
     resolution: {integrity: sha512-nCP9Mebfl3jvOr0/P6VAuyah6PAtun+aihIL2zAtuE8uSe94JWkVZ7051i0MUVO+y3gFpBqnr8IIH5ch+VJjHA==}
-
-  '@expo/plist@0.5.3':
-    resolution: {integrity: sha512-jz5oPcPDd3fygwVxwSwmO6wodTwm0Qa14NUyPy0ka7H8sFmCtNZUI2+DzVe/EXjOhq1FbEjrwl89gdlWYOnVjQ==}
 
   '@expo/plist@0.5.4':
     resolution: {integrity: sha512-Jqppj0FULNq6Zp5JtQrFICl8TtpMjwwUbxEcEC2T3z7m+TOrTQEHZXz3D3Ay7vhbmvD+VMgfWJ4ARclJXeN8Eg==}
@@ -4111,29 +4108,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@expo/config-plugins@55.0.9':
-    dependencies:
-      '@expo/config-types': 55.0.5
-      '@expo/json-file': 10.0.14
-      '@expo/plist': 0.5.3
-      '@expo/sdk-runtime-versions': 1.0.0
-      chalk: 4.1.2
-      debug: 4.4.3
-      getenv: 2.0.0
-      glob: 13.0.6
-      resolve-from: 5.0.0
-      semver: 7.8.0
-      slugify: 1.6.9
-      xcode: 3.0.1
-      xml2js: 0.6.0
-    transitivePeerDependencies:
-      - supports-color
-
   '@expo/config-types@55.0.5': {}
 
   '@expo/config@55.0.17(typescript@5.9.3)':
     dependencies:
-      '@expo/config-plugins': 55.0.9
+      '@expo/config-plugins': 55.0.10
       '@expo/config-types': 55.0.5
       '@expo/json-file': 10.0.14
       '@expo/require-utils': 55.0.5(typescript@5.9.3)
@@ -4307,18 +4286,12 @@ snapshots:
 
   '@expo/package-manager@1.10.5':
     dependencies:
-      '@expo/json-file': 10.0.14
+      '@expo/json-file': 10.2.0
       '@expo/spawn-async': 1.8.0
       chalk: 4.1.2
       npm-package-arg: 11.0.3
       ora: 3.4.0
       resolve-workspace-root: 2.0.1
-
-  '@expo/plist@0.5.3':
-    dependencies:
-      '@xmldom/xmldom': 0.8.13
-      base64-js: 1.5.1
-      xmlbuilder: 15.1.1
 
   '@expo/plist@0.5.4':
     dependencies:
@@ -4329,7 +4302,7 @@ snapshots:
   '@expo/prebuild-config@55.0.18(expo@55.0.26)(typescript@5.9.3)':
     dependencies:
       '@expo/config': 55.0.17(typescript@5.9.3)
-      '@expo/config-plugins': 55.0.9
+      '@expo/config-plugins': 55.0.10
       '@expo/config-types': 55.0.5
       '@expo/image-utils': 0.8.14(typescript@5.9.3)
       '@expo/json-file': 10.0.14
