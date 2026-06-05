@@ -9,6 +9,7 @@ import { ReadingLayout } from '@/constants/theme';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
+import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
   chapter: number;
@@ -66,9 +67,11 @@ export function AudioPlayButton({
   useEffect(() => {
     if (!isPanelOpen || audio.loadedChapter == null) return;
     if (audio.loadedChapter === activeChapter) return;
+    // A pending seek means the user picked a verse in another chapter — wait for that load.
+    if (seekTarget != null) return;
     setActiveChapter(audio.loadedChapter);
     onCurrentChapterChange?.(audio.loadedChapter);
-  }, [activeChapter, audio.loadedChapter, isPanelOpen, onCurrentChapterChange]);
+  }, [activeChapter, audio.loadedChapter, isPanelOpen, onCurrentChapterChange, seekTarget]);
 
   useEffect(() => {
     onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
@@ -197,9 +200,9 @@ export function AudioPlayButton({
         return;
       }
 
-      changeChapter(chapter, verse, false);
+      changeChapter(chapter, verse, audio.isPlaying);
     },
-    [activeChapter, audio, changeChapter, isPanelOpen],
+    [activeChapter, audio.isPlaying, audio.seekToVerse, audio.togglePlay, changeChapter, isPanelOpen],
   );
 
   useEffect(() => {
@@ -261,7 +264,7 @@ export function AudioPlayButton({
   if (isPanelOpen) {
     return (
       <MediaPlayerPanel
-        passage={activeChapter != null ? `${passageBookName ?? ''} ${activeChapter}`.trim() : undefined}
+        passage={formatAudioPassageLabel(passageBookName, activeChapter, audio.currentVerse)}
         isPlaying={audio.isPlaying}
         isLoading={audio.isFetching}
         error={audio.error}

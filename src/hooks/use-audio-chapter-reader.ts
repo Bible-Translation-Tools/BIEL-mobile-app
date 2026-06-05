@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchAudioChaptersForBook } from '@/api/services/chapters';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
+import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
   chapter: number;
@@ -187,14 +188,11 @@ export function useAudioChapterReader(
     changeChapter(previousChapter, 'end', audio.isPlaying);
   }, [activeChapter, audio.isPlaying, audio.seekToPreviousVerse, changeChapter, chapterNumbers]);
 
-  const passageLabel = (() => {
-    if (activeChapter == null) return undefined;
-    const name = bookName?.trim() || bookSlug || '';
-    if (audio.currentVerse != null) {
-      return `${name} ${activeChapter}:${audio.currentVerse}`.trim();
-    }
-    return `${name} ${activeChapter}`.trim();
-  })();
+  const passageLabel = formatAudioPassageLabel(
+    bookName?.trim() || bookSlug,
+    activeChapter,
+    audio.currentVerse,
+  );
 
   return {
     activeChapter,
