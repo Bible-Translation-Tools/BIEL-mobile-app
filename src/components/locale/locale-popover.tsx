@@ -20,7 +20,7 @@ type LocalePopoverProps = {
   onClose: () => void;
 };
 
-const MENU_ESTIMATED_HEIGHT = 420;
+const MENU_ESTIMATED_HEIGHT = 348;
 
 type MenuPosition = {
   top: number;
@@ -49,7 +49,7 @@ function computeMenuPosition(anchor: LocalePopoverAnchor): MenuPosition {
         horizontalPadding,
         anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
       )
-    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
+    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, right, width: menuWidth };
 }

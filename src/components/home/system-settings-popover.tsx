@@ -49,7 +49,7 @@ function computeMenuPosition(anchor: SystemSettingsAnchor): MenuPosition {
         horizontalPadding,
         anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
       )
-    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
+    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, right, width: menuWidth };
 }

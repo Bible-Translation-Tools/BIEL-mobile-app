@@ -10,7 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
-import { DownloadMenuLayout } from '@/constants/theme';
+import { DownloadMenuLayout, TextSettingsLayout } from '@/constants/theme';
 
 export type TextSettingsAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
 
@@ -31,8 +31,8 @@ function computeMenuPosition(anchor: TextSettingsAnchor): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
   const menuWidth = Math.min(
+    TextSettingsLayout.menuWidth,
     screenWidth - horizontalPadding * 2,
-    262,
   );
 
   const anchorCenterX = anchor.x + anchor.width / 2;
@@ -50,7 +50,7 @@ function computeMenuPosition(anchor: TextSettingsAnchor): MenuPosition {
         horizontalPadding,
         anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
       )
-    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
+    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, left };
 }

@@ -1,19 +1,19 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  DownloadMenuPopover,
-  type DownloadMenuAnchor,
+    DownloadMenuPopover,
+    type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
 import {
-  TextSettingsPopover,
-  type TextSettingsAnchor,
+    TextSettingsPopover,
+    type TextSettingsAnchor,
 } from '@/components/reading/text-settings-popover';
 import {
-  SettingsToolbarButton,
-  type SettingsToolbarButtonRef,
+    SettingsToolbarButton,
+    type SettingsToolbarButtonRef,
 } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout, Typography } from '@/constants/theme';
@@ -149,6 +149,7 @@ function ReadingToolbarDownloadButton({
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        rightOffset={12}
         menuProps={{
           scriptureTitle: t('scripture'),
           scriptureFileSize: scriptureFileSizeLabel ?? tc('emDash'),

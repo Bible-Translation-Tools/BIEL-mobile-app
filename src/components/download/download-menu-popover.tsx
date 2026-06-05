@@ -1,4 +1,5 @@
 import { memo, type ComponentProps } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dimensions,
   Modal,
@@ -7,7 +8,6 @@ import {
   View,
   type LayoutRectangle,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
 
 import { DownloadMenuLayout } from '@/constants/theme';
 
@@ -20,6 +20,8 @@ type DownloadMenuPopoverProps = {
   anchor: DownloadMenuAnchor | null;
   onClose: () => void;
   menuProps?: ComponentProps<typeof DownloadMenu>;
+  /** Shifts the menu toward the right edge of the screen. */
+  rightOffset?: number;
 };
 
 const MENU_ESTIMATED_HEIGHT = 231;
@@ -30,7 +32,7 @@ type MenuPosition = {
   width: number;
 };
 
-function computeMenuPosition(anchor: DownloadMenuAnchor): MenuPosition {
+function computeMenuPosition(anchor: DownloadMenuAnchor, rightOffset = 0): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
   const menuWidth = Math.min(
@@ -38,10 +40,7 @@ function computeMenuPosition(anchor: DownloadMenuAnchor): MenuPosition {
     screenWidth - horizontalPadding * 2,
   );
   const anchorRight = anchor.x + anchor.width;
-  const right = Math.max(
-    horizontalPadding,
-    screenWidth - anchorRight,
-  );
+  const right = Math.max(horizontalPadding, screenWidth - anchorRight - rightOffset);
 
   const spaceBelow =
     screenHeight - (anchor.y + anchor.height + DownloadMenuLayout.anchorGap);
@@ -54,7 +53,7 @@ function computeMenuPosition(anchor: DownloadMenuAnchor): MenuPosition {
         horizontalPadding,
         anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
       )
-    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
+    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, right, width: menuWidth };
 }
@@ -64,6 +63,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
   anchor,
   onClose,
   menuProps,
+  rightOffset = 0,
 }: DownloadMenuPopoverProps) {
   const { t } = useTranslation('download');
 
@@ -71,7 +71,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
     return null;
   }
 
-  const position = computeMenuPosition(anchor);
+  const position = computeMenuPosition(anchor, rightOffset);
 
   return (
     <Modal

@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  DownloadMenuPopover,
-  type DownloadMenuAnchor,
+    DownloadMenuPopover,
+    type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout } from '@/constants/theme';
@@ -111,6 +111,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        rightOffset={12}
         menuProps={{
           hideScripture: true,
           audioTitle: t('audio'),

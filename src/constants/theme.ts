@@ -109,6 +109,7 @@ export const DownloadMenuLayout = {
   progressSuccessTrack: '#eef0ff',
   menuMaxWidth: 342,
   anchorGap: 8,
+  menuTopOffset: 16,
   screenPadding: 16,
 } as const;
 
