@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { I18nextProvider } from 'react-i18next';
 
 import { SplashScreenView } from '@/components/splash-screen';
@@ -12,6 +13,8 @@ import { ensureOfflineRootExists } from '@/constants/offline-storage';
 import { initDatabase } from '@/db';
 import { loadLocalePreference } from '@/db/locale-preferences';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
+import { initDownloadNotifications } from '@/services/download-notification-service';
+import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
 import { initI18n, i18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
@@ -36,8 +39,6 @@ export default function RootLayout() {
     async function prepare() {
       try {
         await initDatabase();
-        await Promise.all([initReadingTextSettingsStore(), initAudioVolumeStore()]);
-        await ensureOfflineRootExists();
 
         const savedLocale = await loadLocalePreference();
         const resolvedLocale = resolveAppLocale(
@@ -45,6 +46,14 @@ export default function RootLayout() {
         );
         await initI18n(resolvedLocale);
         setInitialLocale(resolvedLocale);
+
+        await Promise.all([
+          initReadingTextSettingsStore(),
+          initAudioVolumeStore(),
+          initDownloadNotifications(),
+          Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
+        ]);
+        await ensureOfflineRootExists();
 
         await new Promise((resolve) => setTimeout(resolve, 300));
       } finally {

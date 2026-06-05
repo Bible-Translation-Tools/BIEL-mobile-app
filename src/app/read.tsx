@@ -7,6 +7,7 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -387,6 +388,21 @@ export default function ReadingScreen() {
     resolvedBookSlug &&
     Number.isFinite(chapterNumber)
   ) {
+    if (Platform.OS === 'web') {
+      return (
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+            <View style={styles.centered}>
+              <Text style={[styles.message, { color: theme.textSecondary }]}>
+                {t('audioNotSupportedOnWeb')}
+              </Text>
+            </View>
+          </SafeAreaView>
+        </View>
+      );
+    }
+
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
@@ -463,7 +479,7 @@ export default function ReadingScreen() {
           />
         ) : null}
 
-        {chapters.length > 0 && (currentChapterHasAudio) ? (
+        {chapters.length > 0 && currentChapterHasAudio && Platform.OS !== 'web' ? (
           <AudioPlayButton
             languageCode={languageCode}
             bookSlug={bookSlug}

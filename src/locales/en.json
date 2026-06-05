@@ -66,6 +66,7 @@
     "audioPlayer": "Audio player",
     "closeAudioPlayer": "Close audio player",
     "openAudioPlayer": "Open audio player",
+    "audioNotSupportedOnWeb": "Audio playback is not available in the web app. Use the iOS or Android app.",
     "accessibility": {
       "textSettings": "Text settings"
     }
@@ -89,6 +90,15 @@
     "couldNotDownloadLanguage": "Could not download language",
     "couldNotDownloadScripture": "Could not download scripture",
     "couldNotRemoveScripture": "Could not remove downloaded scripture",
+    "notification": {
+      "channelName": "Book downloads",
+      "downloadingScripture": "Downloading {{name}}",
+      "downloadingAudio": "Downloading {{name}} (audio)",
+      "downloadingMultiple": "Downloading {{count}} books",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} downloaded",
+      "failed": "{{name}} download failed"
+    },
     "accessibility": {
       "checking": "Checking {{title}} availability",
       "cancel": "Cancel {{title}} download",

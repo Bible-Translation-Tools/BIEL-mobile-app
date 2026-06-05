@@ -79,6 +79,7 @@ export const BookCardRow = memo(function BookCardRow({
   } = useBookDownload({
     languageCode,
     bookSlug: book.slug,
+    bookName: book.name,
     enabled: menuVisible || downloadSessionActive,
     onComplete: () =>
       onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded' }),
@@ -101,6 +102,7 @@ export const BookCardRow = memo(function BookCardRow({
   } = useBookAudioDownload({
     languageCode,
     bookSlug: book.slug,
+    bookName: book.name,
     enabled: menuVisible || downloadSessionActive,
   });
 

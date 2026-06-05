@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -38,7 +38,19 @@ export function AudioOnlyChapterScreen({
   } = useAudioChapterReader(languageCode, bookSlug, displayBookName, chapter);
 
   const showPlayer = !loading && !error;
-  useSystemVolumeSync(showPlayer);
+  useSystemVolumeSync(showPlayer && Platform.OS !== 'web');
+
+  if (Platform.OS === 'web') {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+        <View style={styles.centered}>
+          <Text style={[styles.message, { color: theme.textSecondary }]}>
+            {t('audioNotSupportedOnWeb')}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>

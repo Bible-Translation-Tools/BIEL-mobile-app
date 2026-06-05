@@ -56,11 +56,19 @@ export function AudioPlayButton({
   const audio = useChapterAudio({
     languageCode,
     bookSlug,
+    bookName: passageBookName,
     chapter: activeChapter,
     enabled: isPanelOpen,
   });
 
   useSystemVolumeSync(isPanelOpen);
+
+  useEffect(() => {
+    if (!isPanelOpen || audio.loadedChapter == null) return;
+    if (audio.loadedChapter === activeChapter) return;
+    setActiveChapter(audio.loadedChapter);
+    onCurrentChapterChange?.(audio.loadedChapter);
+  }, [activeChapter, audio.loadedChapter, isPanelOpen, onCurrentChapterChange]);
 
   useEffect(() => {
     onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
@@ -134,6 +142,12 @@ export function AudioPlayButton({
 
     if (!isPanelOpen || !justFinished) return;
     if (!activeChapter || !getNextChapter || isAdvancingRef.current) return;
+
+    if (audio.loadedChapter != null && audio.loadedChapter !== activeChapter) {
+      setActiveChapter(audio.loadedChapter);
+      onCurrentChapterChange?.(audio.loadedChapter);
+      return;
+    }
 
     isAdvancingRef.current = true;
     const chapterAtFinish = activeChapter;

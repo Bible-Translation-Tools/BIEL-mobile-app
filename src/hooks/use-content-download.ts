@@ -6,6 +6,18 @@ const PROGRESS_MIN_DELTA = 0.05;
 const PROGRESS_MIN_INTERVAL_MS = 200;
 
 import { formatByteSize } from '@/api/services/whole-book-parser';
+import {
+  cancelGlobalBookDownload,
+  runGlobalBookDownload,
+} from '@/services/book-download-runner';
+import {
+  removeDownloadTask,
+  useBookDownloadProgress,
+} from '@/stores/download-progress-store';
+import {
+  buildBookDownloadTaskId,
+  type GlobalBookDownloadSync,
+} from '@/types/download-progress';
 
 export type ContentDownloadError = {
   title: string;
@@ -34,6 +46,8 @@ export type UseContentDownloadOptions = ContentDownloadHandlers & {
   deleteFailedMessage?: string;
   onComplete?: () => void;
   onDeleteComplete?: () => void;
+  /** When set, download progress survives navigation and syncs to system notifications. */
+  globalSync?: GlobalBookDownloadSync;
 };
 
 function computeFileSizeLabel(
@@ -72,6 +86,7 @@ export function useContentDownload({
   deleteFailedMessage,
   onComplete,
   onDeleteComplete,
+  globalSync,
   download,
   deleteContent,
   getDownloadedBytes,
@@ -95,6 +110,8 @@ export function useContentDownload({
   const [error, setError] = useState<ContentDownloadError | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const progressSampleRef = useRef({ value: -1, at: 0 });
+  const globalTask = useBookDownloadProgress(globalSync);
+  const usesGlobalSync = globalSync != null;
 
   const scheduleOnComplete = useCallback((callback?: () => void) => {
     if (!callback) return;
@@ -118,7 +135,10 @@ export function useContentDownload({
 
   const clearError = useCallback(() => {
     setError(null);
-  }, []);
+    if (globalSync) {
+      removeDownloadTask(buildBookDownloadTaskId(globalSync));
+    }
+  }, [globalSync]);
 
   const refresh = useCallback(async () => {
     if (!enabled) {
@@ -196,16 +216,48 @@ export function useContentDownload({
   }, [refresh]);
 
   const cancelDownload = useCallback(() => {
+    if (usesGlobalSync && globalSync) {
+      cancelGlobalBookDownload(globalSync);
+      return;
+    }
+
     abortRef.current?.abort();
     abortRef.current = null;
     setIsDownloading(false);
     setProgress(0);
-  }, []);
+  }, [globalSync, usesGlobalSync]);
 
   const startDownload = useCallback(async () => {
-    if (!enabled || isDownloading || !canDownload) return;
+    if (!enabled || !canDownload) return;
+
+    const globalDownloading = globalTask?.status === 'downloading';
+    if (usesGlobalSync ? globalDownloading : isDownloading) return;
 
     clearError();
+
+    if (usesGlobalSync && globalSync) {
+      await runGlobalBookDownload({
+        sync: globalSync,
+        download,
+        errorFallback: resolvedDownloadFailedMessage,
+        onSuccess: async () => {
+          if (enabled) {
+            await refresh();
+          } else if (getIsDownloaded) {
+            setIsDownloaded(true);
+          }
+          scheduleOnComplete(onComplete);
+        },
+        onError: (message) => {
+          setError({
+            title: resolvedDownloadFailedTitle,
+            message,
+          });
+        },
+      });
+      return;
+    }
+
     const controller = new AbortController();
     abortRef.current = controller;
     setIsDownloading(true);
@@ -239,16 +291,28 @@ export function useContentDownload({
     canDownload,
     clearError,
     download,
-    resolvedDownloadFailedMessage,
-    resolvedDownloadFailedTitle,
     enabled,
-    isDownloading,
     getIsDownloaded,
+    globalSync,
+    globalTask?.status,
+    isDownloading,
     onComplete,
     refresh,
     reportProgress,
+    resolvedDownloadFailedMessage,
+    resolvedDownloadFailedTitle,
     scheduleOnComplete,
+    usesGlobalSync,
   ]);
+
+  const resolvedIsDownloading = usesGlobalSync
+    ? globalTask?.status === 'downloading'
+    : isDownloading;
+  const resolvedProgress = usesGlobalSync ? (globalTask?.progress ?? 0) : progress;
+  const resolvedError =
+    usesGlobalSync && globalTask?.status === 'failed' && globalTask.errorMessage
+      ? { title: resolvedDownloadFailedTitle, message: globalTask.errorMessage }
+      : error;
 
   const deleteDownload = useCallback(async () => {
     clearError();
@@ -283,13 +347,13 @@ export function useContentDownload({
   ]);
 
   return {
-    isDownloading,
-    progress,
+    isDownloading: resolvedIsDownloading,
+    progress: resolvedProgress,
     fileSizeLabel,
     isChecking,
     isDownloaded,
     canDownload,
-    error,
+    error: resolvedError,
     clearError,
     startDownload,
     cancelDownload,

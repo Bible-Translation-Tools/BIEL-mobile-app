@@ -11,6 +11,7 @@ import { useContentDownload } from '@/hooks/use-content-download';
 type UseBookDownloadOptions = {
   languageCode: string;
   bookSlug: string;
+  bookName: string;
   enabled?: boolean;
   onComplete?: () => void;
   onDeleteComplete?: () => void;
@@ -19,6 +20,7 @@ type UseBookDownloadOptions = {
 export function useBookDownload({
   languageCode,
   bookSlug,
+  bookName,
   enabled = true,
   onComplete,
   onDeleteComplete,
@@ -29,6 +31,12 @@ export function useBookDownload({
     ...rest
   } = useContentDownload({
     enabled,
+    globalSync: {
+      languageCode,
+      bookSlug,
+      bookName,
+      kind: 'book-scripture',
+    },
     downloadFailedMessage: t('couldNotDownloadScripture'),
     deleteFailedMessage: t('couldNotRemoveScripture'),
     onComplete,

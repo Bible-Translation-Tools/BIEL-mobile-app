@@ -38,6 +38,7 @@ export function useAudioChapterReader(
   const audio = useChapterAudio({
     languageCode,
     bookSlug,
+    bookName: bookName?.trim() || bookSlug,
     chapter: activeChapter,
     enabled: Boolean(languageCode && bookSlug && activeChapter != null),
   });
@@ -131,6 +132,11 @@ export function useAudioChapterReader(
 
     if (!justFinished || activeChapter == null || isAdvancingRef.current) return;
 
+    if (audio.loadedChapter != null && audio.loadedChapter !== activeChapter) {
+      setActiveChapter(audio.loadedChapter);
+      return;
+    }
+
     const chapterAtFinish = activeChapter;
     const nextChapter = getAdjacentChapterNumber(chapterNumbers, chapterAtFinish, 'next');
     if (nextChapter == null) {
@@ -147,6 +153,7 @@ export function useAudioChapterReader(
   }, [
     activeChapter,
     audio.didJustFinish,
+    audio.loadedChapter,
     audio.pause,
     chapterNumbers,
   ]);
