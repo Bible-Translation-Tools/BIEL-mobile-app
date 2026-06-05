@@ -219,8 +219,25 @@ export function clearDidJustFinish() {
   }
 }
 
+async function isAtChapterEnd(): Promise<boolean> {
+  const { state } = await TrackPlayer.getPlaybackState();
+  if (state === State.Ended) return true;
+  if (snapshot.didJustFinish) return true;
+
+  const progress = await TrackPlayer.getProgress();
+  return progress.duration > 0 && progress.position >= progress.duration - 0.25;
+}
+
+async function restartChapterIfAtEnd(): Promise<void> {
+  if (!(await isAtChapterEnd())) return;
+
+  clearDidJustFinish();
+  await seekToFirstVerse();
+}
+
 export async function play(): Promise<void> {
   if (!snapshot.audioUrl) return;
+  await restartChapterIfAtEnd();
   await TrackPlayer.play();
 }
 
@@ -231,8 +248,13 @@ export async function pause(): Promise<void> {
 export async function togglePlay(): Promise<void> {
   if (!snapshot.audioUrl) return;
   const { state } = await TrackPlayer.getPlaybackState();
-  if (state === State.Playing) await TrackPlayer.pause();
-  else await TrackPlayer.play();
+  if (state === State.Playing) {
+    await TrackPlayer.pause();
+    return;
+  }
+
+  await restartChapterIfAtEnd();
+  await TrackPlayer.play();
 }
 
 export async function seekTo(seconds: number): Promise<void> {

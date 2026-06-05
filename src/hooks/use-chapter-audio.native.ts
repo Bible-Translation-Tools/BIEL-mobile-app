@@ -96,6 +96,11 @@ export function useChapterAudio({
       activeChapter: chapter,
     });
 
+    const { loadedChapter, audioUrl } = getChapterPlaybackSnapshot();
+    if (loadedChapter === chapter && audioUrl) {
+      return;
+    }
+
     void loadChapter(chapter);
   }, [enabled, languageCode, bookSlug, bookName, chapter]);
 

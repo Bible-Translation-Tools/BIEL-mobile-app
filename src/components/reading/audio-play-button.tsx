@@ -74,8 +74,24 @@ export function AudioPlayButton({
   }, [activeChapter, audio.loadedChapter, isPanelOpen, onCurrentChapterChange, seekTarget]);
 
   useEffect(() => {
-    onCurrentVerseChange?.(isPanelOpen ? audio.currentVerse : null);
-  }, [audio.currentVerse, isPanelOpen, onCurrentVerseChange]);
+    if (!isPanelOpen) {
+      onCurrentVerseChange?.(null);
+      return;
+    }
+
+    if (seekTarget != null && seekTarget.chapter === activeChapter) {
+      if (seekTarget.position === 'start') {
+        onCurrentVerseChange?.(1);
+        return;
+      }
+      if (typeof seekTarget.position === 'number') {
+        onCurrentVerseChange?.(seekTarget.position);
+        return;
+      }
+    }
+
+    onCurrentVerseChange?.(audio.currentVerse);
+  }, [activeChapter, audio.currentVerse, isPanelOpen, onCurrentVerseChange, seekTarget]);
 
   useEffect(() => {
     if (!isPanelOpen || !shouldAutoPlayOnOpen || !activeChapter) return;
@@ -147,8 +163,22 @@ export function AudioPlayButton({
     if (!activeChapter || !getNextChapter || isAdvancingRef.current) return;
 
     if (audio.loadedChapter != null && audio.loadedChapter !== activeChapter) {
-      setActiveChapter(audio.loadedChapter);
-      onCurrentChapterChange?.(audio.loadedChapter);
+      const loadedChapter = audio.loadedChapter;
+      const chapterAtFinish = activeChapter;
+      isAdvancingRef.current = true;
+
+      void (async () => {
+        try {
+          if (getNextChapter) {
+            await getNextChapter(chapterAtFinish);
+          }
+          setActiveChapter(loadedChapter);
+          onCurrentChapterChange?.(loadedChapter);
+          setSeekTarget({ chapter: loadedChapter, position: 'start' });
+        } finally {
+          isAdvancingRef.current = false;
+        }
+      })();
       return;
     }
 
@@ -165,6 +195,7 @@ export function AudioPlayButton({
         }
         setActiveChapter(nextChapter);
         onCurrentChapterChange?.(nextChapter);
+        setSeekTarget({ chapter: nextChapter, position: 'start' });
         setShouldAutoPlayNextChapter(true);
       } finally {
         isAdvancingRef.current = false;

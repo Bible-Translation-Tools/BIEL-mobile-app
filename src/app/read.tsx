@@ -141,6 +141,7 @@ export default function ReadingScreen() {
   }, []);
 
   const scrollRetryCountRef = useRef(0);
+  const prevPlayingChapterRef = useRef<number | null>(null);
 
   const scrollToPlayingVerse = useCallback(() => {
     if (!isAudioPanelOpenRef.current || audioPanelHeightRef.current <= 0) return;
@@ -285,9 +286,34 @@ export default function ReadingScreen() {
 
   useEffect(() => {
     if (!isAudioPanelOpen || currentPlayingVerse == null || currentPlayingChapter == null) return;
+
+    const chapterChanged = prevPlayingChapterRef.current !== currentPlayingChapter;
+    prevPlayingChapterRef.current = currentPlayingChapter;
     scrollRetryCountRef.current = 0;
-    scrollToPlayingVerse();
-  }, [currentPlayingVerse, currentPlayingChapter, isAudioPanelOpen, scrollToPlayingVerse]);
+
+    const chapterIndex = chapters.findIndex((item) => item.chapter === currentPlayingChapter);
+    const chapterNotMounted = !chapterViewRefsRef.current.has(currentPlayingChapter);
+    if (chapterIndex >= 0 && (chapterChanged || chapterNotMounted)) {
+      listRef.current?.scrollToIndex({
+        index: chapterIndex,
+        animated: true,
+        viewPosition: 0,
+      });
+    }
+
+    const scheduleVerseScroll = () => scrollToPlayingVerse();
+    if (chapterChanged || chapterNotMounted) {
+      requestAnimationFrame(() => requestAnimationFrame(scheduleVerseScroll));
+    } else {
+      scheduleVerseScroll();
+    }
+  }, [
+    chapters,
+    currentPlayingVerse,
+    currentPlayingChapter,
+    isAudioPanelOpen,
+    scrollToPlayingVerse,
+  ]);
 
   useEffect(() => {
     scrollRetryCountRef.current = 0;
