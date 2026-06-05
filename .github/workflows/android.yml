@@ -1,0 +1,103 @@
+name: Android CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      CI: true
+      NODE_ENV: production
+      GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Expo SDK 55 / React Native 0.83 require Node 20.12+
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # Gradle 9 (android/gradle-wrapper.properties) and RN 0.83 both require JVM 17+
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          # From `android/gradlew :app:properties` after Expo SDK 55 prebuild.
+          # Update these when upgrading Expo / React Native.
+          packages: >-
+            tools
+            platform-tools
+            platforms;android-36
+            build-tools;36.0.0
+            ndk;27.1.12297006
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Android project
+        run: pnpm exec expo prebuild --platform android
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Verify Android toolchain matches Expo prebuild
+        working-directory: android
+        run: |
+          ./gradlew :app:properties -q 2>&1 | tee /tmp/gradle-properties.txt
+          for key in buildToolsVersion compileSdkVersion targetSdkVersion minSdkVersion ndkVersion; do
+            expected=$(grep -E "^${key}:" /tmp/gradle-properties.txt | awk '{print $2}')
+            echo "${key}=${expected}"
+          done
+          grep -q 'buildToolsVersion: 36.0.0' /tmp/gradle-properties.txt
+          grep -q 'compileSdkVersion: 36' /tmp/gradle-properties.txt
+          grep -q 'targetSdkVersion: 36' /tmp/gradle-properties.txt
+          grep -q 'minSdkVersion: 24' /tmp/gradle-properties.txt
+          grep -q 'ndkVersion: 27.1.12297006' /tmp/gradle-properties.txt
+
+      # Expo prebuild signs release builds with the debug keystore until you add a
+      # production keystore. To sign with your own key later, add GitHub secrets and
+      # wire them into android/app/build.gradle after prebuild (or commit a signing plugin).
+      - name: Assemble release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Package APK
+        run: |
+          mkdir -p release
+          cp android/app/build/outputs/apk/release/app-release.apk \
+            release/biel-mobile-app-${{ github.run_number }}.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: biel-android-release-${{ github.run_number }}
+          path: release/*.apk
+          if-no-files-found: error
