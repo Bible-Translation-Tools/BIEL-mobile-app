@@ -7,6 +7,7 @@ import {
     DownloadMenuPopover,
     type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
+import { TextFormatSizeIcon } from '@/components/icons/textformat-size-icon';
 import {
     TextSettingsPopover,
     type TextSettingsAnchor,
@@ -220,7 +221,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
         isElevated && [
           styles.toolbarElevated,
           {
-            backgroundColor: theme.backgroundAccent,
+            backgroundColor: theme.surfaceAccent,
             shadowColor: '#000',
           },
         ],
@@ -261,11 +262,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
             accessibilityRole="button"
             accessibilityLabel={t('accessibility.textSettings')}
             accessibilityState={{ expanded: textSettingsVisible }}>
-            <IconSymbol
-              name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
-              size={ReadingLayout.toolbarIconSize}
-              color={theme.iconPrimary}
-            />
+            <TextFormatSizeIcon size={ReadingLayout.toolbarIconSize} color={theme.iconPrimary} />
           </Pressable>
         </View>
         {downloadContext ? (
