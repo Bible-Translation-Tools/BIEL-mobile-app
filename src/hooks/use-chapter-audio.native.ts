@@ -105,6 +105,13 @@ export function useChapterAudio({
     }
   }, [enabled]);
 
+  useEffect(() => {
+    return () => {
+      void pausePlayback();
+      clearSession();
+    };
+  }, []);
+
   const currentVerse = useMemo(
     () => resolveCurrentVerse(playbackSnapshot.verseTimings, progress.position),
     [playbackSnapshot.verseTimings, progress.position],

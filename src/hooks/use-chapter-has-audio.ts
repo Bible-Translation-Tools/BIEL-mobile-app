@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 
 import { getChapterAudioTotalBytes } from '@/api/services/offline-audio';
 
@@ -18,7 +17,7 @@ export function useChapterHasAudio({
   const [hasAudio, setHasAudio] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS === 'web' || !languageCode || !bookSlug || chapter == null) {
+    if (!languageCode || !bookSlug || chapter == null) {
       setHasAudio(false);
       return;
     }
