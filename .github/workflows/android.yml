@@ -13,19 +13,21 @@ jobs:
       CI: true
       NODE_ENV: production
       GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m
+      # Remaining node20 actions (pnpm/action-setup, setup-java, upload-artifact) run on Node 24
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           # Expo SDK 55 / React Native 0.83 require Node 20.12+
-          node-version: 22
+          node-version: 24
           cache: pnpm
 
       - name: Setup Java
@@ -48,7 +50,7 @@ jobs:
             ndk;27.1.12297006
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -94,7 +96,7 @@ jobs:
             release/biel-mobile-app-${{ github.run_number }}.apk
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: biel-android-release-${{ github.run_number }}
           path: release/*.apk
