@@ -19,12 +19,14 @@ function withTrackPlayerService(config) {
 
     if (existing) {
       existing.$['android:foregroundServiceType'] = 'mediaPlayback';
+      existing.$['tools:replace'] = 'android:foregroundServiceType';
+      delete existing.$['android:exported'];
     } else {
       services.push({
         $: {
           'android:name': TRACK_PLAYER_SERVICE,
           'android:foregroundServiceType': 'mediaPlayback',
-          'android:exported': 'false',
+          'tools:replace': 'android:foregroundServiceType',
         },
       });
     }

@@ -16,6 +16,7 @@ import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initDownloadNotifications } from '@/services/download-notification-service';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
+import { loadLanguageCatalog } from '@/services/language-catalog';
 import { initI18n, i18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 
@@ -54,8 +55,7 @@ export default function RootLayout() {
           Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
         ]);
         await ensureOfflineRootExists();
-
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await loadLanguageCatalog();
       } finally {
         setAppReady(true);
         await ExpoSplashScreen.hideAsync();
