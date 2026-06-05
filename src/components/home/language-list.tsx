@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   StyleSheet,
   Text,
   type ListRenderItem,
@@ -85,7 +86,10 @@ export function LanguageList({
     ({ item }) => (
       <LanguageCardRow
         language={item}
-        onPress={() => onLanguagePress?.(item)}
+        onPress={() => {
+          Keyboard.dismiss();
+          onLanguagePress?.(item);
+        }}
         onDownloadStatusChange={onDownloadStatusChange}
       />
     ),

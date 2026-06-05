@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   StyleSheet,
   Text,
   type ListRenderItem,
@@ -116,6 +117,7 @@ export function BookList({
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
           onToggleExpand={() => {
+            Keyboard.dismiss();
             const willExpand = expandedBookId !== item.id;
             if (willExpand) {
               void loadChapters(item.slug);
@@ -123,7 +125,12 @@ export function BookList({
             setExpandedBookId((current) => (current === item.id ? null : item.id));
           }}
           onChapterPress={
-            onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
+            onChapterPress
+              ? (chapter) => {
+                  Keyboard.dismiss();
+                  onChapterPress(item, chapter);
+                }
+              : undefined
           }
           onDownloadStatusChange={onDownloadStatusChange}
         />
