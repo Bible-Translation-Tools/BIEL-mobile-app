@@ -21,7 +21,8 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          # Match local dev; pnpm 9 does not read patchedDependencies from pnpm-workspace.yaml
+          version: 11
 
       - name: Setup Node
         uses: actions/setup-node@v4
