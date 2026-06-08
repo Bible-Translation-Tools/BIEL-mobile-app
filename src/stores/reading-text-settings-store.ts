@@ -2,10 +2,12 @@ import { useMemo, useSyncExternalStore } from 'react';
 
 import {
   fontSizeForLevel,
+  LINE_HEIGHT_LEVEL_DEFAULT,
   LINE_HEIGHT_LEVEL_MAX,
   LINE_HEIGHT_LEVEL_MIN,
   lineHeightForLevel,
   READING_TEXT_DEFAULTS,
+  TEXT_SIZE_LEVEL_DEFAULT,
   TEXT_SIZE_LEVEL_MAX,
   TEXT_SIZE_LEVEL_MIN,
   verseNumberFontSizeForLevel,
@@ -39,7 +41,10 @@ type StoreState = {
 
 const PERSIST_DEBOUNCE_MS = 300;
 
-let state: StoreState = { textSizeLevel: 0, lineHeightLevel: 0 };
+let state: StoreState = {
+  textSizeLevel: TEXT_SIZE_LEVEL_DEFAULT,
+  lineHeightLevel: LINE_HEIGHT_LEVEL_DEFAULT,
+};
 
 function rebuildStylesSnapshot(): ReadingTextStyles {
   return buildTextStyles(state);
@@ -95,8 +100,8 @@ function decreaseLineHeight() {
 }
 
 function resetTextSettings() {
-  setTextSizeLevel(0);
-  setLineHeightLevel(0);
+  setTextSizeLevel(TEXT_SIZE_LEVEL_DEFAULT);
+  setLineHeightLevel(LINE_HEIGHT_LEVEL_DEFAULT);
 }
 
 function schedulePersist() {
@@ -169,7 +174,9 @@ export function useReadingTextSettingsActions(): ReadingTextSettingsActions {
       canIncreaseTextSize: levels.textSizeLevel < TEXT_SIZE_LEVEL_MAX,
       canDecreaseLineHeight: levels.lineHeightLevel > LINE_HEIGHT_LEVEL_MIN,
       canIncreaseLineHeight: levels.lineHeightLevel < LINE_HEIGHT_LEVEL_MAX,
-      isDefault: levels.textSizeLevel === 0 && levels.lineHeightLevel === 0,
+      isDefault:
+        levels.textSizeLevel === TEXT_SIZE_LEVEL_DEFAULT &&
+        levels.lineHeightLevel === LINE_HEIGHT_LEVEL_DEFAULT,
     }),
     [levels.textSizeLevel, levels.lineHeightLevel],
   );

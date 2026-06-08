@@ -87,6 +87,10 @@ export const ChapterItem = memo(function ChapterItem({
     ],
     [footnoteMarkerFontSize, lineHeight, theme.tabActive],
   );
+  const footnoteTextStyle = useMemo(
+    () => [styles.footnoteText, { fontSize, lineHeight, color: theme.text }],
+    [fontSize, lineHeight, theme.text],
+  );
   const footnoteMap = useMemo(
     () => new Map(chapter.footnotes.map((note) => [note.id, note])),
     [chapter.footnotes],
@@ -308,7 +312,7 @@ export const ChapterItem = memo(function ChapterItem({
             <Text style={[styles.footnoteLabel, { color: theme.text }]}>
               Footnote {activeFootnote?.label}
             </Text>
-            <Text style={[styles.footnoteText, { color: theme.text }]}>
+            <Text style={footnoteTextStyle}>
               {activeFootnote?.text ?? ''}
             </Text>
           </Pressable>
@@ -378,6 +382,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   footnoteText: {
-    ...Typography.bodySm,
+    ...Typography.bodyMd,
+    width: '100%',
   },
 });

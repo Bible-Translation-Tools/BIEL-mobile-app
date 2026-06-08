@@ -1,7 +1,9 @@
 import { PreferenceKeys } from '@/constants/preferences';
 import {
+  LINE_HEIGHT_LEVEL_DEFAULT,
   LINE_HEIGHT_LEVEL_MAX,
   LINE_HEIGHT_LEVEL_MIN,
+  TEXT_SIZE_LEVEL_DEFAULT,
   TEXT_SIZE_LEVEL_MAX,
   TEXT_SIZE_LEVEL_MIN,
 } from '@/constants/reading-text-settings';
@@ -36,8 +38,8 @@ export async function loadReadingTextPreferences(): Promise<ReadingTextPreferenc
   ]);
 
   return {
-    textSizeLevel: parseLevel(textSizeRaw, TEXT_SIZE_LEVEL_MIN, TEXT_SIZE_LEVEL_MAX, 0),
-    lineHeightLevel: parseLevel(lineHeightRaw, LINE_HEIGHT_LEVEL_MIN, LINE_HEIGHT_LEVEL_MAX, 0),
+    textSizeLevel: parseLevel(textSizeRaw, TEXT_SIZE_LEVEL_MIN, TEXT_SIZE_LEVEL_MAX, TEXT_SIZE_LEVEL_DEFAULT),
+    lineHeightLevel: parseLevel(lineHeightRaw, LINE_HEIGHT_LEVEL_MIN, LINE_HEIGHT_LEVEL_MAX, LINE_HEIGHT_LEVEL_DEFAULT),
   };
 }
 
