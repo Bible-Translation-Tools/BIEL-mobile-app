@@ -244,32 +244,26 @@ export function useReaderScroll(
     }
   }, [languageCode, bookSlug, chapters, availableChapters, hasPrevious, prefetchChapter]);
 
-  const handleScroll = useCallback(
-    (contentOffsetY: number) => {
-      const isScrollingUp = contentOffsetY < lastScrollYRef.current - SCROLL_UP_DELTA;
+  function handleScroll(contentOffsetY: number) {
+    const isScrollingUp = contentOffsetY < lastScrollYRef.current - SCROLL_UP_DELTA;
 
-      if (
-        isScrollingUp &&
-        contentOffsetY < SCROLL_LOAD_THRESHOLD &&
-        hasPrevious &&
-        !loadingPreviousRef.current
-      ) {
-        loadPrevious();
-      }
+    if (
+      isScrollingUp &&
+      contentOffsetY < SCROLL_LOAD_THRESHOLD &&
+      hasPrevious &&
+      !loadingPreviousRef.current
+    ) {
+      loadPrevious();
+    }
 
-      lastScrollYRef.current = contentOffsetY;
-    },
-    [loadPrevious, hasPrevious],
-  );
+    lastScrollYRef.current = contentOffsetY;
+  }
 
-  const checkFillViewport = useCallback(
-    (viewportHeight: number, contentHeight: number) => {
-      if (viewportHeight > 0 && contentHeight > 0 && contentHeight <= viewportHeight + 50) {
-        loadMore();
-      }
-    },
-    [loadMore],
-  );
+  function checkFillViewport(viewportHeight: number, contentHeight: number) {
+    if (viewportHeight > 0 && contentHeight > 0 && contentHeight <= viewportHeight + 50) {
+      loadMore();
+    }
+  }
 
   const clearInitialScrollIndex = useCallback(() => {
     setInitialScrollIndex(null);

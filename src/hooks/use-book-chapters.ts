@@ -61,7 +61,9 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
     [loadingSlug],
   );
 
-  const hasError = useCallback((bookSlug: string) => errorSlug === bookSlug, [errorSlug]);
+  function hasError(bookSlug: string) {
+    return errorSlug === bookSlug;
+  }
 
   return { loadChapters, getChapters, isLoading, hasError, clearCache };
 }

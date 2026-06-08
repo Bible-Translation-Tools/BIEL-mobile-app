@@ -74,9 +74,9 @@ export function useChapterDownload({
     },
   });
 
-  const refreshState = useCallback(async () => {
+  async function refreshState() {
     await Promise.all([scripture.refresh(), audio.refresh(), refreshStandalone()]);
-  }, [audio, refreshStandalone, scripture]);
+  }
 
   return {
     scriptureFileSizeLabel: scripture.fileSizeLabel,
