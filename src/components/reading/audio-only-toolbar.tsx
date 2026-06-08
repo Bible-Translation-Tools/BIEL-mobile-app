@@ -2,13 +2,14 @@ import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
     DownloadMenuPopover,
     type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ReadingLayout } from '@/constants/theme';
+import { getToolbarTopInset, ReadingLayout } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
@@ -21,6 +22,7 @@ type AudioOnlyToolbarProps = {
 
 export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyToolbarProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation('reading');
   const { t: tc } = useTranslation('common');
@@ -78,6 +80,11 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
 
   return (
     <>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: getToolbarTopInset(insets.top), backgroundColor: theme.background },
+        ]}>
       <View style={styles.toolbar}>
         <Pressable
           style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
@@ -106,6 +113,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
           </Pressable>
         </View>
       </View>
+      </View>
 
       <DownloadMenuPopover
         visible={menuVisible}
@@ -127,12 +135,16 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
 }
 
 const styles = StyleSheet.create({
+  header: {
+    width: '100%',
+  },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: ReadingLayout.padding,
-    paddingVertical: ReadingLayout.padding,
+    paddingTop: ReadingLayout.toolbarPaddingTop,
+    paddingBottom: ReadingLayout.toolbarPaddingV,
   },
   backButton: {
     flexDirection: 'row',

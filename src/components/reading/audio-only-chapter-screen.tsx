@@ -41,7 +41,7 @@ export function AudioOnlyChapterScreen({
   useSystemVolumeSync(showPlayer);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['left', 'right']}>
       <AudioOnlyToolbar
         languageCode={languageCode}
         bookSlug={bookSlug}

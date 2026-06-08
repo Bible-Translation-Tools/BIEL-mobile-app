@@ -163,7 +163,10 @@ export const ReadingLayout = {
   sectionGap: 8,
   toolbarHeight: 48,
   toolbarPaddingH: 16,
+  toolbarPaddingTop: 4,
   toolbarPaddingV: 10,
+  /** Subtract from the status-bar safe inset so toolbar controls sit closer to the top. */
+  toolbarStatusBarInsetReduction: 8,
   toolbarIconSize: 24,
   toolbarSettingsIconSize: 22,
   toolbarTrailingGap: 16,
@@ -174,6 +177,10 @@ export const ReadingLayout = {
   /** Bottom padding on the chapter list so the audio panel / FAB does not cover text. */
   scrollBottomInset: 220,
 } as const;
+
+export function getToolbarTopInset(statusBarInset: number): number {
+  return Math.max(statusBarInset - ReadingLayout.toolbarStatusBarInsetReduction, 0);
+}
 
 export const MediaPlayerLayout = {
   topRadius: 20,

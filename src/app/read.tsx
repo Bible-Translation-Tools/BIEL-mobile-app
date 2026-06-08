@@ -429,7 +429,7 @@ export default function ReadingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
           <ReadingToolbar
             chapterTitle={toolbarChapterTitle}
             downloadContext={

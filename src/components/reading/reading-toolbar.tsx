@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, StatusBar as RNStatusBar, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
     DownloadMenuPopover,
@@ -17,7 +18,7 @@ import {
     type SettingsToolbarButtonRef,
 } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ReadingLayout, Typography } from '@/constants/theme';
+import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
@@ -189,7 +190,19 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
   const theme = useTheme();
   const router = useRouter();
   const { t } = useTranslation('reading');
+  const insets = useSafeAreaInsets();
   const isElevated = chapterTitle != null;
+  const headerBackground = isElevated ? theme.surfaceAccent : theme.background;
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    RNStatusBar.setBackgroundColor(headerBackground, true);
+
+    return () => {
+      RNStatusBar.setBackgroundColor(theme.background, true);
+    };
+  }, [headerBackground, theme.background]);
   const textSettingsAnchorRef = useRef<View>(null);
   const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
   const [textSettingsVisible, setTextSettingsVisible] = useState(false);
@@ -217,15 +230,14 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
   return (
     <View
       style={[
-        styles.toolbar,
+        styles.header,
+        { paddingTop: getToolbarTopInset(insets.top), backgroundColor: headerBackground },
         isElevated && [
-          styles.toolbarElevated,
-          {
-            backgroundColor: theme.surfaceAccent,
-            shadowColor: '#000',
-          },
+          styles.headerElevated,
+          { shadowColor: '#000' },
         ],
       ]}>
+      <View style={styles.toolbar}>
       <View style={styles.leading}>
         <Pressable
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
@@ -291,24 +303,29 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
         anchor={textSettingsAnchor}
         onClose={closeTextSettings}
       />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    width: '100%',
+  },
+  headerElevated: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2.5,
+    elevation: 3,
+  },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     height: ReadingLayout.toolbarHeight,
     paddingHorizontal: ReadingLayout.toolbarPaddingH,
-    paddingVertical: ReadingLayout.toolbarPaddingV,
-  },
-  toolbarElevated: {
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.25,
-    shadowRadius: 2.5,
-    elevation: 3,
+    paddingTop: ReadingLayout.toolbarPaddingTop,
+    paddingBottom: ReadingLayout.toolbarPaddingV,
   },
   leading: {
     flex: 1,
