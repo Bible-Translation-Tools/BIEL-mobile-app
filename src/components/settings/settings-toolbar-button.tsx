@@ -11,7 +11,7 @@ import {
   SystemSettingsPopover,
   type SystemSettingsAnchor,
 } from '@/components/home/system-settings-popover';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { SETTINGS_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/hooks/use-theme';
 
 export type SettingsToolbarButtonRef = {
@@ -75,7 +75,7 @@ export const SettingsToolbarButton = forwardRef<
         accessibilityLabel="Settings"
         accessibilityState={{ expanded: menuVisible }}>
         <IconSymbol
-          name={{ ios: 'gearshape', android: 'settings' }}
+          name={SETTINGS_ICON_NAME}
           size={iconSize}
           color={theme.iconPrimary}
         />

@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
+import { SETTINGS_ICON_NAME, IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import type { ThemePreference } from '@/constants/appearance';
 import { DownloadMenuLayout, SystemSettingsLayout, Typography } from '@/constants/theme';
 import { useAppearance } from '@/contexts/appearance-context';
@@ -21,7 +21,7 @@ const THEME_OPTION_CONFIG: ThemeOption[] = [
     value: 'system',
     titleKey: 'theme.system.title',
     subtitleKey: 'theme.system.subtitle',
-    icon: { ios: 'gearshape', android: 'settings' },
+    icon: SETTINGS_ICON_NAME,
     iconSize: SystemSettingsLayout.optionIconSize,
   },
   {

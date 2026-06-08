@@ -6,7 +6,7 @@ import {
   LocalePopover,
   type LocalePopoverAnchor,
 } from '@/components/locale/locale-popover';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { TRANSLATE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocale } from '@/contexts/locale-context';
 import { Typography } from '@/constants/theme';
 
@@ -62,7 +62,7 @@ export function InterfaceLanguageButton({
           accessibilityState={{ expanded: menuVisible }}>
           <View style={styles.languageLabel}>
             <IconSymbol
-              name={{ ios: 'translate', android: 'translate' }}
+              name={TRANSLATE_ICON_NAME}
               size={16}
               color={iconColor}
             />

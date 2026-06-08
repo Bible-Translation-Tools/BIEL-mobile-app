@@ -32,8 +32,16 @@ export type IconSymbolName =
       android: string;
     };
 
-/** Material icon used for pending downloads on every platform (including iOS). */
+/** Material icons rendered on every platform (including iOS). */
 export const DOWNLOAD_ICON_NAME = 'download';
+export const SETTINGS_ICON_NAME = 'settings';
+export const TRANSLATE_ICON_NAME = 'translate';
+
+const MATERIAL_ICON_NAMES = new Set<string>([
+  DOWNLOAD_ICON_NAME,
+  SETTINGS_ICON_NAME,
+  TRANSLATE_ICON_NAME,
+]);
 
 type IconSymbolProps = {
   name: IconSymbolName;
@@ -43,11 +51,11 @@ type IconSymbolProps = {
 };
 
 function usesMaterialIconOnIos(name: IconSymbolName): boolean {
-  if (name === DOWNLOAD_ICON_NAME) return true;
-  if (typeof name === 'object') {
-    return name.ios === DOWNLOAD_ICON_NAME || name.android === DOWNLOAD_ICON_NAME;
+  if (typeof name === 'string') {
+    return MATERIAL_ICON_NAMES.has(name);
   }
-  return false;
+
+  return MATERIAL_ICON_NAMES.has(name.ios) || MATERIAL_ICON_NAMES.has(name.android);
 }
 
 function resolveMaterialName(name: IconSymbolName): MaterialIconName {
