@@ -34,11 +34,15 @@ export type IconSymbolName =
 
 /** Material icons rendered on every platform (including iOS). */
 export const DOWNLOAD_ICON_NAME = 'download';
+export const DOWNLOAD_DONE_ICON_NAME = 'download-done';
+export const DELETE_ICON_NAME = 'delete';
 export const SETTINGS_ICON_NAME = 'settings';
 export const TRANSLATE_ICON_NAME = 'translate';
 
 const MATERIAL_ICON_NAMES = new Set<string>([
   DOWNLOAD_ICON_NAME,
+  DOWNLOAD_DONE_ICON_NAME,
+  DELETE_ICON_NAME,
   SETTINGS_ICON_NAME,
   TRANSLATE_ICON_NAME,
 ]);

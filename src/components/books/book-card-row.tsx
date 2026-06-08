@@ -6,7 +6,7 @@ import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
@@ -202,10 +202,7 @@ export const BookCardRow = memo(function BookCardRow({
       <View style={styles.titleGroup}>
         {isFullyDownloaded ? (
           <IconSymbol
-            name={{
-              ios: 'checkmark.circle.fill',
-              android: 'download_done',
-            }}
+            name={DOWNLOAD_DONE_ICON_NAME}
             size={28}
             color={theme.iconSuccess}
           />
@@ -286,7 +283,7 @@ export const BookCardRow = memo(function BookCardRow({
             <ActivityIndicator size="small" color={theme.tabActive} />
           ) : isFullyDownloaded ? (
             <IconSymbol
-              name={{ ios: 'trash', android: 'delete' }}
+              name={DELETE_ICON_NAME}
               size={24}
               color={theme.iconDanger}
             />

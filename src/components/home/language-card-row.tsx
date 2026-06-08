@@ -6,7 +6,7 @@ import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import { DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
@@ -190,10 +190,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
               <ActivityIndicator size="small" color={theme.tabActive} />
             ) : isFullyDownloaded ? (
               <IconSymbol
-                name={{
-                  ios: 'checkmark.circle.fill',
-                  android: 'download_done',
-                }}
+                name={DOWNLOAD_DONE_ICON_NAME}
                 size={28}
                 color={theme.iconSuccess}
               />

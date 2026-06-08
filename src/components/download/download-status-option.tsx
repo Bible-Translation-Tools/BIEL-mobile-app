@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { DownloadStatus } from '@/types/download';
@@ -134,16 +134,13 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
         ) : isDownloaded ? (
           allowDelete ? (
             <IconSymbol
-              name={{ ios: 'trash', android: 'delete' }}
+              name={DELETE_ICON_NAME}
               size={DownloadMenuLayout.deleteIconSize}
               color={theme.iconDanger}
             />
           ) : (
             <IconSymbol
-              name={{
-                ios: 'checkmark.circle.fill',
-                android: 'download_done',
-              }}
+              name={DOWNLOAD_DONE_ICON_NAME}
               size={DownloadMenuLayout.iconSize}
               color={theme.iconSuccess}
             />
