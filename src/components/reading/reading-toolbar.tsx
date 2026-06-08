@@ -17,7 +17,7 @@ import {
     SettingsToolbarButton,
     type SettingsToolbarButtonRef,
 } from '@/components/settings/settings-toolbar-button';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
@@ -140,7 +140,7 @@ function ReadingToolbarDownloadButton({
           accessibilityRole="button"
           accessibilityLabel={t('downloadChapter')}>
           <IconSymbol
-            name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+            name={DOWNLOAD_ICON_NAME}
             size={ReadingLayout.toolbarIconSize}
             color={theme.iconPrimary}
           />
@@ -177,7 +177,7 @@ function DisabledDownloadButton() {
     <View style={styles.iconButtonDisabledWrapper}>
       <View style={[styles.iconButton, styles.iconButtonDisabled]}>
         <IconSymbol
-          name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+          name={DOWNLOAD_ICON_NAME}
           size={ReadingLayout.toolbarIconSize}
           color={theme.iconPrimary}
         />
@@ -245,7 +245,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}>
           <IconSymbol
-            name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+            name={{ ios: 'chevron.left', android: 'arrow_back' }}
             size={ReadingLayout.toolbarIconSize}
             color={theme.iconPrimary}
           />

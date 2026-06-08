@@ -75,7 +75,7 @@ export const SettingsToolbarButton = forwardRef<
         accessibilityLabel="Settings"
         accessibilityState={{ expanded: menuVisible }}>
         <IconSymbol
-          name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
+          name={{ ios: 'gearshape', android: 'settings' }}
           size={iconSize}
           color={theme.iconPrimary}
         />

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { DownloadStatus } from '@/types/download';
@@ -134,7 +134,7 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
         ) : isDownloaded ? (
           allowDelete ? (
             <IconSymbol
-              name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+              name={{ ios: 'trash', android: 'delete' }}
               size={DownloadMenuLayout.deleteIconSize}
               color={theme.iconDanger}
             />
@@ -143,7 +143,6 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
               name={{
                 ios: 'checkmark.circle.fill',
                 android: 'download_done',
-                web: 'download_done',
               }}
               size={DownloadMenuLayout.iconSize}
               color={theme.iconSuccess}
@@ -153,12 +152,8 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
           <IconSymbol
             name={
               isDownloading
-                ? { ios: 'xmark', android: 'close', web: 'close' }
-                : {
-                    ios: 'arrow.down.circle',
-                    android: 'file_download',
-                    web: 'file_download',
-                  }
+                ? { ios: 'xmark', android: 'close' }
+                : DOWNLOAD_ICON_NAME
             }
             size={DownloadMenuLayout.iconSize}
             color={isMuted ? theme.iconTertiary : theme.iconPrimary}

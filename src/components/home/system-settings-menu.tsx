@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import type { ThemePreference } from '@/constants/appearance';
 import { DownloadMenuLayout, SystemSettingsLayout, Typography } from '@/constants/theme';
 import { useAppearance } from '@/contexts/appearance-context';
@@ -12,11 +12,7 @@ type ThemeOption = {
   value: ThemePreference;
   titleKey: string;
   subtitleKey: string;
-  icon: {
-    ios: string;
-    android: string;
-    web: string;
-  };
+  icon: IconSymbolName;
   iconSize: number;
 };
 
@@ -25,21 +21,21 @@ const THEME_OPTION_CONFIG: ThemeOption[] = [
     value: 'system',
     titleKey: 'theme.system.title',
     subtitleKey: 'theme.system.subtitle',
-    icon: { ios: 'gearshape', android: 'settings', web: 'settings' },
+    icon: { ios: 'gearshape', android: 'settings' },
     iconSize: SystemSettingsLayout.optionIconSize,
   },
   {
     value: 'light',
     titleKey: 'theme.light.title',
     subtitleKey: 'theme.light.subtitle',
-    icon: { ios: 'sun.max', android: 'light-mode', web: 'light-mode' },
+    icon: { ios: 'sun.max', android: 'light-mode' },
     iconSize: SystemSettingsLayout.themeIconSize,
   },
   {
     value: 'dark',
     titleKey: 'theme.dark.title',
     subtitleKey: 'theme.dark.subtitle',
-    icon: { ios: 'moon', android: 'dark-mode', web: 'dark-mode' },
+    icon: { ios: 'moon', android: 'dark-mode' },
     iconSize: SystemSettingsLayout.themeIconSize,
   },
 ];

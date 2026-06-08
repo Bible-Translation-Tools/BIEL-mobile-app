@@ -333,7 +333,7 @@ export function AudioPlayButton({
         accessibilityRole="button"
         accessibilityLabel={t('openAudioPlayer')}>
         <IconSymbol
-          name={{ ios: 'speaker.wave.2.fill', android: 'volume-up', web: 'volume-up' }}
+          name={{ ios: 'speaker.wave.2.fill', android: 'volume-up' }}
           size={28}
           color={theme.iconPrimary}
         />

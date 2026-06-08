@@ -54,7 +54,6 @@ export function MediaPlayerControls({
             name={{
               ios: 'backward.end.fill',
               android: 'skip-previous',
-              web: 'skip-previous',
             }}
             size={36}
             color={theme.iconPrimary}
@@ -81,8 +80,8 @@ export function MediaPlayerControls({
             <IconSymbol
               name={
                 isPlaying
-                  ? { ios: 'pause.fill', android: 'pause', web: 'pause' }
-                  : { ios: 'play.fill', android: 'play-arrow', web: 'play-arrow' }
+                  ? { ios: 'pause.fill', android: 'pause' }
+                  : { ios: 'play.fill', android: 'play-arrow' }
               }
               size={playIconSize}
               color="#ffffff"
@@ -101,7 +100,7 @@ export function MediaPlayerControls({
           accessibilityLabel={t('nextVerse')}
           accessibilityState={{ disabled: !canStepVerse }}>
           <IconSymbol
-            name={{ ios: 'forward.end.fill', android: 'skip-next', web: 'skip-next' }}
+            name={{ ios: 'forward.end.fill', android: 'skip-next' }}
             size={36}
             color={theme.iconPrimary}
           />

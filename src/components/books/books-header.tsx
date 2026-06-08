@@ -32,7 +32,7 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
           },
         ]}>
         <IconSymbol
-          name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+          name={{ ios: 'magnifyingglass', android: 'search' }}
           size={28}
           color={theme.iconTertiary}
         />
@@ -55,7 +55,7 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
             accessibilityRole="button"
             accessibilityLabel={tc('clearSearch')}>
             <IconSymbol
-              name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
+              name={{ ios: 'xmark.circle.fill', android: 'cancel' }}
               size={20}
               color={theme.iconTertiary}
             />

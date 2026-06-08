@@ -61,7 +61,7 @@ export function MediaPlayerPanel({
         accessibilityRole="button"
         accessibilityLabel={t('closeAudioPlayer')}>
         <IconSymbol
-          name={{ ios: 'xmark', android: 'close', web: 'close' }}
+          name={{ ios: 'xmark', android: 'close' }}
           size={24}
           color={theme.iconPrimary}
         />

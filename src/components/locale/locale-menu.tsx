@@ -78,7 +78,6 @@ export const LocaleMenu = memo(function LocaleMenu({ onSelect }: LocaleMenuProps
                   name={{
                     ios: 'checkmark',
                     android: 'check',
-                    web: 'check',
                   }}
                   size={LocaleMenuLayout.optionIconSize}
                   color={theme.tabActive}

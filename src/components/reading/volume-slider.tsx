@@ -58,8 +58,8 @@ export function VolumeSlider({ value, onValueChange, accessibilityLabel }: Volum
       <IconSymbol
         name={
           muted
-            ? { ios: 'speaker.slash.fill', android: 'volume-off', web: 'volume-off' }
-            : { ios: 'speaker.wave.1.fill', android: 'volume-mute', web: 'volume-mute' }
+            ? { ios: 'speaker.slash.fill', android: 'volume-off' }
+            : { ios: 'speaker.wave.1.fill', android: 'volume-mute' }
         }
         size={16}
         color={theme.iconPrimary}
@@ -77,7 +77,7 @@ export function VolumeSlider({ value, onValueChange, accessibilityLabel }: Volum
         </View>
       </View>
       <IconSymbol
-        name={{ ios: 'speaker.wave.3.fill', android: 'volume-up', web: 'volume-up' }}
+        name={{ ios: 'speaker.wave.3.fill', android: 'volume-up' }}
         size={16}
         color={theme.iconPrimary}
       />

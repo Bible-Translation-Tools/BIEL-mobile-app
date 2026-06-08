@@ -21,7 +21,7 @@ export function BooksToolbar() {
         accessibilityRole="button"
         accessibilityLabel={t('goBack')}>
         <IconSymbol
-          name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+          name={{ ios: 'chevron.left', android: 'arrow_back' }}
           size={28}
           color={theme.textHeading}
         />

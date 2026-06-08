@@ -62,7 +62,7 @@ export function InterfaceLanguageButton({
           accessibilityState={{ expanded: menuVisible }}>
           <View style={styles.languageLabel}>
             <IconSymbol
-              name={{ ios: 'translate', android: 'translate', web: 'translate' }}
+              name={{ ios: 'translate', android: 'translate' }}
               size={16}
               color={iconColor}
             />
@@ -74,7 +74,6 @@ export function InterfaceLanguageButton({
             name={{
               ios: 'chevron.down',
               android: 'keyboard_arrow_down',
-              web: 'keyboard_arrow_down',
             }}
             size={16}
             color={iconColor}

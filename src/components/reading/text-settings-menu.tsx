@@ -39,7 +39,7 @@ export const TextSettingsMenu = memo(function TextSettingsMenu() {
       <View style={styles.row}>
         <View style={styles.rowLabel}>
           <IconSymbol
-            name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
+            name={{ ios: 'textformat.size', android: 'format-size' }}
             size={TextSettingsLayout.rowIconSize}
             color={theme.iconPrimary}
           />
@@ -61,7 +61,6 @@ export const TextSettingsMenu = memo(function TextSettingsMenu() {
             name={{
               ios: 'arrow.up.and.down.text.horizontal',
               android: 'format-line-spacing',
-              web: 'format-line-spacing',
             }}
             size={TextSettingsLayout.rowIconSize}
             color={theme.iconPrimary}

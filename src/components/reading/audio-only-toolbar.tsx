@@ -8,7 +8,7 @@ import {
     DownloadMenuPopover,
     type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
@@ -92,7 +92,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}>
           <IconSymbol
-            name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+            name={{ ios: 'chevron.left', android: 'arrow_back' }}
             size={28}
             color={theme.textHeading}
           />
@@ -106,7 +106,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
             accessibilityRole="button"
             accessibilityLabel={t('downloadChapterAudio')}>
             <IconSymbol
-              name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+              name={DOWNLOAD_ICON_NAME}
               size={28}
               color={theme.iconPrimary}
             />

@@ -36,7 +36,7 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
           },
         ]}>
         <IconSymbol
-          name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+          name={{ ios: 'magnifyingglass', android: 'search' }}
           size={28}
           color={theme.iconTertiary}
         />
@@ -59,7 +59,7 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
             accessibilityRole="button"
             accessibilityLabel={tc('clearSearch')}>
             <IconSymbol
-              name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
+              name={{ ios: 'xmark.circle.fill', android: 'cancel' }}
               size={20}
               color={theme.iconTertiary}
             />

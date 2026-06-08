@@ -6,7 +6,7 @@ import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
@@ -141,7 +141,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
             <View style={styles.mediaIcons}>
               {language.hasAudio && (
                 <IconSymbol
-                  name={{ ios: 'speaker.wave.2.fill', android: 'volume_up', web: 'volume_up' }}
+                  name={{ ios: 'speaker.wave.2.fill', android: 'volume_up' }}
                   size={18}
                   color={theme.iconTertiary}
                 />
@@ -151,7 +151,6 @@ export const LanguageCardRow = memo(function LanguageCardRow({
                   name={{
                     ios: 'text.alignleft',
                     android: 'format_align_left',
-                    web: 'format_align_left',
                   }}
                   size={18}
                   color={theme.iconTertiary}
@@ -164,7 +163,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
           </Text>
         </View>
         <IconSymbol
-          name={{ ios: 'chevron.right', android: 'keyboard_arrow_right', web: 'keyboard_arrow_right' }}
+          name={{ ios: 'chevron.right', android: 'keyboard_arrow_right' }}
           size={24}
           color={theme.iconTertiary}
         />
@@ -194,18 +193,13 @@ export const LanguageCardRow = memo(function LanguageCardRow({
                 name={{
                   ios: 'checkmark.circle.fill',
                   android: 'download_done',
-                  web: 'download_done',
                 }}
                 size={28}
                 color={theme.iconSuccess}
               />
             ) : (
               <IconSymbol
-                name={{
-                  ios: 'arrow.down.circle',
-                  android: 'file_download',
-                  web: 'file_download',
-                }}
+                name={DOWNLOAD_ICON_NAME}
                 size={28}
                 color={theme.iconPrimary}
               />

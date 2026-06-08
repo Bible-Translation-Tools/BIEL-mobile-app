@@ -6,7 +6,7 @@ import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
@@ -205,7 +205,6 @@ export const BookCardRow = memo(function BookCardRow({
             name={{
               ios: 'checkmark.circle.fill',
               android: 'download_done',
-              web: 'download_done',
             }}
             size={28}
             color={theme.iconSuccess}
@@ -218,8 +217,8 @@ export const BookCardRow = memo(function BookCardRow({
       <IconSymbol
         name={
           isExpanded
-            ? { ios: 'chevron.up', android: 'keyboard_arrow_up', web: 'keyboard_arrow_up' }
-            : { ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down' }
+            ? { ios: 'chevron.up', android: 'keyboard_arrow_up' }
+            : { ios: 'chevron.down', android: 'keyboard_arrow_down' }
         }
         size={28}
         color={theme.iconTertiary}
@@ -287,17 +286,13 @@ export const BookCardRow = memo(function BookCardRow({
             <ActivityIndicator size="small" color={theme.tabActive} />
           ) : isFullyDownloaded ? (
             <IconSymbol
-              name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+              name={{ ios: 'trash', android: 'delete' }}
               size={24}
               color={theme.iconDanger}
             />
           ) : (
             <IconSymbol
-              name={{
-                ios: 'arrow.down.circle',
-                android: 'file_download',
-                web: 'file_download',
-              }}
+              name={DOWNLOAD_ICON_NAME}
               size={28}
               color={theme.iconPrimary}
             />
