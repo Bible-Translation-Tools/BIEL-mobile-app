@@ -5,19 +5,19 @@ const PROGRESS_MIN_DELTA = 0.05;
 const PROGRESS_MIN_INTERVAL_MS = 200;
 
 import { formatByteSize } from '@/api/services/whole-book-parser';
-import { scheduleIdleTask } from '@/utils/yield-to-ui';
 import {
-  cancelGlobalBookDownload,
-  runGlobalBookDownload,
+    cancelGlobalBookDownload,
+    runGlobalBookDownload,
 } from '@/services/book-download-runner';
 import {
-  removeDownloadTask,
-  useBookDownloadProgress,
+    removeDownloadTask,
+    useBookDownloadProgress,
 } from '@/stores/download-progress-store';
 import {
-  buildBookDownloadTaskId,
-  type GlobalBookDownloadSync,
+    buildBookDownloadTaskId,
+    type GlobalBookDownloadSync,
 } from '@/types/download-progress';
+import { scheduleIdleTask } from '@/utils/yield-to-ui';
 
 export type ContentDownloadError = {
   title: string;

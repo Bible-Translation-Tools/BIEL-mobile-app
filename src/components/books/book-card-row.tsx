@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
@@ -10,9 +10,9 @@ import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymb
 import { BookLayout, Typography } from '@/constants/theme';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
+import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
-import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import type { BookItem, ChapterItem } from '@/types/book';
 import { resolveDownloadStatus } from '@/types/download';
 
@@ -99,7 +99,6 @@ export const BookCardRow = memo(function BookCardRow({
     isDownloading: isAudioDownloading,
     progress: audioProgress,
     fileSizeLabel: audioFileSizeLabel,
-    isDownloaded: isAudioDownloadedOnDevice,
     hasAudio,
     isChecking: isAudioChecking,
     error: audioError,
@@ -185,7 +184,7 @@ export const BookCardRow = memo(function BookCardRow({
       return;
     }
 
-    if (isAudioDownloadedOnDevice) {
+    if (isAudioDownloaded) {
       await deleteAudioDownload();
       closeDownloadMenu();
       return;
@@ -198,7 +197,7 @@ export const BookCardRow = memo(function BookCardRow({
     closeDownloadMenu,
     deleteAudioDownload,
     hasAudio,
-    isAudioDownloadedOnDevice,
+    isAudioDownloaded,
     isAudioDownloading,
     startAudioDownload,
   ]);
@@ -328,7 +327,7 @@ export const BookCardRow = memo(function BookCardRow({
           audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus: resolveDownloadStatus(
             isAudioDownloading,
-            isAudioDownloadedOnDevice,
+            isAudioDownloaded,
             isAudioChecking,
           ),
           audioProgress,

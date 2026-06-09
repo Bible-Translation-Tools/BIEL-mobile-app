@@ -17,6 +17,7 @@ import {
   getOfflineAudioDirectory,
   normalizeBookSlug,
 } from '@/constants/offline-storage';
+import type { AudioChapterRecord } from '@/db';
 import {
   deleteAudioBook as deleteAudioBookRecord,
   deleteAudioChapter as deleteAudioChapterRecord,
@@ -27,12 +28,9 @@ import {
   mergeAudioChapter,
   upsertAudioBookWithChapters,
 } from '@/db';
-import type { ChapterAudioQueryResult } from '@/types/audio';
-import type { AudioChapterRecord } from '@/db';
 import type {
   AudioBookManifest,
-  BookAudioFilesQueryResult,
-  ResolvedChapterAudio,
+  BookAudioFilesQueryResult, ChapterAudioQueryResult, ResolvedChapterAudio
 } from '@/types/audio';
 
 const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = 3;
@@ -283,8 +281,13 @@ export async function isBookAudioDownloaded(
     const downloadedSet = new Set(downloadedNumbers);
     return manifest.chapters.every((chapter) => downloadedSet.has(chapter.chapter));
   } catch {
-    // Offline: without the remote manifest we cannot confirm a full-book download.
-    return false;
+    const record = await getAudioBookRecord(languageCode, canonicalSlug);
+    if (!record) return false;
+
+    const chapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
+    if (chapters.length === 0) return false;
+
+    return chapters.every((chapter) => new File(chapter.mp3Path).exists);
   }
 }
 
