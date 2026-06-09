@@ -1,3 +1,4 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { memo, useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -139,23 +140,21 @@ export const LanguageCardRow = memo(function LanguageCardRow({
               {language.nationalName}
             </Text>
             <View style={styles.mediaIcons}>
-              {language.hasAudio && (
-                <IconSymbol
-                  name={{ ios: 'speaker.wave.2.fill', android: 'volume_up' }}
-                  size={18}
-                  color={theme.iconTertiary}
-                />
-              )}
-              {language.hasText && (
-                <IconSymbol
-                  name={{
-                    ios: 'text.alignleft',
-                    android: 'format_align_left',
-                  }}
-                  size={18}
-                  color={theme.iconTertiary}
-                />
-              )}
+              <MaterialIcons
+                name="volume-up"
+                size={18}
+                color={theme.text}
+                style={language.hasAudio ? undefined : styles.mediaIconUnavailable}
+              />
+              <IconSymbol
+                name={{
+                  ios: 'text.alignleft',
+                  android: 'format_align_left',
+                }}
+                size={18}
+                color={theme.text}
+                style={language.hasText ? undefined : styles.mediaIconUnavailable}
+              />
             </View>
           </View>
           <Text style={[styles.languageCode, { color: theme.textSecondary }]} numberOfLines={1}>
@@ -281,6 +280,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     height: 24,
+  },
+  mediaIconUnavailable: {
+    opacity: 0.25,
   },
   languageCode: {
     ...Typography.bodySm,
