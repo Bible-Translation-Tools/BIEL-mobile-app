@@ -168,19 +168,23 @@ export async function replaceLanguageCatalog(languages: LanguageItem[]): Promise
   const db = await getDb();
   await withSerializedTransaction(db, async () => {
     await db.runAsync('DELETE FROM language_catalog');
-    for (const [index, language] of languages.entries()) {
-      await db.runAsync(
-        `INSERT INTO language_catalog (
-           ietf_code, english_name, national_name, has_text, has_audio, sort_order
-         ) VALUES (?, ?, ?, ?, ?, ?)`,
-        language.code,
-        language.name,
-        language.nationalName,
-        language.hasText ? 1 : 0,
-        language.hasAudio ? 1 : 0,
-        index,
-      );
-    }
+    if (languages.length === 0) return;
+
+    const placeholders = languages.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+    const values = languages.flatMap((language, index) => [
+      language.code,
+      language.name,
+      language.nationalName,
+      language.hasText ? 1 : 0,
+      language.hasAudio ? 1 : 0,
+      index,
+    ]);
+    await db.runAsync(
+      `INSERT INTO language_catalog (
+         ietf_code, english_name, national_name, has_text, has_audio, sort_order
+       ) VALUES ${placeholders}`,
+      values,
+    );
   });
 }
 
@@ -252,16 +256,20 @@ export async function replaceBookCatalog(
   const db = await getDb();
   await withSerializedTransaction(db, async () => {
     await db.runAsync('DELETE FROM book_catalog WHERE language_code = ?', languageCode);
-    for (const book of books) {
-      await db.runAsync(
-        `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
-         VALUES (?, ?, ?, ?)`,
-        languageCode,
-        book.slug,
-        book.name,
-        book.testament,
-      );
-    }
+    if (books.length === 0) return;
+
+    const placeholders = books.map(() => '(?, ?, ?, ?)').join(', ');
+    const values = books.flatMap((book) => [
+      languageCode,
+      book.slug,
+      book.name,
+      book.testament,
+    ]);
+    await db.runAsync(
+      `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
+       VALUES ${placeholders}`,
+      values,
+    );
   });
 }
 
