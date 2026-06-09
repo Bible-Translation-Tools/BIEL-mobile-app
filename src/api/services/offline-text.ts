@@ -593,20 +593,28 @@ export async function downloadLanguageScripture(
     return;
   }
 
-  for (let index = 0; index < pendingSlugs.length; index++) {
-    if (options?.signal?.aborted) {
-      throw abortError();
-    }
-
-    const bookSlug = pendingSlugs[index]!;
-    await downloadBookScripture(languageCode, bookSlug, {
-      signal: options?.signal,
-      onProgress: (bookProgress) => {
-        const overall = (index + bookProgress) / pendingSlugs.length;
-        options?.onProgress?.(overall);
-      },
-    });
+  if (options?.signal?.aborted) {
+    throw abortError();
   }
+
+  const progressByBook = new Array<number>(pendingSlugs.length).fill(0);
+  const reportOverallProgress = () => {
+    const overall =
+      progressByBook.reduce((sum, bookProgress) => sum + bookProgress, 0) / pendingSlugs.length;
+    options?.onProgress?.(overall);
+  };
+
+  await Promise.all(
+    pendingSlugs.map((bookSlug, index) =>
+      downloadBookScripture(languageCode, bookSlug, {
+        signal: options?.signal,
+        onProgress: (bookProgress) => {
+          progressByBook[index] = bookProgress;
+          reportOverallProgress();
+        },
+      }),
+    ),
+  );
 
   options?.onProgress?.(1);
 }

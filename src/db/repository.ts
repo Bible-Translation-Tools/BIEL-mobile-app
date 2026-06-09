@@ -34,6 +34,20 @@ export type UpsertBookParams = {
 };
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+let transactionTail: Promise<unknown> = Promise.resolve();
+
+/** SQLite allows only one active transaction per connection. */
+async function withSerializedTransaction(
+  db: SQLite.SQLiteDatabase,
+  fn: () => Promise<void>,
+): Promise<void> {
+  const run = transactionTail.then(() => db.withTransactionAsync(fn));
+  transactionTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
 
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
@@ -152,7 +166,7 @@ function mapCachedLanguageRow(row: CachedLanguageRow): LanguageItem {
 
 export async function replaceLanguageCatalog(languages: LanguageItem[]): Promise<void> {
   const db = await getDb();
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync('DELETE FROM language_catalog');
     for (const [index, language] of languages.entries()) {
       await db.runAsync(
@@ -236,7 +250,7 @@ export async function replaceBookCatalog(
   books: Pick<BookItem, 'slug' | 'name' | 'testament'>[],
 ): Promise<void> {
   const db = await getDb();
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync('DELETE FROM book_catalog WHERE language_code = ?', languageCode);
     for (const book of books) {
       await db.runAsync(
@@ -352,7 +366,7 @@ export async function upsertBookWithChapters(params: UpsertBookParams): Promise<
   const now = Date.now();
   let bookId = 0;
 
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync(
       `INSERT INTO languages (ietf_code, english_name, national_name, updated_at)
        VALUES (?, ?, ?, ?)
@@ -556,7 +570,7 @@ export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams)
   const now = Date.now();
   let audioBookId = 0;
 
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync(
       `INSERT INTO languages (ietf_code, updated_at)
        VALUES (?, ?)

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { InteractionManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 const PROGRESS_MIN_DELTA = 0.05;
 const PROGRESS_MIN_INTERVAL_MS = 200;
 
 import { formatByteSize } from '@/api/services/whole-book-parser';
+import { scheduleIdleTask } from '@/utils/yield-to-ui';
 import {
   cancelGlobalBookDownload,
   runGlobalBookDownload,
@@ -115,9 +115,7 @@ export function useContentDownload({
 
   const scheduleOnComplete = useCallback((callback?: () => void) => {
     if (!callback) return;
-    InteractionManager.runAfterInteractions(() => {
-      callback();
-    });
+    scheduleIdleTask(callback);
   }, []);
 
   const reportProgress = useCallback((value: number) => {
