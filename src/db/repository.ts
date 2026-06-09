@@ -272,6 +272,7 @@ export async function listBookCatalog(languageCode: string): Promise<BookItem[]>
       name: row.book_name,
       testament: row.testament,
       downloadStatus: 'pending' as const,
+      audioDownloadStatus: 'pending' as const,
     }));
   } catch {
     return [];

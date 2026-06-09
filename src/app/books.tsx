@@ -20,16 +20,19 @@ export default function BookSelectionScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, hasText: hasTextParam } = useLocalSearchParams<{
+  const { languageCode, hasText: hasTextParam, hasAudio: hasAudioParam } = useLocalSearchParams<{
     languageCode: string | string[];
     name?: string | string[];
     hasText?: string | string[];
+    hasAudio?: string | string[];
   }>();
 
   const { t } = useTranslation('books');
   const ietfCode = normalizeRouteParam(languageCode);
   const hasText =
     normalizeRouteParam(hasTextParam) !== '0' && normalizeRouteParam(hasTextParam) !== 'false';
+  const languageHasAudio =
+    normalizeRouteParam(hasAudioParam) !== '0' && normalizeRouteParam(hasAudioParam) !== 'false';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTestament, setActiveTestament] = useState<Testament>('old');
@@ -97,6 +100,7 @@ export default function BookSelectionScreen() {
             books={filteredBooks}
             languageCode={ietfCode}
             audioOnly={!hasText}
+            languageHasAudio={languageHasAudio}
             loading={loading}
             error={error}
             onRetry={refetch}

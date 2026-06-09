@@ -15,6 +15,7 @@ type UseBookAudioDownloadOptions = {
   bookName: string;
   enabled?: boolean;
   onComplete?: () => void;
+  onDeleteComplete?: () => void;
 };
 
 export function useBookAudioDownload({
@@ -23,6 +24,7 @@ export function useBookAudioDownload({
   bookName,
   enabled = true,
   onComplete,
+  onDeleteComplete,
 }: UseBookAudioDownloadOptions) {
   const { t } = useTranslation('download');
   const {
@@ -41,6 +43,7 @@ export function useBookAudioDownload({
     downloadFailedMessage: t('couldNotDownloadAudio'),
     deleteFailedMessage: t('couldNotRemoveAudio'),
     onComplete,
+    onDeleteComplete,
     download: (options) => downloadBookAudio(languageCode, bookSlug, options),
     deleteContent: () => deleteBookAudio(languageCode, bookSlug),
     getDownloadedBytes: () => getDownloadedBookAudioByteSize(languageCode, bookSlug),

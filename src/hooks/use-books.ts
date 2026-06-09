@@ -1,28 +1,49 @@
 import { useCallback, useEffect, useState } from 'react';
-import { InteractionManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { fetchBooksForLanguage, fetchBooksForLanguageOffline } from '@/api/services/books';
-import { listDownloadedBookSlugs } from '@/db';
+import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
 
 export type BookDownloadStatusChange = {
   bookSlug: string;
   status: DownloadStatus;
+  kind?: 'scripture' | 'audio';
 };
+
+async function getDownloadStatusSets(languageCode: string) {
+  const [downloadedSlugs, audioDownloadedSlugs] = await Promise.all([
+    listDownloadedBookSlugs(languageCode).catch(() => []),
+    listDownloadedAudioBookSlugs(languageCode).catch(() => []),
+  ]);
+
+  return {
+    downloadedSet: new Set(downloadedSlugs.map((slug) => slug.toUpperCase())),
+    audioDownloadedSet: new Set(audioDownloadedSlugs.map((slug) => slug.toUpperCase())),
+  };
+}
+
+function mapBooksWithDownloadStatus(
+  items: BookItem[],
+  downloadedSet: Set<string>,
+  audioDownloadedSet: Set<string>,
+): BookItem[] {
+  return items.map((book) => ({
+    ...book,
+    downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
+    audioDownloadStatus: audioDownloadedSet.has(book.slug.toUpperCase())
+      ? 'downloaded'
+      : 'pending',
+  }));
+}
 
 async function applyDownloadStatus(
   items: BookItem[],
   languageCode: string,
 ): Promise<BookItem[]> {
-  const downloadedSlugs = await listDownloadedBookSlugs(languageCode).catch(() => []);
-  const downloadedSet = new Set(downloadedSlugs.map((slug) => slug.toUpperCase()));
-
-  return items.map((book) => ({
-    ...book,
-    downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
-  }));
+  const { downloadedSet, audioDownloadedSet } = await getDownloadStatusSets(languageCode);
+  return mapBooksWithDownloadStatus(items, downloadedSet, audioDownloadedSet);
 }
 
 export function useBooks(languageCode: string | undefined) {
@@ -36,29 +57,27 @@ export function useBooks(languageCode: string | undefined) {
       if (!languageCode) return;
 
       if (change) {
-        InteractionManager.runAfterInteractions(() => {
-          setBooks((current) =>
-            current.map((book) =>
-              book.slug.toUpperCase() === change.bookSlug.toUpperCase()
-                ? { ...book, downloadStatus: change.status }
-                : book,
-            ),
-          );
-        });
+        setBooks((current) =>
+          current.map((book) => {
+            if (book.slug.toUpperCase() !== change.bookSlug.toUpperCase()) {
+              return book;
+            }
+
+            if (change.kind === 'audio') {
+              return { ...book, audioDownloadStatus: change.status };
+            }
+
+            return { ...book, downloadStatus: change.status };
+          }),
+        );
         return;
       }
 
-      const downloadedSlugs = await listDownloadedBookSlugs(languageCode).catch(() => []);
-      const downloadedSet = new Set(downloadedSlugs.map((slug) => slug.toUpperCase()));
+      const { downloadedSet, audioDownloadedSet } = await getDownloadStatusSets(languageCode);
 
-      InteractionManager.runAfterInteractions(() => {
-        setBooks((current) =>
-          current.map((book) => ({
-            ...book,
-            downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
-          })),
-        );
-      });
+      setBooks((current) =>
+        mapBooksWithDownloadStatus(current, downloadedSet, audioDownloadedSet),
+      );
     },
     [languageCode],
   );

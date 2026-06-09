@@ -21,6 +21,8 @@ import { ChapterGrid } from './chapter-grid';
 type BookCardRowProps = {
   book: BookItem;
   languageCode: string;
+  audioOnly: boolean;
+  languageHasAudio: boolean;
   isExpanded?: boolean;
   chapters?: ChapterItem[];
   chaptersLoading?: boolean;
@@ -37,7 +39,10 @@ function areBookCardRowPropsEqual(
     prev.book.id === next.book.id &&
     prev.book.name === next.book.name &&
     prev.book.downloadStatus === next.book.downloadStatus &&
+    prev.book.audioDownloadStatus === next.book.audioDownloadStatus &&
     prev.languageCode === next.languageCode &&
+    prev.audioOnly === next.audioOnly &&
+    prev.languageHasAudio === next.languageHasAudio &&
     prev.isExpanded === next.isExpanded &&
     prev.chaptersLoading === next.chaptersLoading &&
     prev.chapters === next.chapters &&
@@ -50,6 +55,8 @@ function areBookCardRowPropsEqual(
 export const BookCardRow = memo(function BookCardRow({
   book,
   languageCode,
+  audioOnly,
+  languageHasAudio,
   isExpanded = false,
   chapters = [],
   chaptersLoading = false,
@@ -61,6 +68,7 @@ export const BookCardRow = memo(function BookCardRow({
   const { t } = useTranslation('books');
   const { t: tc } = useTranslation('common');
   const isScriptureDownloaded = book.downloadStatus === 'downloaded';
+  const isAudioDownloaded = book.audioDownloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -82,16 +90,16 @@ export const BookCardRow = memo(function BookCardRow({
     bookName: book.name,
     enabled: menuVisible || downloadSessionActive,
     onComplete: () =>
-      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded' }),
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded', kind: 'scripture' }),
     onDeleteComplete: () =>
-      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'pending' }),
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'pending', kind: 'scripture' }),
   });
 
   const {
     isDownloading: isAudioDownloading,
     progress: audioProgress,
     fileSizeLabel: audioFileSizeLabel,
-    isDownloaded: isAudioDownloaded,
+    isDownloaded: isAudioDownloadedOnDevice,
     hasAudio,
     isChecking: isAudioChecking,
     error: audioError,
@@ -104,6 +112,10 @@ export const BookCardRow = memo(function BookCardRow({
     bookSlug: book.slug,
     bookName: book.name,
     enabled: menuVisible || downloadSessionActive,
+    onComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded', kind: 'audio' }),
+    onDeleteComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'pending', kind: 'audio' }),
   });
 
   useEffect(() => {
@@ -119,7 +131,9 @@ export const BookCardRow = memo(function BookCardRow({
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);
 
-  const isFullyDownloaded = isScriptureDownloaded && (!hasAudio || isAudioDownloaded);
+  const isFullyDownloaded = audioOnly
+    ? isAudioDownloaded
+    : isScriptureDownloaded && (!languageHasAudio || isAudioDownloaded);
 
   const openDownloadMenu = useCallback(() => {
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -170,7 +184,7 @@ export const BookCardRow = memo(function BookCardRow({
       return;
     }
 
-    if (isAudioDownloaded) {
+    if (isAudioDownloadedOnDevice) {
       await deleteAudioDownload();
       closeDownloadMenu();
       return;
@@ -183,7 +197,7 @@ export const BookCardRow = memo(function BookCardRow({
     closeDownloadMenu,
     deleteAudioDownload,
     hasAudio,
-    isAudioDownloaded,
+    isAudioDownloadedOnDevice,
     isAudioDownloading,
     startAudioDownload,
   ]);
@@ -313,7 +327,7 @@ export const BookCardRow = memo(function BookCardRow({
           audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus: resolveDownloadStatus(
             isAudioDownloading,
-            isAudioDownloaded,
+            isAudioDownloadedOnDevice,
             isAudioChecking,
           ),
           audioProgress,

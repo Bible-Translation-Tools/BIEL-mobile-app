@@ -20,6 +20,7 @@ function mapApiBookToItem(book: ApiBookMetadata): BookItem | null {
     slug,
     testament: isOldTestament(slug) ? 'old' : 'new',
     downloadStatus: 'pending',
+    audioDownloadStatus: 'pending',
   };
 }
 
@@ -58,6 +59,7 @@ function downloadedRecordToBookItem(record: {
     slug,
     testament: isOldTestament(slug) ? 'old' : 'new',
     downloadStatus: 'downloaded',
+    audioDownloadStatus: 'pending',
   };
 }
 

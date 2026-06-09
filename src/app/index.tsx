@@ -69,6 +69,7 @@ export default function HomeScreen() {
           languageCode: language.code,
           name: language.name,
           hasText: language.hasText ? '1' : '0',
+          hasAudio: language.hasAudio ? '1' : '0',
         },
       });
     },
