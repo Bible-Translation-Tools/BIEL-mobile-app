@@ -15,6 +15,10 @@ export type BookContentQueryResult = {
   scriptural_rendering_metadata: ApiBookContentRendering[];
 };
 
+export type LanguageScriptureFilesQueryResult = {
+  scriptural_rendering_metadata: ApiBookContentRendering[];
+};
+
 export type ResolvedBookContent = {
   bookName: string;
   bookSlug: string;

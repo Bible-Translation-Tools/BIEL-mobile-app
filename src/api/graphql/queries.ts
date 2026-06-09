@@ -30,6 +30,37 @@ export const BOOK_CONTENT_QUERY = `
   }
 `;
 
+export const LANGUAGE_SCRIPTURE_FILES_QUERY = `
+  query LanguageScriptureFiles($languageCode: String!) {
+    scriptural_rendering_metadata(
+      where: {
+        is_whole_book: { _eq: true }
+        rendered_content: {
+          file_type: { _eq: "json" }
+          content: {
+            language: { ietf_code: { _eq: $languageCode } }
+            wa_content_metadata: {
+              show_on_biel: { _eq: true }
+              status: { _eq: "Primary" }
+            }
+          }
+        }
+      }
+    ) {
+      book_name
+      book_slug
+      rendered_content {
+        url
+        file_size_bytes
+        content {
+          name
+          resource_type
+        }
+      }
+    }
+  }
+`;
+
 export const BOOK_AUDIO_FILES_QUERY = `
   query BookAudioFiles($languageCode: String!, $bookSlug: String!) {
     content(

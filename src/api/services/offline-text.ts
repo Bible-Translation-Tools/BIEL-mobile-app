@@ -3,7 +3,11 @@ import { File } from 'expo-file-system';
 import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { graphqlRequest } from '@/api/graphql/client';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { BOOK_CONTENT_QUERY, CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
+import {
+  BOOK_CONTENT_QUERY,
+  CHAPTER_CONTENT_QUERY,
+  LANGUAGE_SCRIPTURE_FILES_QUERY,
+} from '@/api/graphql/queries';
 import { pickRendering } from '@/api/services/resource-selection';
 import {
   extractChapterNumbersFromWholeBookJson,
@@ -33,7 +37,13 @@ import {
   upsertBookWithChapters,
   upsertScriptureChapter,
 } from '@/db';
-import type { BookContentQueryResult, OfflineBook, ResolvedBookContent } from '@/types/offline';
+import type {
+  ApiBookContentRendering,
+  BookContentQueryResult,
+  LanguageScriptureFilesQueryResult,
+  OfflineBook,
+  ResolvedBookContent,
+} from '@/types/offline';
 import type { ChapterContentQueryResult } from '@/types/reading';
 
 function abortError(): Error {
@@ -41,6 +51,9 @@ function abortError(): Error {
   error.name = 'AbortError';
   return error;
 }
+
+/** Dedupes overlapping LANGUAGE_SCRIPTURE_FILES_QUERY requests per language code. */
+const languageScriptureFilesInflight = new Map<string, Promise<LanguageScriptureFilesQueryResult>>();
 
 let wholeBookCache: Map<string, OfflineBook> = new Map();
 
@@ -89,6 +102,57 @@ export async function getBookScriptureFileSizeBytes(
 ): Promise<number> {
   const resolved = await resolveBookContent(languageCode, bookSlug);
   return resolved.fileSizeBytes;
+}
+
+async function fetchLanguageScriptureFiles(
+  languageCode: string,
+): Promise<LanguageScriptureFilesQueryResult> {
+  const key = languageCode.toUpperCase();
+  const inflight = languageScriptureFilesInflight.get(key);
+  if (inflight) {
+    return inflight;
+  }
+
+  const request = graphqlRequest<LanguageScriptureFilesQueryResult>(
+    LANGUAGE_SCRIPTURE_FILES_QUERY,
+    { languageCode },
+  ).finally(() => {
+    languageScriptureFilesInflight.delete(key);
+  });
+  languageScriptureFilesInflight.set(key, request);
+  return request;
+}
+
+function groupScriptureRenderingsByBookSlug(
+  renderings: ApiBookContentRendering[],
+): Map<string, ApiBookContentRendering[]> {
+  const bySlug = new Map<string, ApiBookContentRendering[]>();
+
+  for (const rendering of renderings) {
+    const slug = normalizeBookSlug(rendering.book_slug);
+    const grouped = bySlug.get(slug) ?? [];
+    grouped.push(rendering);
+    bySlug.set(slug, grouped);
+  }
+
+  return bySlug;
+}
+
+function parseLanguageScriptureBytesBySlug(
+  data: LanguageScriptureFilesQueryResult,
+): Map<string, number> {
+  const bytesBySlug = new Map<string, number>();
+
+  for (const [bookSlug, renderings] of groupScriptureRenderingsByBookSlug(
+    data.scriptural_rendering_metadata,
+  )) {
+    const rendering = pickRendering(renderings, { bookSlug });
+    if (rendering?.rendered_content.file_size_bytes != null) {
+      bytesBySlug.set(bookSlug, rendering.rendered_content.file_size_bytes);
+    }
+  }
+
+  return bytesBySlug;
 }
 
 export async function isBookDownloaded(
@@ -469,19 +533,25 @@ export async function getLanguageDownloadedByteSize(languageCode: string): Promi
 }
 
 export async function getLanguageScriptureTotalBytes(languageCode: string): Promise<number> {
-  const slugs = await resolveLanguageBookSlugs(languageCode);
-  let total = 0;
+  const [slugs, remoteBytesBySlug, downloadedRecords] = await Promise.all([
+    resolveLanguageBookSlugs(languageCode),
+    fetchLanguageScriptureFiles(languageCode).then(parseLanguageScriptureBytesBySlug),
+    listDownloadedBooksForLanguage(languageCode),
+  ]);
 
-  for (const bookSlug of slugs) {
-    const downloadedBytes = await getDownloadedBookByteSize(languageCode, bookSlug);
+  const downloadedBytesBySlug = new Map(
+    downloadedRecords.map((record) => [normalizeBookSlug(record.bookSlug), record.byteSize]),
+  );
+
+  return slugs.reduce((total, bookSlug) => {
+    const canonicalSlug = normalizeBookSlug(bookSlug);
+    const downloadedBytes = downloadedBytesBySlug.get(canonicalSlug);
     if (downloadedBytes != null) {
-      total += downloadedBytes;
-      continue;
+      return total + downloadedBytes;
     }
-    total += await getBookScriptureFileSizeBytes(languageCode, bookSlug);
-  }
 
-  return total;
+    return total + (remoteBytesBySlug.get(canonicalSlug) ?? 0);
+  }, 0);
 }
 
 export async function isLanguageScriptureDownloaded(languageCode: string): Promise<boolean> {
