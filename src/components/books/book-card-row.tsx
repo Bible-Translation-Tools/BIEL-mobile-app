@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -136,6 +136,7 @@ export const BookCardRow = memo(function BookCardRow({
     : isScriptureDownloaded && (!languageHasAudio || isAudioDownloaded);
 
   const openDownloadMenu = useCallback(() => {
+    Keyboard.dismiss();
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setMenuAnchor({ x, y, width, height });
       setMenuVisible(true);
