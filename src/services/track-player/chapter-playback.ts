@@ -98,6 +98,16 @@ export function clearSession() {
   emit();
 }
 
+/** Stops playback, clears the queue, and dismisses system media controls. */
+export async function stopPlayback(): Promise<void> {
+  try {
+    await TrackPlayer.reset();
+  } catch {
+    // Player may not be initialized yet.
+  }
+  clearSession();
+}
+
 export async function ensureChapterNumbers(): Promise<void> {
   if (!session || session.chapterNumbers.length > 0) return;
 

@@ -1,3 +1,4 @@
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Event,
@@ -25,6 +26,7 @@ import {
   seekToVerse as seekToVersePlayback,
   setPlaybackCurrentTime,
   setSessionContext,
+  stopPlayback,
   subscribeChapterPlayback,
   togglePlay as togglePlayPlayback,
   updateNowPlayingVerse,
@@ -110,10 +112,17 @@ export function useChapterAudio({
     }
   }, [enabled]);
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        void stopPlayback();
+      };
+    }, []),
+  );
+
   useEffect(() => {
     return () => {
-      void pausePlayback();
-      clearSession();
+      void stopPlayback();
     };
   }, []);
 
