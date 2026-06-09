@@ -14,7 +14,9 @@ import {
   offlineBookChapterHtmlMap,
   parseWholeBookJson,
 } from '@/api/services/whole-book-parser';
+import { runWithConcurrency } from '@/utils/run-with-concurrency';
 import { yieldToUi } from '@/utils/yield-to-ui';
+
 import {
   ensureOfflineRootExists,
   ensureOfflineScriptureDirectory,
@@ -45,6 +47,8 @@ import type {
   ResolvedBookContent,
 } from '@/types/offline';
 import type { ChapterContentQueryResult } from '@/types/reading';
+
+const SCRIPTURE_BOOK_DOWNLOAD_CONCURRENCY = 10;
 
 function abortError(): Error {
   const error = new Error('Download aborted');
@@ -604,16 +608,18 @@ export async function downloadLanguageScripture(
     options?.onProgress?.(overall);
   };
 
-  await Promise.all(
-    pendingSlugs.map((bookSlug, index) =>
-      downloadBookScripture(languageCode, bookSlug, {
+  await runWithConcurrency(
+    pendingSlugs,
+    SCRIPTURE_BOOK_DOWNLOAD_CONCURRENCY,
+    async (bookSlug, index) => {
+      await downloadBookScripture(languageCode, bookSlug, {
         signal: options?.signal,
         onProgress: (bookProgress) => {
           progressByBook[index] = bookProgress;
           reportOverallProgress();
         },
-      }),
-    ),
+      });
+    },
   );
 
   options?.onProgress?.(1);

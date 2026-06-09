@@ -7,7 +7,8 @@ import {
   LANGUAGE_AUDIO_FILES_QUERY,
 } from '@/api/graphql/queries';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { yieldToUi } from '@/utils/yield-to-ui';
+import { runWithConcurrency } from '@/utils/run-with-concurrency';
+
 import {
   ensureOfflineAudioDirectory,
   ensureOfflineRootExists,
@@ -34,6 +35,7 @@ import type {
   ResolvedChapterAudio,
 } from '@/types/audio';
 
+const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = 3;
 export type DownloadProgressCallback = (progress: number) => void;
 
 /** Dedupes overlapping LANGUAGE_AUDIO_FILES_QUERY requests per language code. */
@@ -394,6 +396,42 @@ function removeAudioDirectory(languageCode: string, bookSlug: string): void {
   }
 }
 
+async function writeChapterAudioFiles(
+  languageCode: string,
+  bookSlug: string,
+  chapterAudio: ResolvedChapterAudio,
+  options?: { signal?: AbortSignal },
+): Promise<AudioChapterRecord> {
+  if (options?.signal?.aborted) {
+    throw abortError();
+  }
+
+  const mp3File = getChapterMp3File(languageCode, bookSlug, chapterAudio.chapter);
+  const mp3Promise = writeBinaryFile(chapterAudio.mp3Url, mp3File, {
+    signal: options?.signal,
+  });
+
+  const cuePromise = chapterAudio.cueUrl
+    ? (async () => {
+        const cueFile = getChapterCueFile(languageCode, bookSlug, chapterAudio.chapter);
+        const cueByteSize = await writeTextFile(chapterAudio.cueUrl!, cueFile, {
+          signal: options?.signal,
+        });
+        return { cuePath: cueFile.uri, cueByteSize };
+      })()
+    : Promise.resolve({ cuePath: null as string | null, cueByteSize: 0 });
+
+  const [mp3ByteSize, cueResult] = await Promise.all([mp3Promise, cuePromise]);
+
+  return {
+    chapterNumber: chapterAudio.chapter,
+    mp3Path: mp3File.uri,
+    cuePath: cueResult.cuePath,
+    mp3ByteSize,
+    cueByteSize: cueResult.cueByteSize,
+  };
+}
+
 export async function downloadBookAudio(
   languageCode: string,
   bookSlug: string,
@@ -416,52 +454,46 @@ export async function downloadBookAudio(
   const canonicalSlug = manifest.bookSlug;
   ensureOfflineAudioDirectory(languageCode, canonicalSlug);
 
-  const savedChapters: AudioChapterRecord[] = [];
-  let totalBytes = 0;
   const totalChapters = manifest.chapters.length;
+  const progressByChapter = new Array<number>(totalChapters).fill(0);
+  const reportProgress = () => {
+    const overall =
+      progressByChapter.reduce((sum, chapterProgress) => sum + chapterProgress, 0) /
+      totalChapters;
+    options?.onProgress?.(overall);
+  };
+
+  let savedChapters: AudioChapterRecord[];
 
   try {
-    for (let index = 0; index < manifest.chapters.length; index++) {
-      if (options?.signal?.aborted) {
-        throw abortError();
-      }
-
-      const chapterAudio = manifest.chapters[index]!;
-      const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapterAudio.chapter);
-      const mp3ByteSize = await writeBinaryFile(chapterAudio.mp3Url, mp3File, {
-        signal: options?.signal,
-      });
-
-      let cuePath: string | null = null;
-      let cueByteSize = 0;
-
-      if (chapterAudio.cueUrl) {
-        const cueFile = getChapterCueFile(languageCode, canonicalSlug, chapterAudio.chapter);
-        cueByteSize = await writeTextFile(chapterAudio.cueUrl, cueFile, {
-          signal: options?.signal,
-        });
-        cuePath = cueFile.uri;
-      }
-
-      totalBytes += mp3ByteSize + cueByteSize;
-      savedChapters.push({
-        chapterNumber: chapterAudio.chapter,
-        mp3Path: mp3File.uri,
-        cuePath,
-        mp3ByteSize,
-        cueByteSize,
-      });
-
-      options?.onProgress?.((index + 1) / totalChapters);
-
-      if ((index + 1) % 2 === 0) {
-        await yieldToUi();
-      }
+    if (options?.signal?.aborted) {
+      throw abortError();
     }
+
+    savedChapters = await runWithConcurrency(
+      manifest.chapters,
+      AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY,
+      async (chapterAudio, index) => {
+        const chapterRecord = await writeChapterAudioFiles(
+          languageCode,
+          canonicalSlug,
+          chapterAudio,
+          options,
+        );
+        progressByChapter[index] = 1;
+        reportProgress();
+        return chapterRecord;
+      },
+    );
   } catch (err) {
     removeAudioDirectory(languageCode, canonicalSlug);
     throw err;
   }
+
+  const totalBytes = savedChapters.reduce(
+    (sum, chapter) => sum + chapter.mp3ByteSize + chapter.cueByteSize,
+    0,
+  );
 
   await upsertAudioBookWithChapters({
     languageCode,

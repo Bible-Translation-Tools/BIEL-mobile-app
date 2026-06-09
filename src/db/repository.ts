@@ -596,17 +596,21 @@ export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams)
 
     audioBookId = insertResult.lastInsertRowId;
 
-    for (const chapter of params.chapters) {
-      await db.runAsync(
-        `INSERT INTO audio_chapters (
-           audio_book_id, chapter_number, mp3_path, cue_path, mp3_byte_size, cue_byte_size
-         ) VALUES (?, ?, ?, ?, ?, ?)`,
+    if (params.chapters.length > 0) {
+      const placeholders = params.chapters.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+      const values = params.chapters.flatMap((chapter) => [
         audioBookId,
         chapter.chapterNumber,
         chapter.mp3Path,
         chapter.cuePath,
         chapter.mp3ByteSize,
         chapter.cueByteSize,
+      ]);
+      await db.runAsync(
+        `INSERT INTO audio_chapters (
+           audio_book_id, chapter_number, mp3_path, cue_path, mp3_byte_size, cue_byte_size
+         ) VALUES ${placeholders}`,
+        values,
       );
     }
   });
