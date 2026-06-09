@@ -274,7 +274,11 @@ export function useContentDownload({
       }
       scheduleOnComplete(onComplete);
     } catch (err) {
-      if (!isAbortError(err)) {
+      if (isAbortError(err)) {
+        if (enabled) {
+          await refresh();
+        }
+      } else {
         setError({
           title: resolvedDownloadFailedTitle,
           message: toErrorMessage(err, resolvedDownloadFailedMessage),

@@ -1,5 +1,11 @@
 import { yieldToUi } from '@/utils/yield-to-ui';
 
+export function isAbortError(err: unknown): boolean {
+  return (
+    (err instanceof Error || err instanceof DOMException) && err.name === 'AbortError'
+  );
+}
+
 export async function runWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,

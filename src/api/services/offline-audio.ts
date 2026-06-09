@@ -7,7 +7,7 @@ import {
   LANGUAGE_AUDIO_FILES_QUERY,
 } from '@/api/graphql/queries';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { runWithConcurrency } from '@/utils/run-with-concurrency';
+import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
 
 import {
   ensureOfflineAudioDirectory,
@@ -389,10 +389,22 @@ async function writeTextFile(
   return new TextEncoder().encode(text).length;
 }
 
-function removeAudioDirectory(languageCode: string, bookSlug: string): void {
-  const audioDir = getOfflineAudioDirectory(languageCode, bookSlug);
-  if (audioDir.exists) {
-    audioDir.delete();
+function removePartialChapterAudioFiles(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): void {
+  for (const file of [
+    getChapterMp3File(languageCode, bookSlug, chapter),
+    getChapterCueFile(languageCode, bookSlug, chapter),
+  ]) {
+    const tempFile = new File(file.parentDirectory, `${file.name}.tmp`);
+    if (tempFile.exists) {
+      tempFile.delete();
+    }
+    if (file.exists) {
+      file.delete();
+    }
   }
 }
 
@@ -448,7 +460,7 @@ export async function downloadBookAudio(
   }
 
   if (options?.signal?.aborted) {
-    throw abortError();
+    return;
   }
 
   const canonicalSlug = manifest.bookSlug;
@@ -463,31 +475,43 @@ export async function downloadBookAudio(
     options?.onProgress?.(overall);
   };
 
-  let savedChapters: AudioChapterRecord[];
-
-  try {
-    if (options?.signal?.aborted) {
-      throw abortError();
-    }
-
-    savedChapters = await runWithConcurrency(
+  const savedChapters = (
+    await runWithConcurrency(
       manifest.chapters,
       AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY,
       async (chapterAudio, index) => {
-        const chapterRecord = await writeChapterAudioFiles(
-          languageCode,
-          canonicalSlug,
-          chapterAudio,
-          options,
-        );
-        progressByChapter[index] = 1;
-        reportProgress();
-        return chapterRecord;
+        if (options?.signal?.aborted) {
+          return null;
+        }
+
+        try {
+          const chapterRecord = await writeChapterAudioFiles(
+            languageCode,
+            canonicalSlug,
+            chapterAudio,
+            options,
+          );
+          progressByChapter[index] = 1;
+          reportProgress();
+          return chapterRecord;
+        } catch (err) {
+          if (isAbortError(err)) {
+            removePartialChapterAudioFiles(languageCode, canonicalSlug, chapterAudio.chapter);
+            progressByChapter[index] = 1;
+            reportProgress();
+            return null;
+          }
+          progressByChapter[index] = 1;
+          reportProgress();
+          return null;
+        }
       },
-    );
-  } catch (err) {
-    removeAudioDirectory(languageCode, canonicalSlug);
-    throw err;
+    )
+  ).filter((chapter): chapter is AudioChapterRecord => chapter !== null);
+
+  if (savedChapters.length === 0) {
+    options?.onProgress?.(1);
+    return;
   }
 
   const totalBytes = savedChapters.reduce(
@@ -508,7 +532,10 @@ export async function downloadBookAudio(
 
 export async function deleteBookAudio(languageCode: string, bookSlug: string): Promise<void> {
   const canonicalSlug = normalizeBookSlug(bookSlug);
-  removeAudioDirectory(languageCode, canonicalSlug);
+  const audioDir = getOfflineAudioDirectory(languageCode, canonicalSlug);
+  if (audioDir.exists) {
+    audioDir.delete();
+  }
   await deleteAudioBookRecord(languageCode, canonicalSlug);
 }
 
@@ -578,7 +605,7 @@ export async function downloadLanguageAudio(
   const pendingBooks: Pick<AudioBookManifest, 'bookSlug' | 'bookName'>[] = [];
   for (const book of books) {
     if (options?.signal?.aborted) {
-      throw abortError();
+      break;
     }
     if (!(await isBookAudioDownloaded(languageCode, book.bookSlug))) {
       pendingBooks.push(book);
@@ -592,17 +619,21 @@ export async function downloadLanguageAudio(
 
   for (let index = 0; index < pendingBooks.length; index++) {
     if (options?.signal?.aborted) {
-      throw abortError();
+      break;
     }
 
     const book = pendingBooks[index]!;
-    await downloadBookAudio(languageCode, book.bookSlug, {
-      signal: options?.signal,
-      onProgress: (bookProgress) => {
-        const overall = (index + bookProgress) / pendingBooks.length;
-        options?.onProgress?.(overall);
-      },
-    });
+    try {
+      await downloadBookAudio(languageCode, book.bookSlug, {
+        signal: options?.signal,
+        onProgress: (bookProgress) => {
+          const overall = (index + bookProgress) / pendingBooks.length;
+          options?.onProgress?.(overall);
+        },
+      });
+    } catch {
+      // Failed books are skipped; abort is handled inside downloadBookAudio.
+    }
   }
 
   options?.onProgress?.(1);
