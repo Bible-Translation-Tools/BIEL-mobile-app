@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "Không thể tải xuống ngôn ngữ",
     "couldNotDownloadScripture": "Không thể tải xuống kinh văn",
     "couldNotRemoveScripture": "Không thể xóa kinh văn đã tải xuống",
+    "notification": {
+      "channelName": "Bản tải xuống sách",
+      "downloadingScripture": "Đang tải xuống {{name}}",
+      "downloadingAudio": "Đang tải xuống {{name}} (âm thanh)",
+      "downloadingMultiple": "Đang tải xuống {{count}} sách",
+      "progress": "{{percent}}%",
+      "complete": "Đã tải xuống {{name}}",
+      "failed": "Tải xuống {{name}} thất bại"
+    },
     "accessibility": {
       "checking": "Đang kiểm tra khả dụng của {{title}}",
       "cancel": "Hủy tải xuống {{title}}",

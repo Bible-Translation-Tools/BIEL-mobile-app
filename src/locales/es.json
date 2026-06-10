@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "No se pudo descargar el idioma",
     "couldNotDownloadScripture": "No se pudo descargar la escritura",
     "couldNotRemoveScripture": "No se pudo eliminar la escritura descargada",
+    "notification": {
+      "channelName": "Descargas de libros",
+      "downloadingScripture": "Descargando {{name}}",
+      "downloadingAudio": "Descargando {{name}} (audio)",
+      "downloadingMultiple": "Descargando {{count}} libros",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} descargado",
+      "failed": "Error al descargar {{name}}"
+    },
     "accessibility": {
       "checking": "Comprobando disponibilidad de {{title}}",
       "cancel": "Cancelar descarga de {{title}}",

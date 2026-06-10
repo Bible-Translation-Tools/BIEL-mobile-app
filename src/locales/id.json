@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "Tidak dapat mengunduh bahasa",
     "couldNotDownloadScripture": "Tidak dapat mengunduh kitab suci",
     "couldNotRemoveScripture": "Tidak dapat menghapus kitab suci yang diunduh",
+    "notification": {
+      "channelName": "Unduhan buku",
+      "downloadingScripture": "Mengunduh {{name}}",
+      "downloadingAudio": "Mengunduh {{name}} (audio)",
+      "downloadingMultiple": "Mengunduh {{count}} buku",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} diunduh",
+      "failed": "Unduhan {{name}} gagal"
+    },
     "accessibility": {
       "checking": "Memeriksa ketersediaan {{title}}",
       "cancel": "Batalkan unduhan {{title}}",

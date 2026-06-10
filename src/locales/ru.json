@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "Не удалось загрузить язык",
     "couldNotDownloadScripture": "Не удалось загрузить Писание",
     "couldNotRemoveScripture": "Не удалось удалить загруженное Писание",
+    "notification": {
+      "channelName": "Загрузки книг",
+      "downloadingScripture": "Загрузка {{name}}",
+      "downloadingAudio": "Загрузка {{name}} (аудио)",
+      "downloadingMultiple": "Загрузка {{count}} книг",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} загружено",
+      "failed": "Не удалось загрузить {{name}}"
+    },
     "accessibility": {
       "checking": "Проверка доступности {{title}}",
       "cancel": "Отменить загрузку {{title}}",

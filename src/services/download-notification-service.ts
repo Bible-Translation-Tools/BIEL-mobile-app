@@ -177,7 +177,7 @@ export async function showDownloadFinishedNotification(
 
   const body = succeeded
     ? undefined
-    : task.errorMessage ?? i18n.t('download:downloadFailedMessage');
+    : i18n.t('download:downloadFailedMessage');
 
   resetProgressSyncState();
 

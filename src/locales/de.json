@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "Sprache konnte nicht heruntergeladen werden",
     "couldNotDownloadScripture": "Schrift konnte nicht heruntergeladen werden",
     "couldNotRemoveScripture": "Heruntergeladene Schrift konnte nicht entfernt werden",
+    "notification": {
+      "channelName": "Buch-Downloads",
+      "downloadingScripture": "{{name}} wird heruntergeladen",
+      "downloadingAudio": "{{name}} (Audio) wird heruntergeladen",
+      "downloadingMultiple": "{{count}} Bücher werden heruntergeladen",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} heruntergeladen",
+      "failed": "Download von {{name}} fehlgeschlagen"
+    },
     "accessibility": {
       "checking": "Verfügbarkeit von {{title}} wird geprüft",
       "cancel": "Download von {{title}} abbrechen",

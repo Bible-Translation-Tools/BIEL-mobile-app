@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "भाषा डाउनलोड नहीं हो सकी",
     "couldNotDownloadScripture": "शास्त्र डाउनलोड नहीं हो सका",
     "couldNotRemoveScripture": "डाउनलोड किया शास्त्र हटाया नहीं जा सका",
+    "notification": {
+      "channelName": "पुस्तक डाउनलोड",
+      "downloadingScripture": "{{name}} डाउनलोड हो रहा है",
+      "downloadingAudio": "{{name}} (ऑडियो) डाउनलोड हो रहा है",
+      "downloadingMultiple": "{{count}} पुस्तकें डाउनलोड हो रही हैं",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} डाउनलोड हो गया",
+      "failed": "{{name}} डाउनलोड विफल"
+    },
     "accessibility": {
       "checking": "{{title}} की उपलब्धता जाँची जा रही है",
       "cancel": "{{title}} का डाउनलोड रद्द करें",

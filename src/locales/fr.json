@@ -93,6 +93,15 @@
     "couldNotDownloadLanguage": "Impossible de télécharger la langue",
     "couldNotDownloadScripture": "Impossible de télécharger l'écriture",
     "couldNotRemoveScripture": "Impossible de supprimer l'écriture téléchargée",
+    "notification": {
+      "channelName": "Téléchargements de livres",
+      "downloadingScripture": "Téléchargement de {{name}}",
+      "downloadingAudio": "Téléchargement de {{name}} (audio)",
+      "downloadingMultiple": "Téléchargement de {{count}} livres",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} téléchargé",
+      "failed": "Échec du téléchargement de {{name}}"
+    },
     "accessibility": {
       "checking": "Vérification de la disponibilité de {{title}}",
       "cancel": "Annuler le téléchargement de {{title}}",
