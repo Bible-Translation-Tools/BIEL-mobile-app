@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
@@ -49,6 +49,22 @@ export const DownloadMenu = memo(function DownloadMenu({
   const resolvedScriptureTitle = scriptureTitle ?? t('allScripture');
   const resolvedAudioTitle = audioTitle ?? t('allAudio');
   const emDash = tc('emDash');
+  const confirmDelete = (title: string, onConfirm?: () => void) => {
+    if (!onConfirm) return;
+
+    Alert.alert(t('confirmDeleteTitle', { title }), t('confirmDeleteMessage'), [
+      { text: t('confirmDeleteCancel'), style: 'cancel' },
+      { text: t('confirmDeleteAction'), style: 'destructive', onPress: onConfirm },
+    ]);
+  };
+  const onScriptureActionPress =
+    allowDelete && scriptureStatus === 'downloaded'
+      ? () => confirmDelete(resolvedScriptureTitle, onScripturePress)
+      : onScripturePress;
+  const onAudioActionPress =
+    allowDelete && audioStatus === 'downloaded'
+      ? () => confirmDelete(resolvedAudioTitle, onAudioPress)
+      : onAudioPress;
 
   return (
     <View
@@ -67,7 +83,7 @@ export const DownloadMenu = memo(function DownloadMenu({
           fileSize={scriptureFileSize ?? emDash}
           status={scriptureStatus}
           progress={scriptureProgress}
-          onActionPress={onScripturePress}
+          onActionPress={onScriptureActionPress}
           disabled={scriptureDisabled}
           allowDelete={allowDelete}
         />
@@ -77,7 +93,7 @@ export const DownloadMenu = memo(function DownloadMenu({
         fileSize={audioFileSize ?? emDash}
         status={audioStatus}
         progress={audioProgress}
-        onActionPress={onAudioPress}
+        onActionPress={onAudioActionPress}
         disabled={audioDisabled}
         allowDelete={allowDelete}
       />
