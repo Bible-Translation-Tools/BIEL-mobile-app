@@ -24,7 +24,6 @@ import {
   getWholeJsonFile,
   normalizeBookSlug,
   removeBookScriptureDirectory,
-  resolveExistingWholeJsonFile,
 } from '@/constants/offline-storage';
 import {
   deleteBook as deleteBookRecord,
@@ -165,7 +164,7 @@ export async function isBookDownloaded(
 ): Promise<boolean> {
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   if (!record) return false;
-  return resolveExistingWholeJsonFile(languageCode, bookSlug) != null;
+  return getWholeJsonFile(languageCode, bookSlug).exists;
 }
 
 export async function loadWholeBookChapters(
@@ -176,8 +175,8 @@ export async function loadWholeBookChapters(
   const cached = wholeBookCache.get(key);
   if (cached) return offlineBookChapterHtmlMap(cached);
 
-  const file = resolveExistingWholeJsonFile(languageCode, bookSlug);
-  if (!file) {
+  const file = getWholeJsonFile(languageCode, bookSlug);
+  if (!file.exists) {
     return new Map();
   }
 
@@ -225,7 +224,7 @@ export async function getOfflineChapterHtml(
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   if (!record) return null;
 
-  if (!resolveExistingWholeJsonFile(languageCode, bookSlug)) return null;
+  if (!getWholeJsonFile(languageCode, bookSlug).exists) return null;
 
   const chapters = await loadWholeBookChapters(languageCode, bookSlug);
   const html = chapters.get(chapter);
@@ -249,7 +248,7 @@ export async function isChapterScriptureDownloaded(
   }
 
   const bookRecord = await getBookDownloadRecord(languageCode, bookSlug);
-  if (!bookRecord || !resolveExistingWholeJsonFile(languageCode, bookSlug)) {
+  if (!bookRecord || !getWholeJsonFile(languageCode, bookSlug).exists) {
     return false;
   }
 
