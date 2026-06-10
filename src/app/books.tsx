@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { BookLayout } from '@/constants/theme';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
+import { stopPlayback } from '@/services/track-player/chapter-playback';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
 import { normalizeRouteParam } from '@/utils/route-params';
 
@@ -36,6 +37,12 @@ export default function BookSelectionScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [listKey, setListKey] = useState(0);
   const { books, loading, error, refetch, refreshDownloadStatus } = useBooks(ietfCode);
+
+  useFocusEffect(
+    useCallback(() => {
+      void stopPlayback();
+    }, []),
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);

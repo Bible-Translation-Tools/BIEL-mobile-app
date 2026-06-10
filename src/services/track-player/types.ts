@@ -6,6 +6,7 @@ export type ChapterPlaybackSession = {
   bookName: string;
   chapterNumbers: number[];
   activeChapter: number;
+  audioOnly?: boolean;
 };
 
 export type ChapterPlaybackSnapshot = {

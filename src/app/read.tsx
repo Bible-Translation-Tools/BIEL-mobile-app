@@ -24,6 +24,7 @@ import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
+import { useStopPlaybackOnLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
 import { useReadingTextStyles } from '@/stores/reading-text-settings-store';
 import type { ChapterContent } from '@/types/reading';
@@ -33,20 +34,24 @@ export default function ReadingScreen() {
   const theme = useTheme();
   const { t } = useTranslation('reading');
   const colorScheme = useColorScheme();
-  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam } =
+  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam, openAudio: openAudioParam } =
     useLocalSearchParams<{
       languageCode: string;
       bookSlug: string;
       bookName?: string;
       chapter: string;
       audioOnly?: string;
+      openAudio?: string;
     }>();
 
   const ietfCode = normalizeRouteParam(languageCode) ?? '';
   const resolvedBookSlug = normalizeRouteParam(bookSlug) ?? '';
   const resolvedBookName = normalizeRouteParam(bookName);
   const audioOnly = audioOnlyParam === '1' || audioOnlyParam === 'true';
+  const openAudio = openAudioParam === '1' || openAudioParam === 'true';
   const chapterNumber = Number.parseInt(normalizeRouteParam(chapter) ?? '', 10);
+
+  useStopPlaybackOnLeave();
 
   const {
     chapters,
@@ -99,11 +104,17 @@ export default function ReadingScreen() {
   const hasPreviousRef = useRef(false);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
-  const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
-  const isAudioPanelOpenRef = useRef(false);
+  const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(openAudio);
+  const isAudioPanelOpenRef = useRef(openAudio);
   const playVerseAtRef = useRef<((chapter: number, verse: number) => void) | undefined>(undefined);
   const currentPlayingVerseRef = useRef(currentPlayingVerse);
   const currentPlayingChapterRef = useRef(currentPlayingChapter);
+
+  useEffect(() => {
+    if (!openAudio) return;
+    isAudioPanelOpenRef.current = true;
+    setIsAudioPanelOpen(true);
+  }, [openAudio]);
 
   useEffect(() => {
     currentPlayingVerseRef.current = currentPlayingVerse;
@@ -494,6 +505,7 @@ export default function ReadingScreen() {
             languageCode={languageCode}
             bookSlug={bookSlug}
             passageBookName={displayBookName}
+            initialPanelOpen={openAudio}
             getCurrentChapter={getCurrentChapterForAudio}
             getNextChapter={getNextChapterForAudio}
             getPreviousChapter={getPreviousChapterForAudio}

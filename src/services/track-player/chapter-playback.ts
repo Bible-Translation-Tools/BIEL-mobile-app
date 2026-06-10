@@ -3,8 +3,8 @@ import TrackPlayer, { State } from 'react-native-track-player';
 import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/api/services/audio';
 import { fetchAudioChaptersForBook } from '@/api/services/chapters';
 
-import type { ChapterPlaybackSession, ChapterPlaybackSnapshot } from './types';
 import type { VerseTiming } from '@/types/audio';
+import type { ChapterPlaybackSession, ChapterPlaybackSnapshot } from './types';
 
 /** Seconds back into the current verse before "previous" restarts it instead of stepping back. */
 export const PREVIOUS_VERSE_RESTART_THRESHOLD = 3;
@@ -24,6 +24,7 @@ let session: ChapterPlaybackSession | null = null;
 let snapshot: ChapterPlaybackSnapshot = { ...defaultSnapshot };
 let loadGeneration = 0;
 let currentTime = 0;
+let suppressStopPlaybackOnce = false;
 
 const listeners = new Set<() => void>();
 
@@ -81,6 +82,7 @@ export function setSessionContext(params: {
   bookName: string;
   chapterNumbers?: number[];
   activeChapter?: number;
+  audioOnly?: boolean;
 }) {
   session = {
     languageCode: params.languageCode,
@@ -88,7 +90,37 @@ export function setSessionContext(params: {
     bookName: params.bookName,
     chapterNumbers: params.chapterNumbers ?? session?.chapterNumbers ?? [],
     activeChapter: params.activeChapter ?? session?.activeChapter ?? 0,
+    audioOnly: params.audioOnly ?? session?.audioOnly,
   };
+}
+
+/** Skip the next stopPlayback triggered by a read-screen blur during notification resume. */
+export function markNotificationResume(): void {
+  suppressStopPlaybackOnce = true;
+}
+
+export function consumeSuppressStopPlayback(): boolean {
+  if (!suppressStopPlaybackOnce) return false;
+  suppressStopPlaybackOnce = false;
+  return true;
+}
+
+export function getActivePlaybackReadRoute(): string | null {
+  if (!session?.activeChapter) return null;
+
+  const params = new URLSearchParams({
+    languageCode: session.languageCode,
+    bookSlug: session.bookSlug,
+    bookName: session.bookName,
+    chapter: String(session.activeChapter),
+    openAudio: '1',
+  });
+
+  if (session.audioOnly) {
+    params.set('audioOnly', '1');
+  }
+
+  return `/read?${params.toString()}`;
 }
 
 export function clearSession() {

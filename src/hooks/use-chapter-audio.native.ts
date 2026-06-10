@@ -1,4 +1,3 @@
-import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Event,
@@ -26,7 +25,6 @@ import {
   seekToVerse as seekToVersePlayback,
   setPlaybackCurrentTime,
   setSessionContext,
-  stopPlayback,
   subscribeChapterPlayback,
   togglePlay as togglePlayPlayback,
   updateNowPlayingVerse,
@@ -53,6 +51,7 @@ export function useChapterAudio({
   bookName,
   chapter,
   enabled = true,
+  audioOnly = false,
 }: UseChapterAudioParams) {
   const volume = useAudioVolume();
   const setVolume = useSetAudioVolume();
@@ -96,6 +95,7 @@ export function useChapterAudio({
       bookSlug,
       bookName: bookName?.trim() || bookSlug,
       activeChapter: chapter,
+      audioOnly,
     });
 
     const { loadedChapter, audioUrl } = getChapterPlaybackSnapshot();
@@ -104,27 +104,13 @@ export function useChapterAudio({
     }
 
     void loadChapter(chapter);
-  }, [enabled, languageCode, bookSlug, bookName, chapter]);
+  }, [enabled, languageCode, bookSlug, bookName, chapter, audioOnly]);
 
   useEffect(() => {
     if (!enabled) {
       clearSession();
     }
   }, [enabled]);
-
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        void stopPlayback();
-      };
-    }, []),
-  );
-
-  useEffect(() => {
-    return () => {
-      void stopPlayback();
-    };
-  }, []);
 
   const currentVerse = useMemo(
     () => resolveCurrentVerse(playbackSnapshot.verseTimings, progress.position),

@@ -12,6 +12,7 @@ import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
+import { stopPlaybackBeforeLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
 
 type AudioOnlyToolbarProps = {
@@ -88,7 +89,10 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
       <View style={styles.toolbar}>
         <Pressable
           style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
-          onPress={() => router.back()}
+          onPress={() => {
+            stopPlaybackBeforeLeave();
+            router.back();
+          }}
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}>
           <IconSymbol

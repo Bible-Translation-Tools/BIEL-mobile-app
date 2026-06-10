@@ -42,6 +42,7 @@ export function useAudioChapterReader(
     bookName: bookName?.trim() || bookSlug,
     chapter: activeChapter,
     enabled: Boolean(languageCode && bookSlug && activeChapter != null),
+    audioOnly: true,
   });
 
   useEffect(() => {

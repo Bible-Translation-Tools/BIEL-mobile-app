@@ -16,6 +16,7 @@ import { i18n, initI18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 import { initDownloadNotifications } from '@/services/download-notification-service';
 import { loadLanguageCatalog } from '@/services/language-catalog';
+import { initPlaybackAppLifecycle } from '@/services/track-player/app-lifecycle';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
@@ -24,6 +25,11 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigation() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    return initPlaybackAppLifecycle();
+  }, []);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

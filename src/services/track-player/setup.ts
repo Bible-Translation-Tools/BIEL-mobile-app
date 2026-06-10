@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import TrackPlayer, { Capability } from 'react-native-track-player';
+import TrackPlayer, { AppKilledPlaybackBehavior, Capability } from 'react-native-track-player';
 
 let setupPromise: Promise<void> | null = null;
 
@@ -16,6 +16,10 @@ export function setupTrackPlayer(): Promise<void> {
     await TrackPlayer.updateOptions({
       capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
       compactCapabilities: [Capability.Play, Capability.Pause],
+      android: {
+        appKilledPlaybackBehavior:
+          AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+      },
     });
   })();
 

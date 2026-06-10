@@ -20,6 +20,7 @@ type AudioPlayButtonProps = {
   languageCode?: string;
   bookSlug?: string;
   passageBookName?: string;
+  initialPanelOpen?: boolean;
   getCurrentChapter?: () => number | undefined;
   getNextChapter?: (currentChapter: number) => Promise<number | undefined> | number | undefined;
   getPreviousChapter?: (currentChapter: number) => Promise<number | undefined> | number | undefined;
@@ -34,6 +35,7 @@ export function AudioPlayButton({
   languageCode,
   bookSlug,
   passageBookName,
+  initialPanelOpen = false,
   getCurrentChapter,
   getNextChapter,
   getPreviousChapter,
@@ -46,8 +48,10 @@ export function AudioPlayButton({
   const theme = useTheme();
   const { t } = useTranslation('reading');
   const insets = useSafeAreaInsets();
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [activeChapter, setActiveChapter] = useState<number | undefined>(undefined);
+  const [isPanelOpen, setIsPanelOpen] = useState(initialPanelOpen);
+  const [activeChapter, setActiveChapter] = useState<number | undefined>(() =>
+    initialPanelOpen ? getCurrentChapter?.() : undefined,
+  );
   const [shouldAutoPlayOnOpen, setShouldAutoPlayOnOpen] = useState(false);
   const [shouldAutoPlayNextChapter, setShouldAutoPlayNextChapter] = useState(false);
   const [seekTarget, setSeekTarget] = useState<SeekTarget | null>(null);
@@ -63,6 +67,15 @@ export function AudioPlayButton({
   });
 
   useSystemVolumeSync(isPanelOpen);
+
+  useEffect(() => {
+    if (!initialPanelOpen) return;
+
+    const chapterToPlay = getCurrentChapter?.();
+    setActiveChapter(chapterToPlay);
+    onCurrentChapterChange?.(chapterToPlay ?? null);
+    onPanelOpenChange?.(true);
+  }, [getCurrentChapter, initialPanelOpen, onCurrentChapterChange, onPanelOpenChange]);
 
   useEffect(() => {
     if (!isPanelOpen || audio.loadedChapter == null) return;
