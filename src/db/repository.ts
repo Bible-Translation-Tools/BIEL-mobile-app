@@ -295,6 +295,7 @@ export async function listBookCatalog(languageCode: string): Promise<BookItem[]>
       testament: row.testament,
       downloadStatus: 'pending' as const,
       audioDownloadStatus: 'pending' as const,
+      hasAudio: false,
     }));
   } catch {
     return [];

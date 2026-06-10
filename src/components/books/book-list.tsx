@@ -25,7 +25,6 @@ type BookListProps = {
   books: BookItem[];
   languageCode: string;
   audioOnly: boolean;
-  languageHasAudio: boolean;
   loading: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -81,7 +80,6 @@ export function BookList({
   books,
   languageCode,
   audioOnly,
-  languageHasAudio,
   loading,
   error = null,
   onRetry,
@@ -130,7 +128,6 @@ export function BookList({
           book={item}
           languageCode={languageCode}
           audioOnly={audioOnly}
-          languageHasAudio={languageHasAudio}
           isExpanded={isExpanded}
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
@@ -160,7 +157,6 @@ export function BookList({
       isLoading,
       languageCode,
       audioOnly,
-      languageHasAudio,
       loadChapters,
       onChapterPress,
       onDownloadStatusChange,

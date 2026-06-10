@@ -1,13 +1,13 @@
 import { File } from 'expo-file-system';
 
-import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { graphqlRequest } from '@/api/graphql/client';
-import { fetchRenderedContent } from '@/api/services/content-fetch';
 import {
   BOOK_CONTENT_QUERY,
   CHAPTER_CONTENT_QUERY,
   LANGUAGE_SCRIPTURE_FILES_QUERY,
 } from '@/api/graphql/queries';
+import { resolveLanguageBookSlugs } from '@/api/services/books';
+import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { pickRendering } from '@/api/services/resource-selection';
 import {
   extractChapterNumbersFromWholeBookJson,
@@ -27,8 +27,8 @@ import {
 } from '@/constants/offline-storage';
 import {
   deleteBook as deleteBookRecord,
-  deleteScriptureChaptersForBook,
   deleteScriptureChapter as deleteScriptureChapterRecord,
+  deleteScriptureChaptersForBook,
   getBookDownloadRecord,
   getChapterNumbersForBook,
   getScriptureChapterRecord,

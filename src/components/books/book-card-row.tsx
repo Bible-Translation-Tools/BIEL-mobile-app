@@ -22,7 +22,6 @@ type BookCardRowProps = {
   book: BookItem;
   languageCode: string;
   audioOnly: boolean;
-  languageHasAudio: boolean;
   isExpanded?: boolean;
   chapters?: ChapterItem[];
   chaptersLoading?: boolean;
@@ -40,9 +39,9 @@ function areBookCardRowPropsEqual(
     prev.book.name === next.book.name &&
     prev.book.downloadStatus === next.book.downloadStatus &&
     prev.book.audioDownloadStatus === next.book.audioDownloadStatus &&
+    prev.book.hasAudio === next.book.hasAudio &&
     prev.languageCode === next.languageCode &&
     prev.audioOnly === next.audioOnly &&
-    prev.languageHasAudio === next.languageHasAudio &&
     prev.isExpanded === next.isExpanded &&
     prev.chaptersLoading === next.chaptersLoading &&
     prev.chapters === next.chapters &&
@@ -56,7 +55,6 @@ export const BookCardRow = memo(function BookCardRow({
   book,
   languageCode,
   audioOnly,
-  languageHasAudio,
   isExpanded = false,
   chapters = [],
   chaptersLoading = false,
@@ -130,9 +128,10 @@ export const BookCardRow = memo(function BookCardRow({
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);
 
+  const bookHasAudio = book.hasAudio === true;
   const isFullyDownloaded = audioOnly
     ? isAudioDownloaded
-    : isScriptureDownloaded && (!languageHasAudio || isAudioDownloaded);
+    : isScriptureDownloaded && (!bookHasAudio || isAudioDownloaded);
 
   const openDownloadMenu = useCallback(() => {
     Keyboard.dismiss();

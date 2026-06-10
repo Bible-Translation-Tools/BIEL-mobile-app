@@ -13,6 +13,7 @@ export type BookItem = {
   testament: Testament;
   downloadStatus: DownloadStatus;
   audioDownloadStatus: DownloadStatus;
+  hasAudio: boolean;
 };
 
 export type ApiBookMetadata = {
