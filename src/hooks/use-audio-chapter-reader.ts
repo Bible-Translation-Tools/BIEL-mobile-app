@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { fetchAudioChaptersForBook } from '@/api/services/chapters';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
+import { requestChapterLoad } from '@/services/track-player/chapter-playback';
 import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
@@ -165,6 +166,7 @@ export function useAudioChapterReader(
     position: 'start' | 'end' | number,
     resumePlayback: boolean,
   ) {
+    requestChapterLoad(chapter);
     setActiveChapter(chapter);
     setSeekTarget({ chapter, position });
     if (resumePlayback) setShouldAutoPlay(true);

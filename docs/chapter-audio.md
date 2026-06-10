@@ -86,6 +86,115 @@ In the text reader, chapter boundaries for the audio panel follow the scripture 
 
 Downloading and playing are separate: downloads populate disk and the database; playback only reads what is already there.
 
+## Background playback and media notification
+
+On native platforms, chapter audio uses **react-native-track-player**. While audio is playing, the OS shows a media notification / lock-screen controls.
+
+Tapping the notification opens `trackplayer://notification.click`. Expo Router cannot route that URI directly, so `src/app/+native-intent.tsx` intercepts it and redirects to the reading screen:
+
+```
+/read?languageCode=…&bookSlug=…&bookName=…&chapter=…&openAudio=1
+```
+
+The redirect uses the **currently loaded playback chapter** (`loadedChapter`), not the last scrolled chapter in the reader. That keeps audio playing when background autoplay has already advanced to the next chapter.
+
+| User action | Expected behavior |
+|-------------|-------------------|
+| Tap media notification while audio is playing | Open reading view, open audio panel, keep playback running |
+| Tap notification after leaving the chapter | N/A — playback was already stopped (see below) |
+
+Relevant files:
+
+| File | Role |
+|------|------|
+| `src/app/+native-intent.tsx` | Rewrites TrackPlayer notification URI to `/read` |
+| `src/services/track-player/chapter-playback.ts` | Session state, `getActivePlaybackReadRoute()`, `getResumedPlaybackChapter()` |
+| `src/services/track-player/setup.ts` | TrackPlayer setup and Android options |
+| `src/hooks/use-stop-playback-on-leave.ts` | Stops audio when leaving the reading screen |
+
+## When playback stops
+
+Playback is intentionally **not** stopped when the user backgrounds the app while still on the reading screen (so the media notification remains useful). It **is** stopped in these cases:
+
+| Scenario | How it is handled |
+|----------|-------------------|
+| Back to book list | `stopPlaybackBeforeLeave()` on toolbar back; `useStopPlaybackOnLeave()` on read-screen blur; `stopPlayback()` when books screen gains focus |
+| App removed from recents (Android) | `AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification` in TrackPlayer setup |
+| App backgrounded outside reading screen | `initPlaybackAppLifecycle()` stops playback when `readingScreenFocused` is false |
+| Close audio panel | Pauses playback (panel closed); does not reset the TrackPlayer queue |
+
+Relevant files:
+
+| File | Role |
+|------|------|
+| `src/hooks/use-stop-playback-on-leave.ts` | Blur cleanup + `stopPlaybackBeforeLeave()` |
+| `src/services/track-player/app-lifecycle.ts` | `AppState` listener; tracks whether read screen is focused |
+| `src/components/reading/reading-toolbar.tsx` | Back button stops before `router.back()` |
+| `src/components/reading/audio-only-toolbar.tsx` | Same for audio-only mode |
+| `src/app/books.tsx` | Safety stop when book list gains focus |
+
+## UI ↔ audio chapter sync
+
+The reading UI (`activeChapter`, scroll position, verse highlight) and TrackPlayer (`loadedChapter`) can temporarily disagree. The app handles three cases:
+
+### 1. Background autoplay advances ahead of the UI
+
+When a chapter finishes, `handleQueueEnded` in the playback service loads and plays the next chapter. The reader may still show the previous chapter if the user switched away or has not scrolled.
+
+**Rule:** Do **not** reload audio for the stale UI chapter. `shouldKeepLoadedChapter()` returns true only when `loadedChapter > chapter` (playback is ahead).
+
+### 2. User-initiated chapter change
+
+Prev/next at a chapter boundary, tapping a verse in another chapter, opening the panel on the scrolled chapter, or end-of-chapter autoplay in the panel all change the target chapter deliberately.
+
+**Rule:** Always load the requested chapter. Call `requestChapterLoad(chapter)` before updating `activeChapter` so `useChapterAudio` does not treat the change as stale UI lag.
+
+Flow:
+
+1. `requestChapterLoad(chapter)` marks user intent
+2. `setActiveChapter(chapter)` + `setSeekTarget({ chapter, position })`
+3. `useChapterAudio` loads the chapter (if needed)
+4. Seek effect runs when `loadedChapter === activeChapter`: seek to verse / first / last verse
+5. Resume playback if it was playing before the step
+
+### 3. Notification resume with chapter mismatch
+
+If the user was viewing chapter 5, backgrounded the app, and autoplay reached chapter 6, tapping the notification must open chapter **6**, not 5.
+
+**Rule:**
+
+- Redirect URL uses `getResumedPlaybackChapter()` (`loadedChapter` first)
+- `read.tsx` uses `effectiveChapterNumber` from the resumed chapter for scroll and panel state
+- `markNotificationResume()` suppresses one `stopPlayback` during the read-screen remount
+- `AudioPlayButton` initializes `activeChapter` from `loadedChapter` when `initialPanelOpen` is true
+
+```mermaid
+flowchart TD
+  subgraph autoplay [Autoplay ahead]
+    A1[loadedChapter = 6] --> A2[UI chapter = 5]
+    A2 --> A3[shouldKeepLoadedChapter → keep track 6]
+  end
+
+  subgraph user [User prev/next at boundary]
+    U1[requestChapterLoad] --> U2[activeChapter = 4 or 6]
+    U2 --> U3[loadChapter + seek]
+  end
+
+  subgraph notify [Notification tap]
+    N1[trackplayer://notification.click] --> N2[+native-intent → /read?chapter=loaded]
+    N2 --> N3[openAudio=1, no stopPlayback]
+  end
+```
+
+## Verse stepping at chapter boundaries
+
+| Control | At last verse of chapter | At first verse of chapter |
+|---------|--------------------------|---------------------------|
+| **Next** | `seekToNextVerse()` fails → load next chapter, seek to start, resume if playing | Seek to next verse in chapter |
+| **Previous** | Seek to previous verse in chapter | `seekToPreviousVerse()` fails (within restart threshold) → load previous chapter, seek to last verse, resume if playing |
+
+The same logic applies in text-reader panel (`audio-play-button.tsx`) and audio-only mode (`use-audio-chapter-reader.ts`).
+
 ## Summary
 
 | Concern | Offline | Online |
@@ -95,3 +204,7 @@ Downloading and playing are separate: downloads populate disk and the database; 
 | When audio is fetched (text reader) | When user opens audio panel | Same |
 | When audio is fetched (audio-only) | When screen opens | Same |
 | Chapter navigation list | Local + API manifest | API manifest, fallback to local |
+| Media notification tap | — | Redirect to `/read` with `openAudio=1` |
+| Stop on leave chapter | Always | Always |
+| Stop on app kill (Android) | `StopPlaybackAndRemoveNotification` | Same |
+| Chapter sync on resume | Use `loadedChapter` | Same |

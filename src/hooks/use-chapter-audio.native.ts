@@ -11,9 +11,11 @@ import {
   canSeekToPreviousVerseInChapter,
   clearDidJustFinish,
   clearSession,
+  consumeUserRequestedChapter,
   getChapterPlaybackSnapshot,
   getPlaybackCurrentTime,
   loadChapter,
+  shouldKeepLoadedChapter,
   pause as pausePlayback,
   play as playPlayback,
   resolveCurrentVerse,
@@ -90,6 +92,20 @@ export function useChapterAudio({
       return;
     }
 
+    const { loadedChapter, audioUrl } = getChapterPlaybackSnapshot();
+    const isUserRequested = consumeUserRequestedChapter(chapter);
+
+    if (!isUserRequested && shouldKeepLoadedChapter(languageCode, bookSlug, chapter)) {
+      // Background autoplay advanced ahead of the UI chapter — keep the active track.
+      setSessionContext({
+        languageCode,
+        bookSlug,
+        bookName: bookName?.trim() || bookSlug,
+        audioOnly,
+      });
+      return;
+    }
+
     setSessionContext({
       languageCode,
       bookSlug,
@@ -98,7 +114,6 @@ export function useChapterAudio({
       audioOnly,
     });
 
-    const { loadedChapter, audioUrl } = getChapterPlaybackSnapshot();
     if (loadedChapter === chapter && audioUrl) {
       return;
     }

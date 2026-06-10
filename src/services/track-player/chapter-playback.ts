@@ -25,6 +25,7 @@ let snapshot: ChapterPlaybackSnapshot = { ...defaultSnapshot };
 let loadGeneration = 0;
 let currentTime = 0;
 let suppressStopPlaybackOnce = false;
+let userRequestedChapter: number | null = null;
 
 const listeners = new Set<() => void>();
 
@@ -97,6 +98,52 @@ export function setSessionContext(params: {
 /** Skip the next stopPlayback triggered by a read-screen blur during notification resume. */
 export function markNotificationResume(): void {
   suppressStopPlaybackOnce = true;
+  if (snapshot.didJustFinish) {
+    setSnapshot({ didJustFinish: false });
+  }
+}
+
+export function getResumedPlaybackChapter(): number | null {
+  return snapshot.loadedChapter ?? session?.activeChapter ?? null;
+}
+
+function isSamePlaybackBook(languageCode: string, bookSlug: string): boolean {
+  if (!session) return false;
+  return (
+    session.languageCode === languageCode &&
+    session.bookSlug.toUpperCase() === bookSlug.toUpperCase()
+  );
+}
+
+/** True when background playback is already loaded for this book. */
+export function isPlaybackActiveForBook(languageCode: string, bookSlug: string): boolean {
+  return isSamePlaybackBook(languageCode, bookSlug) && snapshot.audioUrl != null;
+}
+
+/** Marks a user-initiated chapter change (prev/next, verse tap, open panel). */
+export function requestChapterLoad(chapter: number): void {
+  userRequestedChapter = chapter;
+}
+
+export function consumeUserRequestedChapter(chapter: number): boolean {
+  if (userRequestedChapter !== chapter) return false;
+  userRequestedChapter = null;
+  return true;
+}
+
+export function shouldKeepLoadedChapter(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): boolean {
+  const { loadedChapter, audioUrl } = snapshot;
+  return (
+    isPlaybackActiveForBook(languageCode, bookSlug) &&
+    loadedChapter != null &&
+    audioUrl != null &&
+    loadedChapter !== chapter &&
+    loadedChapter > chapter
+  );
 }
 
 export function consumeSuppressStopPlayback(): boolean {
@@ -106,13 +153,16 @@ export function consumeSuppressStopPlayback(): boolean {
 }
 
 export function getActivePlaybackReadRoute(): string | null {
-  if (!session?.activeChapter) return null;
+  if (!session) return null;
+
+  const chapter = getResumedPlaybackChapter();
+  if (chapter == null) return null;
 
   const params = new URLSearchParams({
     languageCode: session.languageCode,
     bookSlug: session.bookSlug,
     bookName: session.bookName,
-    chapter: String(session.activeChapter),
+    chapter: String(chapter),
     openAudio: '1',
   });
 

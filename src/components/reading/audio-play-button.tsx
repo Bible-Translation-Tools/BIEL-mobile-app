@@ -9,12 +9,26 @@ import { ReadingLayout } from '@/constants/theme';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  getChapterPlaybackSnapshot,
+  requestChapterLoad,
+} from '@/services/track-player/chapter-playback';
 import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
   chapter: number;
   position: 'start' | 'end' | number;
 };
+
+function resolveInitialActiveChapter(
+  initialPanelOpen: boolean,
+  getCurrentChapter?: () => number | undefined,
+): number | undefined {
+  if (!initialPanelOpen) return undefined;
+
+  const { loadedChapter } = getChapterPlaybackSnapshot();
+  return loadedChapter ?? getCurrentChapter?.();
+}
 
 type AudioPlayButtonProps = {
   languageCode?: string;
@@ -50,7 +64,7 @@ export function AudioPlayButton({
   const insets = useSafeAreaInsets();
   const [isPanelOpen, setIsPanelOpen] = useState(initialPanelOpen);
   const [activeChapter, setActiveChapter] = useState<number | undefined>(() =>
-    initialPanelOpen ? getCurrentChapter?.() : undefined,
+    resolveInitialActiveChapter(initialPanelOpen, getCurrentChapter),
   );
   const [shouldAutoPlayOnOpen, setShouldAutoPlayOnOpen] = useState(false);
   const [shouldAutoPlayNextChapter, setShouldAutoPlayNextChapter] = useState(false);
@@ -71,7 +85,7 @@ export function AudioPlayButton({
   useEffect(() => {
     if (!initialPanelOpen) return;
 
-    const chapterToPlay = getCurrentChapter?.();
+    const chapterToPlay = resolveInitialActiveChapter(true, getCurrentChapter);
     setActiveChapter(chapterToPlay);
     onCurrentChapterChange?.(chapterToPlay ?? null);
     onPanelOpenChange?.(true);
@@ -206,6 +220,7 @@ export function AudioPlayButton({
           onCurrentChapterChange?.(chapterAtFinish);
           return;
         }
+        requestChapterLoad(nextChapter);
         setActiveChapter(nextChapter);
         onCurrentChapterChange?.(nextChapter);
         setSeekTarget({ chapter: nextChapter, position: 'start' });
@@ -226,6 +241,7 @@ export function AudioPlayButton({
 
   const changeChapter = useCallback(
     (chapter: number, position: 'start' | 'end' | number, resumePlayback: boolean) => {
+      requestChapterLoad(chapter);
       setActiveChapter(chapter);
       onCurrentChapterChange?.(chapter);
       setSeekTarget({ chapter, position });
@@ -338,6 +354,7 @@ export function AudioPlayButton({
         ]}
         onPress={() => {
           const chapterToPlay = getCurrentChapter?.();
+          if (chapterToPlay != null) requestChapterLoad(chapterToPlay);
           setActiveChapter(chapterToPlay);
           setShouldAutoPlayOnOpen(true);
           setIsPanelOpen(true);

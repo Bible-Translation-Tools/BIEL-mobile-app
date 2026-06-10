@@ -26,6 +26,7 @@ import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
 import { useStopPlaybackOnLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
+import { getResumedPlaybackChapter } from '@/services/track-player/chapter-playback';
 import { useReadingTextStyles } from '@/stores/reading-text-settings-store';
 import type { ChapterContent } from '@/types/reading';
 import { normalizeRouteParam } from '@/utils/route-params';
@@ -50,6 +51,9 @@ export default function ReadingScreen() {
   const audioOnly = audioOnlyParam === '1' || audioOnlyParam === 'true';
   const openAudio = openAudioParam === '1' || openAudioParam === 'true';
   const chapterNumber = Number.parseInt(normalizeRouteParam(chapter) ?? '', 10);
+  const resumedPlaybackChapter = openAudio ? getResumedPlaybackChapter() : null;
+  const effectiveChapterNumber =
+    resumedPlaybackChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined);
 
   useStopPlaybackOnLeave();
 
@@ -71,7 +75,7 @@ export default function ReadingScreen() {
   } = useReaderScroll(
     audioOnly ? undefined : languageCode,
     audioOnly ? undefined : bookSlug,
-    audioOnly || !Number.isFinite(chapterNumber) ? undefined : chapterNumber,
+    audioOnly || effectiveChapterNumber == null ? undefined : effectiveChapterNumber,
   );
 
   const displayBookName =
@@ -84,7 +88,7 @@ export default function ReadingScreen() {
     useReaderToolbar(displayBookName);
 
   const currentAudioChapter =
-    visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined);
+    visibleChapter ?? effectiveChapterNumber;
   const currentChapterHasAudio = useChapterHasAudio({
     languageCode,
     bookSlug,
@@ -114,7 +118,10 @@ export default function ReadingScreen() {
     if (!openAudio) return;
     isAudioPanelOpenRef.current = true;
     setIsAudioPanelOpen(true);
-  }, [openAudio]);
+    if (resumedPlaybackChapter != null) {
+      setCurrentPlayingChapter(resumedPlaybackChapter);
+    }
+  }, [openAudio, resumedPlaybackChapter]);
 
   useEffect(() => {
     currentPlayingVerseRef.current = currentPlayingVerse;
@@ -247,9 +254,10 @@ export default function ReadingScreen() {
   }, [languageCode, bookSlug, chapterNumber]);
 
   useEffect(() => {
+    if (openAudio && resumedPlaybackChapter != null) return;
     setCurrentPlayingVerse(null);
     setCurrentPlayingChapter(null);
-  }, [languageCode, bookSlug, chapterNumber]);
+  }, [languageCode, bookSlug, chapterNumber, openAudio, resumedPlaybackChapter]);
 
   const scrollToInitialChapter = useCallback(
     (index: number) => {
@@ -332,8 +340,11 @@ export default function ReadingScreen() {
   }, [fontSize, lineHeight, scrollToPlayingVerse]);
 
   const getCurrentChapterForAudio = useCallback(
-    () => visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined),
-    [visibleChapter, chapterNumber],
+    () =>
+      (openAudio ? resumedPlaybackChapter : undefined) ??
+      visibleChapter ??
+      effectiveChapterNumber,
+    [effectiveChapterNumber, openAudio, resumedPlaybackChapter, visibleChapter],
   );
 
   const getAdjacentChapterForAudio = useCallback(
@@ -422,7 +433,7 @@ export default function ReadingScreen() {
     (audioOnly || audioOnlyFallback) &&
     ietfCode &&
     resolvedBookSlug &&
-    Number.isFinite(chapterNumber)
+    effectiveChapterNumber != null
   ) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -431,7 +442,7 @@ export default function ReadingScreen() {
           languageCode={ietfCode}
           bookSlug={resolvedBookSlug}
           bookName={resolvedBookName}
-          chapter={chapterNumber}
+          chapter={effectiveChapterNumber}
         />
       </View>
     );
