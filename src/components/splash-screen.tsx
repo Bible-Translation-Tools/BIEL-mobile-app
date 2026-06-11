@@ -5,7 +5,11 @@ import { BookFillIcon } from '@/components/icons/book-fill-icon';
 import { WaLogo } from '@/components/icons/wa-logo';
 import { Splash, SplashDesign } from '@/constants/theme';
 
-export function SplashScreenView() {
+type SplashScreenViewProps = {
+  onReady?: () => void;
+};
+
+export function SplashScreenView({ onReady }: SplashScreenViewProps) {
   const { width } = Dimensions.get('window');
   const scale = width / SplashDesign.frameWidth;
   const padding = SplashDesign.padding * scale;
@@ -13,7 +17,7 @@ export function SplashScreenView() {
   const logoWidth = SplashDesign.logoWidth * scale;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onReady}>
       <StatusBar style="light" />
       <View style={[styles.content, { padding }]}>
         <View style={styles.graphic}>

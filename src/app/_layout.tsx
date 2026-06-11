@@ -1,7 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Platform } from 'react-native';
 
@@ -41,6 +41,13 @@ function RootNavigation() {
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
   const [initialLocale, setInitialLocale] = useState<AppLocale | null>(null);
+  const nativeSplashHidden = useRef(false);
+
+  const hideNativeSplash = useCallback(() => {
+    if (nativeSplashHidden.current) return;
+    nativeSplashHidden.current = true;
+    ExpoSplashScreen.hideAsync().catch(() => {});
+  }, []);
 
   useEffect(() => {
     async function prepare() {
@@ -63,16 +70,16 @@ export default function RootLayout() {
         await ensureOfflineRootExists();
         await loadLanguageCatalog();
       } finally {
+        hideNativeSplash();
         setAppReady(true);
-        await ExpoSplashScreen.hideAsync();
       }
     }
 
     prepare();
-  }, []);
+  }, [hideNativeSplash]);
 
   if (!appReady || initialLocale == null) {
-    return <SplashScreenView />;
+    return <SplashScreenView onReady={hideNativeSplash} />;
   }
 
   return (
