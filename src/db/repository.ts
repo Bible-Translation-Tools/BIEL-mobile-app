@@ -452,6 +452,7 @@ export type AudioBookDownloadRecord = {
   bookName: string;
   byteSize: number;
   downloadedAt: number;
+  isComplete: boolean;
 };
 
 export type AudioChapterRecord = {
@@ -468,6 +469,7 @@ export type UpsertAudioBookParams = {
   bookName: string;
   byteSize: number;
   chapters: AudioChapterRecord[];
+  isComplete?: boolean;
 };
 
 export async function getAudioBookRecord(
@@ -482,8 +484,9 @@ export async function getAudioBookRecord(
     book_name: string;
     byte_size: number;
     downloaded_at: number;
+    is_complete: number;
   }>(
-    `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at
+    `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at, is_complete
      FROM audio_books
      WHERE language_code = ? AND book_slug = ? COLLATE NOCASE`,
     languageCode,
@@ -499,13 +502,14 @@ export async function getAudioBookRecord(
     bookName: row.book_name,
     byteSize: row.byte_size,
     downloadedAt: row.downloaded_at,
+    isComplete: row.is_complete === 1,
   };
 }
 
 export async function listDownloadedAudioBookSlugs(languageCode: string): Promise<string[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ book_slug: string }>(
-    'SELECT book_slug FROM audio_books WHERE language_code = ?',
+    'SELECT book_slug FROM audio_books WHERE language_code = ? AND is_complete = 1',
     languageCode,
   );
   return rows.map((row) => row.book_slug);
@@ -523,8 +527,9 @@ export async function listDownloadedAudioBooksForLanguage(
       book_name: string;
       byte_size: number;
       downloaded_at: number;
+      is_complete: number;
     }>(
-      `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at
+      `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at, is_complete
        FROM audio_books
        WHERE language_code = ?
        ORDER BY book_slug ASC`,
@@ -538,6 +543,7 @@ export async function listDownloadedAudioBooksForLanguage(
       bookName: row.book_name,
       byteSize: row.byte_size,
       downloadedAt: row.downloaded_at,
+      isComplete: row.is_complete === 1,
     }));
   } catch {
     return [];
@@ -594,13 +600,14 @@ export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams)
     );
 
     const insertResult = await db.runAsync(
-      `INSERT INTO audio_books (language_code, book_slug, book_name, byte_size, downloaded_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO audio_books (language_code, book_slug, book_name, byte_size, downloaded_at, is_complete)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       params.languageCode,
       params.bookSlug,
       params.bookName,
       params.byteSize,
       now,
+      params.isComplete ? 1 : 0,
     );
 
     audioBookId = insertResult.lastInsertRowId;
@@ -625,6 +632,15 @@ export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams)
   });
 
   return audioBookId;
+}
+
+export async function markAudioBookComplete(languageCode: string, bookSlug: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'UPDATE audio_books SET is_complete = 1 WHERE language_code = ? AND book_slug = ? COLLATE NOCASE',
+    languageCode,
+    bookSlug,
+  );
 }
 
 export async function deleteAudioBook(languageCode: string, bookSlug: string): Promise<void> {
@@ -657,6 +673,7 @@ export async function mergeAudioChapter(
     bookName,
     byteSize,
     chapters: merged,
+    isComplete: false,
   });
 }
 
@@ -688,6 +705,7 @@ export async function deleteAudioChapter(
     bookName: record.bookName,
     byteSize,
     chapters: remaining,
+    isComplete: false,
   });
 }
 

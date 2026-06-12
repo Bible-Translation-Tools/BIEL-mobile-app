@@ -66,7 +66,7 @@ export const BookCardRow = memo(function BookCardRow({
   const { t } = useTranslation('books');
   const { t: tc } = useTranslation('common');
   const isScriptureDownloaded = book.downloadStatus === 'downloaded';
-  const isAudioDownloaded = book.audioDownloadStatus === 'downloaded';
+  const isAudioDownloadedInList = book.audioDownloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -99,6 +99,7 @@ export const BookCardRow = memo(function BookCardRow({
     fileSizeLabel: audioFileSizeLabel,
     hasAudio,
     isChecking: isAudioChecking,
+    isDownloaded: isAudioDownloaded,
     error: audioError,
     clearError: clearAudioError,
     startDownload: startAudioDownload,
@@ -130,8 +131,8 @@ export const BookCardRow = memo(function BookCardRow({
 
   const bookHasAudio = book.hasAudio === true;
   const isFullyDownloaded = audioOnly
-    ? isAudioDownloaded
-    : isScriptureDownloaded && (!bookHasAudio || isAudioDownloaded);
+    ? isAudioDownloadedInList
+    : isScriptureDownloaded && (!bookHasAudio || isAudioDownloadedInList);
 
   const openDownloadMenu = useCallback(() => {
     Keyboard.dismiss();

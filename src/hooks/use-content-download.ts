@@ -118,6 +118,18 @@ export function useContentDownload({
     scheduleIdleTask(callback);
   }, []);
 
+  const notifyCompleteIfDownloaded = useCallback(async () => {
+    if (!onComplete) return;
+
+    const fullyDownloaded = getIsDownloaded
+      ? await getIsDownloaded().catch(() => false)
+      : true;
+
+    if (fullyDownloaded) {
+      scheduleOnComplete(onComplete);
+    }
+  }, [getIsDownloaded, onComplete, scheduleOnComplete]);
+
   const reportProgress = useCallback((value: number) => {
     const now = Date.now();
     const last = progressSampleRef.current;
@@ -242,9 +254,9 @@ export function useContentDownload({
           if (enabled) {
             await refresh();
           } else if (getIsDownloaded) {
-            setIsDownloaded(true);
+            setIsDownloaded(await getIsDownloaded().catch(() => false));
           }
-          scheduleOnComplete(onComplete);
+          await notifyCompleteIfDownloaded();
         },
         onError: (message) => {
           setError({
@@ -270,9 +282,9 @@ export function useContentDownload({
       if (enabled) {
         await refresh();
       } else if (getIsDownloaded) {
-        setIsDownloaded(true);
+        setIsDownloaded(await getIsDownloaded().catch(() => false));
       }
-      scheduleOnComplete(onComplete);
+      await notifyCompleteIfDownloaded();
     } catch (err) {
       if (isAbortError(err)) {
         if (enabled) {
@@ -298,12 +310,12 @@ export function useContentDownload({
     globalSync,
     globalTask?.status,
     isDownloading,
+    notifyCompleteIfDownloaded,
     onComplete,
     refresh,
     reportProgress,
     resolvedDownloadFailedMessage,
     resolvedDownloadFailedTitle,
-    scheduleOnComplete,
     usesGlobalSync,
   ]);
 

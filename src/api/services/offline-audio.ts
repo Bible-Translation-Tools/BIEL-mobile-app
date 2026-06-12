@@ -25,6 +25,7 @@ import {
   listAudioChaptersForBook,
   listDownloadedAudioBookSlugs,
   listDownloadedAudioBooksForLanguage,
+  markAudioBookComplete,
   mergeAudioChapter,
   upsertAudioBookWithChapters,
 } from '@/db';
@@ -167,6 +168,21 @@ async function getLanguageAudioManifests(
   return parseLanguageAudioManifests(await fetchLanguageAudioFiles(languageCode));
 }
 
+function sumChapterBytes(chapters: AudioChapterRecord[]): number {
+  return chapters.reduce((sum, chapter) => sum + chapter.mp3ByteSize + chapter.cueByteSize, 0);
+}
+
+function mergeChapterRecords(
+  existing: AudioChapterRecord[],
+  saved: AudioChapterRecord[],
+): AudioChapterRecord[] {
+  const mergedByNumber = new Map(existing.map((chapter) => [chapter.chapterNumber, chapter]));
+  for (const chapter of saved) {
+    mergedByNumber.set(chapter.chapterNumber, chapter);
+  }
+  return [...mergedByNumber.values()].sort((a, b) => a.chapterNumber - b.chapterNumber);
+}
+
 function isBookFullyDownloadedLocally(
   manifest: Pick<AudioBookManifest, 'chapters'>,
   languageCode: string,
@@ -278,16 +294,19 @@ export async function isBookAudioDownloaded(
     const manifest = await resolveBookAudioChapters(languageCode, canonicalSlug);
     if (manifest.chapters.length === 0) return false;
 
-    const downloadedSet = new Set(downloadedNumbers);
-    return manifest.chapters.every((chapter) => downloadedSet.has(chapter.chapter));
+    const isComplete = isBookFullyDownloadedLocally(
+      manifest,
+      languageCode,
+      canonicalSlug,
+      downloadedNumbers,
+    );
+    if (isComplete) {
+      await markAudioBookComplete(languageCode, canonicalSlug);
+    }
+    return isComplete;
   } catch {
     const record = await getAudioBookRecord(languageCode, canonicalSlug);
-    if (!record) return false;
-
-    const chapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
-    if (chapters.length === 0) return false;
-
-    return chapters.every((chapter) => new File(chapter.mp3Path).exists);
+    return record?.isComplete === true;
   }
 }
 
@@ -469,7 +488,43 @@ export async function downloadBookAudio(
   const canonicalSlug = manifest.bookSlug;
   ensureOfflineAudioDirectory(languageCode, canonicalSlug);
 
-  const totalChapters = manifest.chapters.length;
+  const existingChapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
+  const pendingChapters = manifest.chapters.filter((chapterAudio) => {
+    const existing = existingChapters.find((chapter) => chapter.chapterNumber === chapterAudio.chapter);
+    if (!existing) return true;
+    return !new File(existing.mp3Path).exists;
+  });
+
+  const persistChapters = async (chapters: AudioChapterRecord[], isComplete: boolean) => {
+    await upsertAudioBookWithChapters({
+      languageCode,
+      bookSlug: canonicalSlug,
+      bookName: manifest.bookName,
+      byteSize: sumChapterBytes(chapters),
+      chapters,
+      isComplete,
+    });
+  };
+
+  if (pendingChapters.length === 0) {
+    const merged = mergeChapterRecords(existingChapters, []);
+    const isComplete = isBookFullyDownloadedLocally(
+      manifest,
+      languageCode,
+      canonicalSlug,
+      merged.map((chapter) => chapter.chapterNumber),
+    );
+    await persistChapters(merged, isComplete);
+
+    if (!isComplete) {
+      throw new Error('Could not download all audio chapters');
+    }
+
+    options?.onProgress?.(1);
+    return;
+  }
+
+  const totalChapters = pendingChapters.length;
   const progressByChapter = new Array<number>(totalChapters).fill(0);
   const reportProgress = () => {
     const overall =
@@ -480,7 +535,7 @@ export async function downloadBookAudio(
 
   const savedChapters = (
     await runWithConcurrency(
-      manifest.chapters,
+      pendingChapters,
       AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY,
       async (chapterAudio, index) => {
         if (options?.signal?.aborted) {
@@ -512,23 +567,29 @@ export async function downloadBookAudio(
     )
   ).filter((chapter): chapter is AudioChapterRecord => chapter !== null);
 
-  if (savedChapters.length === 0) {
-    options?.onProgress?.(1);
+  if (options?.signal?.aborted) {
+    if (savedChapters.length > 0) {
+      const merged = mergeChapterRecords(existingChapters, savedChapters);
+      await persistChapters(merged, false);
+    }
     return;
   }
 
-  const totalBytes = savedChapters.reduce(
-    (sum, chapter) => sum + chapter.mp3ByteSize + chapter.cueByteSize,
-    0,
+  const merged = mergeChapterRecords(existingChapters, savedChapters);
+  const isComplete = isBookFullyDownloadedLocally(
+    manifest,
+    languageCode,
+    canonicalSlug,
+    merged.map((chapter) => chapter.chapterNumber),
   );
 
-  await upsertAudioBookWithChapters({
-    languageCode,
-    bookSlug: canonicalSlug,
-    bookName: manifest.bookName,
-    byteSize: totalBytes,
-    chapters: savedChapters,
-  });
+  if (merged.length > 0) {
+    await persistChapters(merged, isComplete);
+  }
+
+  if (!isComplete) {
+    throw new Error('Could not download all audio chapters');
+  }
 
   options?.onProgress?.(1);
 }

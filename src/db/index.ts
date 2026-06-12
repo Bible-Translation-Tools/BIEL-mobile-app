@@ -32,6 +32,7 @@ export {
   listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
   listScriptureChapterNumbersForBook,
+  markAudioBookComplete,
   replaceBookCatalog,
   replaceLanguageCatalog,
   upsertAudioBookWithChapters,
