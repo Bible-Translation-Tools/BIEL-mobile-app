@@ -3,32 +3,11 @@ import { describe, expect, it } from 'vitest';
 import type { AudioChapterRecord } from '@/db';
 import type { AudioBookManifest } from '@/types/audio';
 
-function sumChapterBytes(chapters: AudioChapterRecord[]): number {
-  return chapters.reduce((sum, chapter) => sum + chapter.mp3ByteSize + chapter.cueByteSize, 0);
-}
-
-function mergeChapterRecords(
-  existing: AudioChapterRecord[],
-  saved: AudioChapterRecord[],
-): AudioChapterRecord[] {
-  const mergedByNumber = new Map(existing.map((chapter) => [chapter.chapterNumber, chapter]));
-  for (const chapter of saved) {
-    mergedByNumber.set(chapter.chapterNumber, chapter);
-  }
-  return [...mergedByNumber.values()].sort((a, b) => a.chapterNumber - b.chapterNumber);
-}
-
-function isManifestFullyDownloaded(
-  manifest: Pick<AudioBookManifest, 'chapters'>,
-  chapterNumbers: number[],
-): boolean {
-  if (manifest.chapters.length === 0 || chapterNumbers.length === 0) {
-    return false;
-  }
-
-  const downloadedSet = new Set(chapterNumbers);
-  return manifest.chapters.every((chapter) => downloadedSet.has(chapter.chapter));
-}
+import {
+  isManifestChapterSetComplete,
+  mergeChapterRecords,
+  sumChapterBytes,
+} from '../offline-audio/manifest-helpers';
 
 describe('book audio download helpers', () => {
   const manifest: Pick<AudioBookManifest, 'chapters'> = {
@@ -40,11 +19,11 @@ describe('book audio download helpers', () => {
   };
 
   it('treats a single downloaded chapter as incomplete', () => {
-    expect(isManifestFullyDownloaded(manifest, [1])).toBe(false);
+    expect(isManifestChapterSetComplete(manifest, [1])).toBe(false);
   });
 
   it('treats all manifest chapters as complete', () => {
-    expect(isManifestFullyDownloaded(manifest, [1, 2, 3])).toBe(true);
+    expect(isManifestChapterSetComplete(manifest, [1, 2, 3])).toBe(true);
   });
 
   it('merges existing and newly saved chapters without dropping prior downloads', () => {
@@ -71,8 +50,11 @@ describe('book audio download helpers', () => {
 
     expect(merged.map((chapter) => chapter.chapterNumber)).toEqual([1, 2]);
     expect(sumChapterBytes(merged)).toBe(3000);
-    expect(isManifestFullyDownloaded(manifest, merged.map((chapter) => chapter.chapterNumber))).toBe(
-      false,
-    );
+    expect(
+      isManifestChapterSetComplete(
+        manifest,
+        merged.map((chapter) => chapter.chapterNumber),
+      ),
+    ).toBe(false);
   });
 });
