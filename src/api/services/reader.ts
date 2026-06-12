@@ -35,7 +35,14 @@ function stripTags(html: string): string {
 
 /** Strip empty <p></p> tags nested inside verses — they break naive paragraph matching. */
 function cleanChapterHtml(html: string): string {
-  return html.replace(/<p>\s*<\/p>/gi, '');
+  return (
+    html
+      .replace(/<p>\s*<\/p>/gi, '')
+      // Unwrap per-word <span class="word-entry">…</span> markers, keeping their
+      // text. They nest inside verse spans, so the non-greedy verse regex would
+      // otherwise stop at the first nested </span> and truncate the verse.
+      .replace(/<span class="word-entry"[^>]*>([\s\S]*?)<\/span>/gi, '$1')
+  );
 }
 
 function parseAllVerses(html: string): ScriptureVerse[] {
@@ -47,12 +54,18 @@ function parseAllVerses(html: string): ScriptureVerse[] {
   let match = verseRegex.exec(cleaned);
   while (match) {
     const verseBody = match[2];
-    const lines = parseVerseLines(verseBody);
+    // A poetry div can wrap the whole verse span (not just sit inside the body),
+    // e.g. <div class="poetry-1"><span class="verse">…</span></div>. Detect that
+    // wrapper so the verse keeps its poetic indent and starts on a new line.
+    const wrapMatch = cleaned.slice(0, match.index).match(/<div class="poetry-(\d+)">\s*$/i);
+    const wrapIndent = wrapMatch ? Number.parseInt(wrapMatch[1], 10) : 0;
+
+    const lines = parseVerseLines(verseBody, wrapIndent);
     if (lines.length > 0) {
       verses.push({
         number: Number.parseInt(match[1], 10),
         lines,
-        startsOnNewLine: /class="poetry-\d+"/i.test(verseBody),
+        startsOnNewLine: wrapIndent > 0 || /class="poetry-\d+"/i.test(verseBody),
       });
     }
     match = verseRegex.exec(cleaned);
@@ -94,6 +107,10 @@ function extractLinesFromSegment(segmentHtml: string, indentLevel: number): Scri
   if (!segmentHtml.trim()) return [];
 
   const normalized = segmentHtml
+    // Source newlines are insignificant HTML whitespace; only <br>/<div>
+    // boundaries below become real line breaks. Without this, markup that puts
+    // each word on its own source line splits a verse into one word per line.
+    .replace(/\r?\n/g, ' ')
     .replace(/<\/div>\s*<div(?:\s[^>]*)?>/gi, '\n')
     .replace(/<div(?:\s[^>]*)?>/gi, '\n')
     .replace(/<\/div>/gi, '')
@@ -142,11 +159,11 @@ function extractLinesFromSegment(segmentHtml: string, indentLevel: number): Scri
   return lines;
 }
 
-function parseVerseLines(verseHtml: string): ScriptureLine[] {
+function parseVerseLines(verseHtml: string, wrapIndent = 0): ScriptureLine[] {
   const lines: ScriptureLine[] = [];
   const poetryRegex = /<div class="poetry-(\d+)">([\s\S]*?)<\/div>/gi;
   const hasPoetryContent = /class="poetry-\d+"/i.test(verseHtml);
-  const baseIndentLevel = hasPoetryContent ? 1 : 0;
+  const baseIndentLevel = wrapIndent > 0 ? wrapIndent : hasPoetryContent ? 1 : 0;
   let lastIndex = 0;
   let match = poetryRegex.exec(verseHtml);
 
