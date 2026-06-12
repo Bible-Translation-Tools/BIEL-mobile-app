@@ -34,6 +34,20 @@ export type UpsertBookParams = {
 };
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+let transactionTail: Promise<unknown> = Promise.resolve();
+
+/** SQLite allows only one active transaction per connection. */
+async function withSerializedTransaction(
+  db: SQLite.SQLiteDatabase,
+  fn: () => Promise<void>,
+): Promise<void> {
+  const run = transactionTail.then(() => db.withTransactionAsync(fn));
+  transactionTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
 
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
@@ -152,21 +166,25 @@ function mapCachedLanguageRow(row: CachedLanguageRow): LanguageItem {
 
 export async function replaceLanguageCatalog(languages: LanguageItem[]): Promise<void> {
   const db = await getDb();
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync('DELETE FROM language_catalog');
-    for (const [index, language] of languages.entries()) {
-      await db.runAsync(
-        `INSERT INTO language_catalog (
-           ietf_code, english_name, national_name, has_text, has_audio, sort_order
-         ) VALUES (?, ?, ?, ?, ?, ?)`,
-        language.code,
-        language.name,
-        language.nationalName,
-        language.hasText ? 1 : 0,
-        language.hasAudio ? 1 : 0,
-        index,
-      );
-    }
+    if (languages.length === 0) return;
+
+    const placeholders = languages.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+    const values = languages.flatMap((language, index) => [
+      language.code,
+      language.name,
+      language.nationalName,
+      language.hasText ? 1 : 0,
+      language.hasAudio ? 1 : 0,
+      index,
+    ]);
+    await db.runAsync(
+      `INSERT INTO language_catalog (
+         ietf_code, english_name, national_name, has_text, has_audio, sort_order
+       ) VALUES ${placeholders}`,
+      values,
+    );
   });
 }
 
@@ -236,18 +254,22 @@ export async function replaceBookCatalog(
   books: Pick<BookItem, 'slug' | 'name' | 'testament'>[],
 ): Promise<void> {
   const db = await getDb();
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync('DELETE FROM book_catalog WHERE language_code = ?', languageCode);
-    for (const book of books) {
-      await db.runAsync(
-        `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
-         VALUES (?, ?, ?, ?)`,
-        languageCode,
-        book.slug,
-        book.name,
-        book.testament,
-      );
-    }
+    if (books.length === 0) return;
+
+    const placeholders = books.map(() => '(?, ?, ?, ?)').join(', ');
+    const values = books.flatMap((book) => [
+      languageCode,
+      book.slug,
+      book.name,
+      book.testament,
+    ]);
+    await db.runAsync(
+      `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
+       VALUES ${placeholders}`,
+      values,
+    );
   });
 }
 
@@ -272,6 +294,8 @@ export async function listBookCatalog(languageCode: string): Promise<BookItem[]>
       name: row.book_name,
       testament: row.testament,
       downloadStatus: 'pending' as const,
+      audioDownloadStatus: 'pending' as const,
+      hasAudio: false,
     }));
   } catch {
     return [];
@@ -351,7 +375,7 @@ export async function upsertBookWithChapters(params: UpsertBookParams): Promise<
   const now = Date.now();
   let bookId = 0;
 
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync(
       `INSERT INTO languages (ietf_code, english_name, national_name, updated_at)
        VALUES (?, ?, ?, ?)
@@ -388,11 +412,12 @@ export async function upsertBookWithChapters(params: UpsertBookParams): Promise<
 
     bookId = insertResult.lastInsertRowId;
 
-    for (const chapterNumber of params.chapterNumbers) {
+    if (params.chapterNumbers.length > 0) {
+      const placeholders = params.chapterNumbers.map(() => '(?, ?)').join(', ');
+      const values = params.chapterNumbers.flatMap((chapterNumber) => [bookId, chapterNumber]);
       await db.runAsync(
-        'INSERT INTO chapters (book_id, chapter_number) VALUES (?, ?)',
-        bookId,
-        chapterNumber,
+        `INSERT INTO chapters (book_id, chapter_number) VALUES ${placeholders}`,
+        values,
       );
     }
 
@@ -427,6 +452,7 @@ export type AudioBookDownloadRecord = {
   bookName: string;
   byteSize: number;
   downloadedAt: number;
+  isComplete: boolean;
 };
 
 export type AudioChapterRecord = {
@@ -443,6 +469,7 @@ export type UpsertAudioBookParams = {
   bookName: string;
   byteSize: number;
   chapters: AudioChapterRecord[];
+  isComplete?: boolean;
 };
 
 export async function getAudioBookRecord(
@@ -457,8 +484,9 @@ export async function getAudioBookRecord(
     book_name: string;
     byte_size: number;
     downloaded_at: number;
+    is_complete: number;
   }>(
-    `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at
+    `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at, is_complete
      FROM audio_books
      WHERE language_code = ? AND book_slug = ? COLLATE NOCASE`,
     languageCode,
@@ -474,13 +502,14 @@ export async function getAudioBookRecord(
     bookName: row.book_name,
     byteSize: row.byte_size,
     downloadedAt: row.downloaded_at,
+    isComplete: row.is_complete === 1,
   };
 }
 
 export async function listDownloadedAudioBookSlugs(languageCode: string): Promise<string[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ book_slug: string }>(
-    'SELECT book_slug FROM audio_books WHERE language_code = ?',
+    'SELECT book_slug FROM audio_books WHERE language_code = ? AND is_complete = 1',
     languageCode,
   );
   return rows.map((row) => row.book_slug);
@@ -498,8 +527,9 @@ export async function listDownloadedAudioBooksForLanguage(
       book_name: string;
       byte_size: number;
       downloaded_at: number;
+      is_complete: number;
     }>(
-      `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at
+      `SELECT id, language_code, book_slug, book_name, byte_size, downloaded_at, is_complete
        FROM audio_books
        WHERE language_code = ?
        ORDER BY book_slug ASC`,
@@ -513,6 +543,7 @@ export async function listDownloadedAudioBooksForLanguage(
       bookName: row.book_name,
       byteSize: row.byte_size,
       downloadedAt: row.downloaded_at,
+      isComplete: row.is_complete === 1,
     }));
   } catch {
     return [];
@@ -554,7 +585,7 @@ export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams)
   const now = Date.now();
   let audioBookId = 0;
 
-  await db.withTransactionAsync(async () => {
+  await withSerializedTransaction(db, async () => {
     await db.runAsync(
       `INSERT INTO languages (ietf_code, updated_at)
        VALUES (?, ?)
@@ -569,33 +600,47 @@ export async function upsertAudioBookWithChapters(params: UpsertAudioBookParams)
     );
 
     const insertResult = await db.runAsync(
-      `INSERT INTO audio_books (language_code, book_slug, book_name, byte_size, downloaded_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO audio_books (language_code, book_slug, book_name, byte_size, downloaded_at, is_complete)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       params.languageCode,
       params.bookSlug,
       params.bookName,
       params.byteSize,
       now,
+      params.isComplete ? 1 : 0,
     );
 
     audioBookId = insertResult.lastInsertRowId;
 
-    for (const chapter of params.chapters) {
-      await db.runAsync(
-        `INSERT INTO audio_chapters (
-           audio_book_id, chapter_number, mp3_path, cue_path, mp3_byte_size, cue_byte_size
-         ) VALUES (?, ?, ?, ?, ?, ?)`,
+    if (params.chapters.length > 0) {
+      const placeholders = params.chapters.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+      const values = params.chapters.flatMap((chapter) => [
         audioBookId,
         chapter.chapterNumber,
         chapter.mp3Path,
         chapter.cuePath,
         chapter.mp3ByteSize,
         chapter.cueByteSize,
+      ]);
+      await db.runAsync(
+        `INSERT INTO audio_chapters (
+           audio_book_id, chapter_number, mp3_path, cue_path, mp3_byte_size, cue_byte_size
+         ) VALUES ${placeholders}`,
+        values,
       );
     }
   });
 
   return audioBookId;
+}
+
+export async function markAudioBookComplete(languageCode: string, bookSlug: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'UPDATE audio_books SET is_complete = 1 WHERE language_code = ? AND book_slug = ? COLLATE NOCASE',
+    languageCode,
+    bookSlug,
+  );
 }
 
 export async function deleteAudioBook(languageCode: string, bookSlug: string): Promise<void> {
@@ -628,6 +673,7 @@ export async function mergeAudioChapter(
     bookName,
     byteSize,
     chapters: merged,
+    isComplete: false,
   });
 }
 
@@ -659,6 +705,7 @@ export async function deleteAudioChapter(
     bookName: record.bookName,
     byteSize,
     chapters: remaining,
+    isComplete: false,
   });
 }
 

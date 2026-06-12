@@ -1,2 +1,10 @@
+packages:
+  - .
+
 allowBuilds:
-  unrs-resolver: set this to true or false
+  sharp: true
+  unrs-resolver: false
+minimumReleaseAgeExclude:
+  - i18next@26.3.1
+patchedDependencies:
+  react-native-track-player@4.1.2: patches/react-native-track-player@4.1.2.patch

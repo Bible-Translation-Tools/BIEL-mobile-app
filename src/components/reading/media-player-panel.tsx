@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MediaPlayerControls } from '@/components/reading/media-player-controls';
@@ -17,6 +18,8 @@ type MediaPlayerPanelProps = {
   onTogglePlay?: () => void;
   onPreviousVerse?: () => void;
   onNextVerse?: () => void;
+  volume?: number;
+  onVolumeChange?: (volume: number) => void;
   onHeightChange?: (height: number) => void;
 };
 
@@ -30,9 +33,12 @@ export function MediaPlayerPanel({
   onTogglePlay,
   onPreviousVerse,
   onNextVerse,
+  volume,
+  onVolumeChange,
   onHeightChange,
 }: MediaPlayerPanelProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const insets = useSafeAreaInsets();
 
   return (
@@ -47,15 +53,15 @@ export function MediaPlayerPanel({
       ]}
       onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
       accessibilityRole="toolbar"
-      accessibilityLabel="Audio player">
+      accessibilityLabel={t('audioPlayer')}>
       <Pressable
         onPress={onClose}
         style={({ pressed }) => [styles.closeButton, { opacity: pressed ? 0.6 : 1 }]}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Close audio player">
+        accessibilityLabel={t('closeAudioPlayer')}>
         <IconSymbol
-          name={{ ios: 'xmark', android: 'close', web: 'close' }}
+          name={{ ios: 'xmark', android: 'close' }}
           size={24}
           color={theme.iconPrimary}
         />
@@ -71,6 +77,8 @@ export function MediaPlayerPanel({
           onTogglePlay={onTogglePlay}
           onPreviousVerse={onPreviousVerse}
           onNextVerse={onNextVerse}
+          volume={volume}
+          onVolumeChange={onVolumeChange}
         />
       </View>
     </View>

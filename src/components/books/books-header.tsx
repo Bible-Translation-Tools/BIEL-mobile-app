@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
@@ -13,10 +14,12 @@ type BooksHeaderProps = {
 export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
   const theme = useTheme();
   const searchInputRef = useRef<TextInput>(null);
+  const { t } = useTranslation('books');
+  const { t: tc } = useTranslation('common');
 
   return (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.textHeading }]}>Bible</Text>
+      <Text style={[styles.title, { color: theme.textHeading }]}>{t('title')}</Text>
 
       <Pressable
         accessible={false}
@@ -29,7 +32,7 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
           },
         ]}>
         <IconSymbol
-          name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+          name={{ ios: 'magnifyingglass', android: 'search' }}
           size={28}
           color={theme.iconTertiary}
         />
@@ -37,10 +40,10 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
           ref={searchInputRef}
           value={searchQuery}
           onChangeText={onSearchChange}
-          placeholder="Search book here..."
+          placeholder={t('searchPlaceholder')}
           placeholderTextColor={theme.textPlaceholder}
           style={[styles.searchInput, { color: theme.text }]}
-          accessibilityLabel="Search books"
+          accessibilityLabel={t('searchAccessibility')}
         />
         {searchQuery.length > 0 && (
           <Pressable
@@ -50,9 +53,9 @@ export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
             }}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Clear search">
+            accessibilityLabel={tc('clearSearch')}>
             <IconSymbol
-              name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
+              name={{ ios: 'xmark.circle.fill', android: 'cancel' }}
               size={20}
               color={theme.iconTertiary}
             />

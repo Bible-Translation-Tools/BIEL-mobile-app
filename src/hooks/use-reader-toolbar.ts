@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ViewToken } from 'react-native';
 
 import { ReadingLayout } from '@/constants/theme';
@@ -13,9 +13,9 @@ export function useReaderToolbar(bookName: string) {
   const toolbarChapterTitle =
     showToolbarTitle && visibleChapter != null ? `${bookName} ${visibleChapter}` : undefined;
 
-  const updateScrollY = useCallback((offsetY: number) => {
+  function updateScrollY(offsetY: number) {
     setScrollY(offsetY);
-  }, []);
+  }
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {

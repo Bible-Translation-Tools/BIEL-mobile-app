@@ -40,10 +40,6 @@ export type BookAudioFilesQueryResult = {
   content: ApiAudioContent[];
 };
 
-export type AudioBooksForLanguageQueryResult = {
-  content: ApiAudioContent[];
-};
-
 export type ResolvedChapterAudio = {
   chapter: number;
   mp3Url: string;

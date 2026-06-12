@@ -1,20 +1,22 @@
 export const READING_TEXT_DEFAULTS = {
-  baseFontSize: 16,
-  baseLineHeight: 32,
-  baseFootnoteMarkerFontSize: 20,
+  baseFontSize: 18,
+  baseLineHeight: 36,
+  baseFootnoteMarkerFontSize: 22.5,
 } as const;
 
-export const VERSE_NUMBER_FONT_SIZE_DEFAULT = 18;
+export const VERSE_NUMBER_FONT_SIZE_DEFAULT = 20;
 export const VERSE_NUMBER_FONT_SIZE_MIN = 16;
 export const VERSE_NUMBER_FONT_SIZE_MAX = 32;
 export const VERSE_NUMBER_FONT_SIZE_STEP = 2;
 
 export const TEXT_SIZE_LEVEL_MIN = -5;
 export const TEXT_SIZE_LEVEL_MAX = 10;
+export const TEXT_SIZE_LEVEL_DEFAULT = 0;
 export const TEXT_SIZE_STEP = 2;
 
 export const LINE_HEIGHT_LEVEL_MIN = -3;
 export const LINE_HEIGHT_LEVEL_MAX = 3;
+export const LINE_HEIGHT_LEVEL_DEFAULT = 0;
 export const LINE_HEIGHT_STEP = 4;
 
 export function fontSizeForLevel(level: number): number {

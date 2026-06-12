@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { fetchAudioChaptersForBook } from '@/api/services/chapters';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
+import { requestChapterLoad } from '@/services/track-player/chapter-playback';
+import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
   chapter: number;
@@ -38,8 +40,10 @@ export function useAudioChapterReader(
   const audio = useChapterAudio({
     languageCode,
     bookSlug,
+    bookName: bookName?.trim() || bookSlug,
     chapter: activeChapter,
     enabled: Boolean(languageCode && bookSlug && activeChapter != null),
+    audioOnly: true,
   });
 
   useEffect(() => {
@@ -131,6 +135,11 @@ export function useAudioChapterReader(
 
     if (!justFinished || activeChapter == null || isAdvancingRef.current) return;
 
+    if (audio.loadedChapter != null && audio.loadedChapter !== activeChapter) {
+      setActiveChapter(audio.loadedChapter);
+      return;
+    }
+
     const chapterAtFinish = activeChapter;
     const nextChapter = getAdjacentChapterNumber(chapterNumbers, chapterAtFinish, 'next');
     if (nextChapter == null) {
@@ -147,20 +156,23 @@ export function useAudioChapterReader(
   }, [
     activeChapter,
     audio.didJustFinish,
+    audio.loadedChapter,
     audio.pause,
     chapterNumbers,
   ]);
 
-  const changeChapter = useCallback(
-    (chapter: number, position: 'start' | 'end' | number, resumePlayback: boolean) => {
-      setActiveChapter(chapter);
-      setSeekTarget({ chapter, position });
-      if (resumePlayback) setShouldAutoPlay(true);
-    },
-    [],
-  );
+  function changeChapter(
+    chapter: number,
+    position: 'start' | 'end' | number,
+    resumePlayback: boolean,
+  ) {
+    requestChapterLoad(chapter);
+    setActiveChapter(chapter);
+    setSeekTarget({ chapter, position });
+    if (resumePlayback) setShouldAutoPlay(true);
+  }
 
-  const handleNextVerse = useCallback(async () => {
+  function handleNextVerse() {
     if (activeChapter == null) return;
     if (audio.seekToNextVerse()) return;
 
@@ -168,9 +180,9 @@ export function useAudioChapterReader(
     if (nextChapter == null) return;
 
     changeChapter(nextChapter, 'start', audio.isPlaying);
-  }, [activeChapter, audio.isPlaying, audio.seekToNextVerse, changeChapter, chapterNumbers]);
+  }
 
-  const handlePreviousVerse = useCallback(async () => {
+  function handlePreviousVerse() {
     if (activeChapter == null) return;
     if (audio.seekToPreviousVerse()) return;
 
@@ -178,16 +190,31 @@ export function useAudioChapterReader(
     if (previousChapter == null) return;
 
     changeChapter(previousChapter, 'end', audio.isPlaying);
-  }, [activeChapter, audio.isPlaying, audio.seekToPreviousVerse, changeChapter, chapterNumbers]);
+  }
 
-  const passageLabel = (() => {
-    if (activeChapter == null) return undefined;
-    const name = bookName?.trim() || bookSlug || '';
-    if (audio.currentVerse != null) {
-      return `${name} ${activeChapter}:${audio.currentVerse}`.trim();
+  async function refetchChapters() {
+    if (!languageCode || !bookSlug) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const chapters = await fetchAudioChaptersForBook(languageCode, bookSlug);
+      const numbers = chapters.map((item) => item.number).sort((a, b) => a - b);
+      setChapterNumbers(numbers);
+      if (numbers.length === 0) {
+        setError('No audio chapters available');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load chapters');
+    } finally {
+      setLoading(false);
     }
-    return `${name} ${activeChapter}`.trim();
-  })();
+  }
+
+  const passageLabel = formatAudioPassageLabel(
+    bookName?.trim() || bookSlug,
+    activeChapter,
+    audio.currentVerse,
+  );
 
   return {
     activeChapter,
@@ -197,22 +224,6 @@ export function useAudioChapterReader(
     audio,
     handleNextVerse,
     handlePreviousVerse,
-    refetchChapters: useCallback(async () => {
-      if (!languageCode || !bookSlug) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const chapters = await fetchAudioChaptersForBook(languageCode, bookSlug);
-        const numbers = chapters.map((item) => item.number).sort((a, b) => a - b);
-        setChapterNumbers(numbers);
-        if (numbers.length === 0) {
-          setError('No audio chapters available');
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load chapters');
-      } finally {
-        setLoading(false);
-      }
-    }, [bookSlug, languageCode]),
+    refetchChapters,
   };
 }

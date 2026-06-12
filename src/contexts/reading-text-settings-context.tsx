@@ -13,10 +13,12 @@ import {
 
 import {
   fontSizeForLevel,
+  LINE_HEIGHT_LEVEL_DEFAULT,
   LINE_HEIGHT_LEVEL_MAX,
   LINE_HEIGHT_LEVEL_MIN,
   lineHeightForLevel,
   READING_TEXT_DEFAULTS,
+  TEXT_SIZE_LEVEL_DEFAULT,
   TEXT_SIZE_LEVEL_MAX,
   TEXT_SIZE_LEVEL_MIN,
   verseNumberFontSizeForLevel,
@@ -73,8 +75,8 @@ function buildTextStyles(
 }
 
 export function ReadingTextSettingsProvider({ children }: { children: ReactNode }) {
-  const [textSizeLevel, setTextSizeLevel] = useState(0);
-  const [lineHeightLevel, setLineHeightLevel] = useState(0);
+  const [textSizeLevel, setTextSizeLevel] = useState(TEXT_SIZE_LEVEL_DEFAULT);
+  const [lineHeightLevel, setLineHeightLevel] = useState(LINE_HEIGHT_LEVEL_DEFAULT);
   const persistReadyRef = useRef(false);
 
   const deferredTextSizeLevel = useDeferredValue(textSizeLevel);
@@ -150,8 +152,8 @@ export function ReadingTextSettingsProvider({ children }: { children: ReactNode 
   );
   const reset = useCallback(() => {
     startTransition(() => {
-      setTextSizeLevel(0);
-      setLineHeightLevel(0);
+      setTextSizeLevel(TEXT_SIZE_LEVEL_DEFAULT);
+      setLineHeightLevel(LINE_HEIGHT_LEVEL_DEFAULT);
     });
   }, []);
 
@@ -166,7 +168,9 @@ export function ReadingTextSettingsProvider({ children }: { children: ReactNode 
       canIncreaseTextSize: textSizeLevel < TEXT_SIZE_LEVEL_MAX,
       canDecreaseLineHeight: lineHeightLevel > LINE_HEIGHT_LEVEL_MIN,
       canIncreaseLineHeight: lineHeightLevel < LINE_HEIGHT_LEVEL_MAX,
-      isDefault: textSizeLevel === 0 && lineHeightLevel === 0,
+      isDefault:
+        textSizeLevel === TEXT_SIZE_LEVEL_DEFAULT &&
+        lineHeightLevel === LINE_HEIGHT_LEVEL_DEFAULT,
     }),
     [
       textSizeLevel,

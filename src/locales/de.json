@@ -1,0 +1,137 @@
+{
+  "common": {
+    "ok": "OK",
+    "retry": "Tippen, um es erneut zu versuchen",
+    "clearSearch": "Suche löschen",
+    "goBack": "Zurück",
+    "back": "Zurück",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Die Bibel durchsuchen",
+    "searchPlaceholder": "Sprache hier suchen...",
+    "searchAccessibility": "Sprachen suchen",
+    "noLanguagesFound": "Keine Sprachen gefunden",
+    "failedToLoadLanguages": "Sprachen konnten nicht geladen werden",
+    "accessibility": {
+      "openLanguage": "{{name}} öffnen",
+      "downloadInProgress": "Download läuft für {{name}}",
+      "downloaded": "{{name}} heruntergeladen",
+      "download": "{{name}} herunterladen"
+    }
+  },
+  "books": {
+    "title": "Bibel",
+    "searchPlaceholder": "Buch hier suchen...",
+    "searchAccessibility": "Bücher suchen",
+    "oldTestament": "Altes Testament",
+    "newTestament": "Neues Testament",
+    "noBooksFound": "Keine Bücher gefunden",
+    "languageNotFound": "Sprache nicht gefunden",
+    "failedToLoadBooks": "Bücher konnten nicht geladen werden",
+    "accessibility": {
+      "expand": "{{name}} erweitern",
+      "collapse": "{{name}} einklappen",
+      "downloadInProgress": "Download läuft für {{name}}",
+      "delete": "{{name}} löschen",
+      "download": "{{name}} herunterladen"
+    }
+  },
+  "reading": {
+    "scripture": "Schrift",
+    "audio": "Audio",
+    "textSettings": "Texteinstellungen",
+    "textSize": "Textgröße",
+    "lineHeight": "Zeilenhöhe",
+    "reset": "Zurücksetzen",
+    "verse": "Vers",
+    "play": "Wiedergabe",
+    "pause": "Pause",
+    "failedToLoadChapter": "Kapitel konnte nicht geladen werden",
+    "tapToRetry": "Tippen, um es erneut zu versuchen",
+    "decreaseTextSize": "Textgröße verringern",
+    "increaseTextSize": "Textgröße vergrößern",
+    "decreaseLineHeight": "Zeilenhöhe verringern",
+    "increaseLineHeight": "Zeilenhöhe vergrößern",
+    "resetTextSettings": "Texteinstellungen zurücksetzen",
+    "closeTextSettings": "Texteinstellungen schließen",
+    "downloadChapter": "Kapitel herunterladen",
+    "goBack": "Zurück",
+    "previousVerse": "Vorheriger Vers",
+    "nextVerse": "Nächster Vers",
+    "volume": "Lautstärke",
+    "partOfFullBookTitle": "Teil des vollständigen Buch-Downloads",
+    "partOfFullBookMessage": "Dieses Kapitel ist offline verfügbar, weil das gesamte Buch heruntergeladen wurde. Entfernen Sie es in der Buchliste.",
+    "downloadChapterAudio": "Kapitel-Audio herunterladen",
+    "audioPlayer": "Audioplayer",
+    "closeAudioPlayer": "Audioplayer schließen",
+    "openAudioPlayer": "Audioplayer öffnen",
+    "accessibility": {
+      "textSettings": "Texteinstellungen"
+    }
+  },
+  "download": {
+    "title": "Download",
+    "closeMenu": "Download-Menü schließen",
+    "allScripture": "Gesamte Schrift",
+    "allAudio": "Gesamtes Audio",
+    "checking": "Wird geprüft...",
+    "downloading": "Wird heruntergeladen...",
+    "downloaded": "Heruntergeladen",
+    "downloadFailedTitle": "Download fehlgeschlagen",
+    "downloadFailedMessage": "Download konnte nicht abgeschlossen werden",
+    "deleteFailedTitle": "Löschen fehlgeschlagen",
+    "deleteFailedMessage": "Download konnte nicht entfernt werden",
+    "confirmDeleteTitle": "Heruntergeladenes {{title}} löschen?",
+    "confirmDeleteMessage": "Sie können es später erneut herunterladen.",
+    "confirmDeleteCancel": "Abbrechen",
+    "confirmDeleteAction": "Löschen",
+    "couldNotDownloadChapter": "Kapitel konnte nicht heruntergeladen werden",
+    "couldNotRemoveChapter": "Heruntergeladenes Kapitel konnte nicht entfernt werden",
+    "couldNotDownloadAudio": "Audio konnte nicht heruntergeladen werden",
+    "couldNotRemoveAudio": "Heruntergeladenes Audio konnte nicht entfernt werden",
+    "couldNotDownloadLanguage": "Sprache konnte nicht heruntergeladen werden",
+    "couldNotDownloadScripture": "Schrift konnte nicht heruntergeladen werden",
+    "couldNotRemoveScripture": "Heruntergeladene Schrift konnte nicht entfernt werden",
+    "notification": {
+      "channelName": "Buch-Downloads",
+      "downloadingScripture": "{{name}} wird heruntergeladen",
+      "downloadingAudio": "{{name}} (Audio) wird heruntergeladen",
+      "downloadingMultiple": "{{count}} Bücher werden heruntergeladen",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} heruntergeladen",
+      "failed": "Download von {{name}} fehlgeschlagen"
+    },
+    "accessibility": {
+      "checking": "Verfügbarkeit von {{title}} wird geprüft",
+      "cancel": "Download von {{title}} abbrechen",
+      "delete": "Heruntergeladenes {{title}} löschen",
+      "downloaded": "{{title}} heruntergeladen",
+      "unavailable": "{{title}} nicht verfügbar",
+      "download": "{{title}} herunterladen"
+    }
+  },
+  "settings": {
+    "title": "Systemeinstellungen",
+    "close": "Systemeinstellungen schließen",
+    "theme": {
+      "system": {
+        "title": "Automatisch",
+        "subtitle": "Systemeinstellungen folgen"
+      },
+      "light": {
+        "title": "Heller Modus",
+        "subtitle": "Systemeinstellungen ignorieren"
+      },
+      "dark": {
+        "title": "Dunkler Modus",
+        "subtitle": "Systemeinstellungen ignorieren"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Oberflächensprache",
+    "changeInterfaceLanguage": "Oberflächensprache ändern",
+    "closePicker": "Menü für Oberflächensprache schließen"
+  }
+}

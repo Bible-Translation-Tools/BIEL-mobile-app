@@ -1,0 +1,137 @@
+{
+  "common": {
+    "ok": "ठीक है",
+    "retry": "पुनः प्रयास करने के लिए टैप करें",
+    "clearSearch": "खोज साफ़ करें",
+    "goBack": "वापस जाएँ",
+    "back": "वापस",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "बाइबल ब्राउज़ करें",
+    "searchPlaceholder": "यहाँ भाषा खोजें...",
+    "searchAccessibility": "भाषाएँ खोजें",
+    "noLanguagesFound": "कोई भाषा नहीं मिली",
+    "failedToLoadLanguages": "भाषाएँ लोड नहीं हो सकीं",
+    "accessibility": {
+      "openLanguage": "{{name}} खोलें",
+      "downloadInProgress": "{{name}} का डाउनलोड जारी है",
+      "downloaded": "{{name}} डाउनलोड हो गया",
+      "download": "{{name}} डाउनलोड करें"
+    }
+  },
+  "books": {
+    "title": "बाइबल",
+    "searchPlaceholder": "यहाँ पुस्तक खोजें...",
+    "searchAccessibility": "पुस्तकें खोजें",
+    "oldTestament": "पुराना नियम",
+    "newTestament": "नया नियम",
+    "noBooksFound": "कोई पुस्तक नहीं मिली",
+    "languageNotFound": "भाषा नहीं मिली",
+    "failedToLoadBooks": "पुस्तकें लोड नहीं हो सकीं",
+    "accessibility": {
+      "expand": "{{name}} विस्तृत करें",
+      "collapse": "{{name}} संकुचित करें",
+      "downloadInProgress": "{{name}} का डाउनलोड जारी है",
+      "delete": "{{name}} हटाएँ",
+      "download": "{{name}} डाउनलोड करें"
+    }
+  },
+  "reading": {
+    "scripture": "शास्त्र",
+    "audio": "ऑडियो",
+    "textSettings": "पाठ सेटिंग",
+    "textSize": "पाठ का आकार",
+    "lineHeight": "पंक्ति की ऊँचाई",
+    "reset": "रीसेट",
+    "verse": "पद",
+    "play": "चलाएँ",
+    "pause": "रोकें",
+    "failedToLoadChapter": "अध्याय लोड नहीं हो सका",
+    "tapToRetry": "पुनः प्रयास करने के लिए टैप करें",
+    "decreaseTextSize": "पाठ का आकार घटाएँ",
+    "increaseTextSize": "पाठ का आकार बढ़ाएँ",
+    "decreaseLineHeight": "पंक्ति की ऊँचाई घटाएँ",
+    "increaseLineHeight": "पंक्ति की ऊँचाई बढ़ाएँ",
+    "resetTextSettings": "पाठ सेटिंग रीसेट करें",
+    "closeTextSettings": "पाठ सेटिंग बंद करें",
+    "downloadChapter": "अध्याय डाउनलोड करें",
+    "goBack": "वापस जाएँ",
+    "previousVerse": "पिछला पद",
+    "nextVerse": "अगला पद",
+    "volume": "वॉल्यूम",
+    "partOfFullBookTitle": "पूर्ण पुस्तक डाउनलोड का हिस्सा",
+    "partOfFullBookMessage": "यह अध्याय ऑफ़लाइन उपलब्ध है क्योंकि पूरी पुस्तक डाउनलोड की गई थी। इसे पुस्तक सूची से हटाएँ।",
+    "downloadChapterAudio": "अध्याय ऑडियो डाउनलोड करें",
+    "audioPlayer": "ऑडियो प्लेयर",
+    "closeAudioPlayer": "ऑडियो प्लेयर बंद करें",
+    "openAudioPlayer": "ऑडियो प्लेयर खोलें",
+    "accessibility": {
+      "textSettings": "पाठ सेटिंग"
+    }
+  },
+  "download": {
+    "title": "डाउनलोड",
+    "closeMenu": "डाउनलोड मेनू बंद करें",
+    "allScripture": "सारा शास्त्र",
+    "allAudio": "सारा ऑडियो",
+    "checking": "जाँच हो रही है...",
+    "downloading": "डाउनलोड हो रहा है...",
+    "downloaded": "डाउनलोड हो गया",
+    "downloadFailedTitle": "डाउनलोड विफल",
+    "downloadFailedMessage": "डाउनलोड पूरा नहीं हो सका",
+    "deleteFailedTitle": "हटाना विफल",
+    "deleteFailedMessage": "डाउनलोड हटाया नहीं जा सका",
+    "confirmDeleteTitle": "डाउनलोड किया {{title}} हटाएँ?",
+    "confirmDeleteMessage": "आप इसे बाद में फिर से डाउनलोड कर सकते हैं।",
+    "confirmDeleteCancel": "रद्द करें",
+    "confirmDeleteAction": "हटाएँ",
+    "couldNotDownloadChapter": "अध्याय डाउनलोड नहीं हो सका",
+    "couldNotRemoveChapter": "डाउनलोड किया अध्याय हटाया नहीं जा सका",
+    "couldNotDownloadAudio": "ऑडियो डाउनलोड नहीं हो सका",
+    "couldNotRemoveAudio": "डाउनलोड किया ऑडियो हटाया नहीं जा सका",
+    "couldNotDownloadLanguage": "भाषा डाउनलोड नहीं हो सकी",
+    "couldNotDownloadScripture": "शास्त्र डाउनलोड नहीं हो सका",
+    "couldNotRemoveScripture": "डाउनलोड किया शास्त्र हटाया नहीं जा सका",
+    "notification": {
+      "channelName": "पुस्तक डाउनलोड",
+      "downloadingScripture": "{{name}} डाउनलोड हो रहा है",
+      "downloadingAudio": "{{name}} (ऑडियो) डाउनलोड हो रहा है",
+      "downloadingMultiple": "{{count}} पुस्तकें डाउनलोड हो रही हैं",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} डाउनलोड हो गया",
+      "failed": "{{name}} डाउनलोड विफल"
+    },
+    "accessibility": {
+      "checking": "{{title}} की उपलब्धता जाँची जा रही है",
+      "cancel": "{{title}} का डाउनलोड रद्द करें",
+      "delete": "डाउनलोड किया {{title}} हटाएँ",
+      "downloaded": "{{title}} डाउनलोड हो गया",
+      "unavailable": "{{title}} उपलब्ध नहीं",
+      "download": "{{title}} डाउनलोड करें"
+    }
+  },
+  "settings": {
+    "title": "सिस्टम सेटिंग",
+    "close": "सिस्टम सेटिंग बंद करें",
+    "theme": {
+      "system": {
+        "title": "स्वचालित",
+        "subtitle": "सिस्टम सेटिंग का पालन करें"
+      },
+      "light": {
+        "title": "लाइट मोड",
+        "subtitle": "सिस्टम सेटिंग अनदेखी करें"
+      },
+      "dark": {
+        "title": "डार्क मोड",
+        "subtitle": "सिस्टम सेटिंग अनदेखी करें"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "इंटरफ़ेस भाषा",
+    "changeInterfaceLanguage": "इंटरफ़ेस भाषा बदलें",
+    "closePicker": "इंटरफ़ेस भाषा मेनू बंद करें"
+  }
+}

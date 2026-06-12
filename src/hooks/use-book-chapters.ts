@@ -9,10 +9,22 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const [errorSlug, setErrorSlug] = useState<string | null>(null);
 
+  const clearCache = useCallback(() => {
+    cacheRef.current = {};
+    setChaptersByBook({});
+    setLoadingSlug(null);
+    setErrorSlug(null);
+  }, []);
+
   const loadChapters = useCallback(
     async (bookSlug: string) => {
-      const cached = cacheRef.current[bookSlug];
-      if (cached) return;
+      if (Object.hasOwn(cacheRef.current, bookSlug)) {
+        const cached = cacheRef.current[bookSlug];
+        setChaptersByBook((prev) =>
+          prev[bookSlug] === cached ? prev : { ...prev, [bookSlug]: cached },
+        );
+        return;
+      }
 
       setLoadingSlug(bookSlug);
       setErrorSlug(null);
@@ -25,8 +37,13 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
         setChaptersByBook((prev) => ({ ...prev, [bookSlug]: chapters }));
       } catch {
         setErrorSlug(bookSlug);
-        cacheRef.current[bookSlug] = [];
-        setChaptersByBook((prev) => ({ ...prev, [bookSlug]: [] }));
+        delete cacheRef.current[bookSlug];
+        setChaptersByBook((prev) => {
+          if (!(bookSlug in prev)) return prev;
+          const next = { ...prev };
+          delete next[bookSlug];
+          return next;
+        });
       } finally {
         setLoadingSlug(null);
       }
@@ -44,7 +61,9 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
     [loadingSlug],
   );
 
-  const hasError = useCallback((bookSlug: string) => errorSlug === bookSlug, [errorSlug]);
+  function hasError(bookSlug: string) {
+    return errorSlug === bookSlug;
+  }
 
-  return { loadChapters, getChapters, isLoading, hasError };
+  return { loadChapters, getChapters, isLoading, hasError, clearCache };
 }

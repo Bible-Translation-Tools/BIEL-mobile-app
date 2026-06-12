@@ -1,0 +1,137 @@
+{
+  "common": {
+    "ok": "ОК",
+    "retry": "Нажмите, чтобы повторить",
+    "clearSearch": "Очистить поиск",
+    "goBack": "Назад",
+    "back": "Назад",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Обзор Библии",
+    "searchPlaceholder": "Искать язык здесь...",
+    "searchAccessibility": "Поиск языков",
+    "noLanguagesFound": "Языки не найдены",
+    "failedToLoadLanguages": "Не удалось загрузить языки",
+    "accessibility": {
+      "openLanguage": "Открыть {{name}}",
+      "downloadInProgress": "Идёт загрузка {{name}}",
+      "downloaded": "{{name}} загружено",
+      "download": "Загрузить {{name}}"
+    }
+  },
+  "books": {
+    "title": "Библия",
+    "searchPlaceholder": "Искать книгу здесь...",
+    "searchAccessibility": "Поиск книг",
+    "oldTestament": "Ветхий Завет",
+    "newTestament": "Новый Завет",
+    "noBooksFound": "Книги не найдены",
+    "languageNotFound": "Язык не найден",
+    "failedToLoadBooks": "Не удалось загрузить книги",
+    "accessibility": {
+      "expand": "Развернуть {{name}}",
+      "collapse": "Свернуть {{name}}",
+      "downloadInProgress": "Идёт загрузка {{name}}",
+      "delete": "Удалить {{name}}",
+      "download": "Загрузить {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Писание",
+    "audio": "Аудио",
+    "textSettings": "Настройки текста",
+    "textSize": "Размер текста",
+    "lineHeight": "Межстрочный интервал",
+    "reset": "Сбросить",
+    "verse": "Стих",
+    "play": "Воспроизвести",
+    "pause": "Пауза",
+    "failedToLoadChapter": "Не удалось загрузить главу",
+    "tapToRetry": "Нажмите, чтобы повторить",
+    "decreaseTextSize": "Уменьшить размер текста",
+    "increaseTextSize": "Увеличить размер текста",
+    "decreaseLineHeight": "Уменьшить межстрочный интервал",
+    "increaseLineHeight": "Увеличить межстрочный интервал",
+    "resetTextSettings": "Сбросить настройки текста",
+    "closeTextSettings": "Закрыть настройки текста",
+    "downloadChapter": "Загрузить главу",
+    "goBack": "Назад",
+    "previousVerse": "Предыдущий стих",
+    "nextVerse": "Следующий стих",
+    "volume": "Громкость",
+    "partOfFullBookTitle": "Часть загрузки всей книги",
+    "partOfFullBookMessage": "Эта глава доступна офлайн, потому что была загружена вся книга. Удалите её в списке книг.",
+    "downloadChapterAudio": "Загрузить аудио главы",
+    "audioPlayer": "Аудиоплеер",
+    "closeAudioPlayer": "Закрыть аудиоплеер",
+    "openAudioPlayer": "Открыть аудиоплеер",
+    "accessibility": {
+      "textSettings": "Настройки текста"
+    }
+  },
+  "download": {
+    "title": "Загрузка",
+    "closeMenu": "Закрыть меню загрузки",
+    "allScripture": "Всё Писание",
+    "allAudio": "Всё аудио",
+    "checking": "Проверка...",
+    "downloading": "Загрузка...",
+    "downloaded": "Загружено",
+    "downloadFailedTitle": "Ошибка загрузки",
+    "downloadFailedMessage": "Не удалось завершить загрузку",
+    "deleteFailedTitle": "Ошибка удаления",
+    "deleteFailedMessage": "Не удалось удалить загрузку",
+    "confirmDeleteTitle": "Удалить загруженное {{title}}?",
+    "confirmDeleteMessage": "Вы сможете загрузить это снова позже.",
+    "confirmDeleteCancel": "Отмена",
+    "confirmDeleteAction": "Удалить",
+    "couldNotDownloadChapter": "Не удалось загрузить главу",
+    "couldNotRemoveChapter": "Не удалось удалить загруженную главу",
+    "couldNotDownloadAudio": "Не удалось загрузить аудио",
+    "couldNotRemoveAudio": "Не удалось удалить загруженное аудио",
+    "couldNotDownloadLanguage": "Не удалось загрузить язык",
+    "couldNotDownloadScripture": "Не удалось загрузить Писание",
+    "couldNotRemoveScripture": "Не удалось удалить загруженное Писание",
+    "notification": {
+      "channelName": "Загрузки книг",
+      "downloadingScripture": "Загрузка {{name}}",
+      "downloadingAudio": "Загрузка {{name}} (аудио)",
+      "downloadingMultiple": "Загрузка {{count}} книг",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} загружено",
+      "failed": "Не удалось загрузить {{name}}"
+    },
+    "accessibility": {
+      "checking": "Проверка доступности {{title}}",
+      "cancel": "Отменить загрузку {{title}}",
+      "delete": "Удалить загруженное {{title}}",
+      "downloaded": "{{title}} загружено",
+      "unavailable": "{{title}} недоступно",
+      "download": "Загрузить {{title}}"
+    }
+  },
+  "settings": {
+    "title": "Системные настройки",
+    "close": "Закрыть системные настройки",
+    "theme": {
+      "system": {
+        "title": "Автоматически",
+        "subtitle": "Следовать системным настройкам"
+      },
+      "light": {
+        "title": "Светлый режим",
+        "subtitle": "Игнорировать системные настройки"
+      },
+      "dark": {
+        "title": "Тёмный режим",
+        "subtitle": "Игнорировать системные настройки"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Язык интерфейса",
+    "changeInterfaceLanguage": "Изменить язык интерфейса",
+    "closePicker": "Закрыть меню языка интерфейса"
+  }
+}

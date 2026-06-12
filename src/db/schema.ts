@@ -1,7 +1,6 @@
 export const DATABASE_NAME = 'biel-offline.db';
 
-export const SCHEMA_STATEMENTS = [
-  `PRAGMA foreign_keys = ON;`,
+export const SCHEMA_STATEMENTS = [  `PRAGMA foreign_keys = ON;`,
   `CREATE TABLE IF NOT EXISTS languages (
     ietf_code TEXT PRIMARY KEY NOT NULL,
     english_name TEXT,
@@ -54,6 +53,7 @@ export const SCHEMA_STATEMENTS = [
     book_name TEXT NOT NULL,
     byte_size INTEGER NOT NULL DEFAULT 0,
     downloaded_at INTEGER NOT NULL,
+    is_complete INTEGER NOT NULL DEFAULT 0,
     UNIQUE(language_code, book_slug),
     FOREIGN KEY (language_code) REFERENCES languages(ietf_code) ON DELETE CASCADE
   );`,

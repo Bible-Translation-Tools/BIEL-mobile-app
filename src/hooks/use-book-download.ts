@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import {
   deleteBookScripture,
   downloadBookScripture,
@@ -9,21 +11,36 @@ import { useContentDownload } from '@/hooks/use-content-download';
 type UseBookDownloadOptions = {
   languageCode: string;
   bookSlug: string;
+  bookName: string;
+  enabled?: boolean;
   onComplete?: () => void;
+  onDeleteComplete?: () => void;
 };
 
 export function useBookDownload({
   languageCode,
   bookSlug,
+  bookName,
+  enabled = true,
   onComplete,
+  onDeleteComplete,
 }: UseBookDownloadOptions) {
+  const { t } = useTranslation('download');
   const {
     deleteDownload: deleteScriptureDownload,
     ...rest
   } = useContentDownload({
-    downloadFailedMessage: 'Could not download scripture',
-    deleteFailedMessage: 'Could not remove downloaded scripture',
+    enabled,
+    globalSync: {
+      languageCode,
+      bookSlug,
+      bookName,
+      kind: 'book-scripture',
+    },
+    downloadFailedMessage: t('couldNotDownloadScripture'),
+    deleteFailedMessage: t('couldNotRemoveScripture'),
     onComplete,
+    onDeleteComplete,
     download: (options) => downloadBookScripture(languageCode, bookSlug, options),
     deleteContent: () => deleteBookScripture(languageCode, bookSlug),
     getDownloadedBytes: () => getDownloadedBookByteSize(languageCode, bookSlug),
