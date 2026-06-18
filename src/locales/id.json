@@ -29,7 +29,7 @@
     "noBooksFound": "Tidak ada kitab ditemukan",
     "languageNotFound": "Bahasa tidak ditemukan",
     "failedToLoadBooks": "Gagal memuat kitab",
-    "contentLicense": "Konten dilisensikan di bawah Lisensi Creative Commons Atribusi-BerbagiSerupa 4.0 Internasional.",
+    "contentLicense": "Konten dilisensikan di bawah CC BY-SA 4.0.",
     "contentLicenseLearnMore": "Pelajari selengkapnya",
     "accessibility": {
       "expand": "Perluas {{name}}",

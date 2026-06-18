@@ -29,7 +29,7 @@
     "noBooksFound": "No books found",
     "languageNotFound": "Language not found",
     "failedToLoadBooks": "Failed to load books",
-    "contentLicense": "The content is licensed under Creative Commons Attribution-ShareAlike 4.0 International License.",
+    "contentLicense": "The content is licensed under CC BY-SA 4.0.",
     "contentLicenseLearnMore": "Learn more",
     "accessibility": {
       "expand": "Expand {{name}}",

@@ -29,7 +29,7 @@
     "noBooksFound": "Aucun livre trouvé",
     "languageNotFound": "Langue introuvable",
     "failedToLoadBooks": "Impossible de charger les livres",
-    "contentLicense": "Le contenu est publié sous licence Creative Commons Attribution - Partage dans les mêmes conditions 4.0 International.",
+    "contentLicense": "Le contenu est publié sous licence CC BY-SA 4.0.",
     "contentLicenseLearnMore": "En savoir plus",
     "accessibility": {
       "expand": "Développer {{name}}",

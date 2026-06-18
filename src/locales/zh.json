@@ -29,7 +29,7 @@
     "noBooksFound": "未找到书卷",
     "languageNotFound": "未找到语言",
     "failedToLoadBooks": "无法加载书卷",
-    "contentLicense": "内容根据知识共享 署名-相同方式共享 4.0 国际许可协议进行授权。",
+    "contentLicense": "内容根据 CC BY-SA 4.0 许可协议进行授权。",
     "contentLicenseLearnMore": "了解更多",
     "accessibility": {
       "expand": "展开 {{name}}",

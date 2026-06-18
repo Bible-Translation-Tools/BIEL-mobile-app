@@ -29,7 +29,7 @@
     "noBooksFound": "Không tìm thấy sách",
     "languageNotFound": "Không tìm thấy ngôn ngữ",
     "failedToLoadBooks": "Không thể tải sách",
-    "contentLicense": "Nội dung được cấp phép theo Giấy phép Creative Commons Ghi công-Chia sẻ tương tự 4.0 Quốc tế.",
+    "contentLicense": "Nội dung được cấp phép theo CC BY-SA 4.0.",
     "contentLicenseLearnMore": "Tìm hiểu thêm",
     "accessibility": {
       "expand": "Mở rộng {{name}}",
