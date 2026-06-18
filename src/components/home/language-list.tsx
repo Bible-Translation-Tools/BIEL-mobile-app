@@ -1,11 +1,14 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
+  RefreshControl,
   StyleSheet,
   Text,
-  type ListRenderItem,
   View,
+  type ListRenderItem,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -27,20 +30,25 @@ type LanguageListProps = {
   onRetry?: () => void;
   onLanguagePress?: (language: LanguageItem) => void;
   onDownloadStatusChange?: () => void;
+  onRefresh?: () => void | Promise<void>;
+  refreshing?: boolean;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type LanguageListEmptyProps = {
   loading: boolean;
+  refreshing: boolean;
   error: string | null;
   onRetry?: () => void;
 };
 
-function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) {
+function LanguageListEmpty({ loading, refreshing, error, onRetry }: LanguageListEmptyProps) {
   const theme = useTheme();
+  const { t } = useTranslation('home');
+  const { t: tc } = useTranslation('common');
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={theme.iconPrimary} />
@@ -54,7 +62,7 @@ function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) 
         <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
         {onRetry ? (
           <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-            Tap to retry
+            {tc('retry')}
           </Text>
         ) : null}
       </View>
@@ -63,7 +71,7 @@ function LanguageListEmpty({ loading, error, onRetry }: LanguageListEmptyProps) 
 
   return (
     <View style={styles.centered}>
-      <Text style={[styles.message, { color: theme.textSecondary }]}>No languages found</Text>
+      <Text style={[styles.message, { color: theme.textSecondary }]}>{t('noLanguagesFound')}</Text>
     </View>
   );
 }
@@ -75,14 +83,21 @@ export function LanguageList({
   onRetry,
   onLanguagePress,
   onDownloadStatusChange,
+  onRefresh,
+  refreshing = false,
   ListHeaderComponent,
   contentContainerStyle,
 }: LanguageListProps) {
+  const theme = useTheme();
+
   const renderItem: ListRenderItem<LanguageItem> = useCallback(
     ({ item }) => (
       <LanguageCardRow
         language={item}
-        onPress={() => onLanguagePress?.(item)}
+        onPress={() => {
+          Keyboard.dismiss();
+          onLanguagePress?.(item);
+        }}
         onDownloadStatusChange={onDownloadStatusChange}
       />
     ),
@@ -107,7 +122,22 @@ export function LanguageList({
       getItemLayout={getItemLayout}
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={
-        <LanguageListEmpty loading={loading} error={error} onRetry={onRetry} />
+        <LanguageListEmpty
+          loading={loading}
+          refreshing={refreshing}
+          error={error}
+          onRetry={onRetry}
+        />
+      }
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.iconPrimary}
+            colors={[theme.tabActive]}
+          />
+        ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
       contentContainerStyle={[styles.content, contentContainerStyle]}

@@ -7,26 +7,6 @@ import {
 import { getOfflineChapterNumbers } from '@/api/services/offline-text';
 import type { ChapterItem, ChaptersQueryResult } from '@/types/book';
 
-export async function fetchAudioChaptersForBook(
-  languageCode: string,
-  bookSlug: string,
-): Promise<ChapterItem[]> {
-  const offlineChapters = await getOfflineAudioChapterNumbers(languageCode, bookSlug);
-
-  try {
-    const manifest = await resolveBookAudioChapters(languageCode, bookSlug);
-    if (manifest.chapters.length === 0 && offlineChapters.length === 0) {
-      return [];
-    }
-    return manifest.chapters.map((chapter) => ({ number: chapter.chapter }));
-  } catch (err) {
-    if (offlineChapters.length > 0) {
-      return offlineChapters.map((number) => ({ number }));
-    }
-    throw err;
-  }
-}
-
 async function getMergedOfflineChapterNumbers(
   languageCode: string,
   bookSlug: string,
@@ -38,12 +18,29 @@ async function getMergedOfflineChapterNumbers(
   return [...new Set([...scripture, ...audio])].sort((a, b) => a - b);
 }
 
+export async function fetchAudioChaptersForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<ChapterItem[]> {
+  try {
+    const manifest = await resolveBookAudioChapters(languageCode, bookSlug);
+    if (manifest.chapters.length === 0) {
+      return [];
+    }
+    return manifest.chapters.map((chapter) => ({ number: chapter.chapter }));
+  } catch (err) {
+    const offlineChapters = await getOfflineAudioChapterNumbers(languageCode, bookSlug);
+    if (offlineChapters.length > 0) {
+      return offlineChapters.map((number) => ({ number }));
+    }
+    throw err;
+  }
+}
+
 export async function fetchChaptersForBook(
   languageCode: string,
   bookSlug: string,
 ): Promise<ChapterItem[]> {
-  const offlineChapters = await getMergedOfflineChapterNumbers(languageCode, bookSlug);
-
   try {
     const data = await graphqlRequest<ChaptersQueryResult>(CHAPTERS_FOR_BOOK_QUERY, {
       languageCode,
@@ -61,6 +58,7 @@ export async function fetchChaptersForBook(
       .sort((a, b) => a - b)
       .map((number) => ({ number }));
   } catch (err) {
+    const offlineChapters = await getMergedOfflineChapterNumbers(languageCode, bookSlug);
     if (offlineChapters.length > 0) {
       return offlineChapters.map((number) => ({ number }));
     }

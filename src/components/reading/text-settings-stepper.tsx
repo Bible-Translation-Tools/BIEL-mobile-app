@@ -45,7 +45,7 @@ export const TextSettingsStepper = memo(function TextSettingsStepper({
         accessibilityLabel={decreaseLabel}
         accessibilityState={{ disabled: decreaseDisabled }}>
         <IconSymbol
-          name={{ ios: 'minus', android: 'remove', web: 'remove' }}
+          name={{ ios: 'minus', android: 'remove' }}
           size={TextSettingsLayout.stepperIconSize}
           color={decreaseDisabled ? theme.textPlaceholder : theme.iconPrimary}
         />
@@ -58,7 +58,7 @@ export const TextSettingsStepper = memo(function TextSettingsStepper({
         accessibilityLabel={increaseLabel}
         accessibilityState={{ disabled: increaseDisabled }}>
         <IconSymbol
-          name={{ ios: 'plus', android: 'add', web: 'add' }}
+          name={{ ios: 'plus', android: 'add' }}
           size={TextSettingsLayout.stepperIconSize}
           color={increaseDisabled ? theme.textPlaceholder : theme.iconPrimary}
         />

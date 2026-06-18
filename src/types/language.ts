@@ -27,3 +27,9 @@ export type ApiLanguage = {
 export type LanguagesQueryResult = {
   language: ApiLanguage[];
 };
+
+export type LanguagesWithChapterAudioQueryResult = {
+  language: Array<{
+    ietf_code: string;
+  }>;
+};

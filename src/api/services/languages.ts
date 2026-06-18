@@ -1,7 +1,12 @@
 import { graphqlRequest } from '@/api/graphql/client';
-import { LANGUAGES_QUERY } from '@/api/graphql/queries';
+import { LANGUAGES_QUERY, LANGUAGES_WITH_CHAPTER_AUDIO_QUERY } from '@/api/graphql/queries';
 import { listLanguageCatalog, listLanguagesWithDownloads, replaceLanguageCatalog } from '@/db';
-import type { ApiLanguage, LanguageItem, LanguagesQueryResult } from '@/types/language';
+import type {
+  ApiLanguage,
+  LanguageItem,
+  LanguagesQueryResult,
+  LanguagesWithChapterAudioQueryResult,
+} from '@/types/language';
 
 /** Resource types that represent readable scripture / text content */
 const TEXT_RESOURCE_TYPES = new Set([
@@ -18,10 +23,7 @@ const TEXT_RESOURCE_TYPES = new Set([
   'uhb',
 ]);
 
-/** Resource types that may include audio (e.g. Open Bible Stories) */
-const AUDIO_RESOURCE_TYPES = new Set(['obs']);
-
-export function mapApiLanguageToItem(language: ApiLanguage): LanguageItem {
+export function mapApiLanguageToItem(language: ApiLanguage, hasAudio = false): LanguageItem {
   const resourceTypes = new Set(
     language.contents.map((c) => c.resource_type).filter((t): t is string => Boolean(t)),
   );
@@ -31,14 +33,31 @@ export function mapApiLanguageToItem(language: ApiLanguage): LanguageItem {
     name: language.english_name,
     nationalName: language.national_name || language.english_name,
     hasText: [...TEXT_RESOURCE_TYPES].some((type) => resourceTypes.has(type)),
-    hasAudio: [...AUDIO_RESOURCE_TYPES].some((type) => resourceTypes.has(type)),
+    hasAudio,
     downloadStatus: 'pending',
   };
 }
 
+async function fetchLanguageCodesWithChapterAudio(): Promise<Set<string>> {
+  const data = await graphqlRequest<LanguagesWithChapterAudioQueryResult>(
+    LANGUAGES_WITH_CHAPTER_AUDIO_QUERY,
+  );
+
+  return new Set(data.language.map((language) => language.ietf_code.toUpperCase()));
+}
+
 export async function fetchLanguages(): Promise<LanguageItem[]> {
-  const data = await graphqlRequest<LanguagesQueryResult>(LANGUAGES_QUERY);
-  const languages = data.language.map(mapApiLanguageToItem);
+  const [data, audioLanguageCodes] = await Promise.all([
+    graphqlRequest<LanguagesQueryResult>(LANGUAGES_QUERY),
+    fetchLanguageCodesWithChapterAudio().catch(() => new Set<string>()),
+  ]);
+
+  const languages = data.language.map((language) =>
+    mapApiLanguageToItem(
+      language,
+      audioLanguageCodes.has(language.ietf_code.toUpperCase()),
+    ),
+  );
   try {
     await replaceLanguageCatalog(languages);
   } catch {

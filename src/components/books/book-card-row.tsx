@@ -1,14 +1,16 @@
-import { memo, useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
+import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
@@ -19,17 +21,40 @@ import { ChapterGrid } from './chapter-grid';
 type BookCardRowProps = {
   book: BookItem;
   languageCode: string;
+  audioOnly: boolean;
   isExpanded?: boolean;
   chapters?: ChapterItem[];
   chaptersLoading?: boolean;
   onToggleExpand?: () => void;
   onChapterPress?: (chapter: ChapterItem) => void;
-  onDownloadStatusChange?: () => void;
+  onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
 };
+
+function areBookCardRowPropsEqual(
+  prev: BookCardRowProps,
+  next: BookCardRowProps,
+): boolean {
+  return (
+    prev.book.id === next.book.id &&
+    prev.book.name === next.book.name &&
+    prev.book.downloadStatus === next.book.downloadStatus &&
+    prev.book.audioDownloadStatus === next.book.audioDownloadStatus &&
+    prev.book.hasAudio === next.book.hasAudio &&
+    prev.languageCode === next.languageCode &&
+    prev.audioOnly === next.audioOnly &&
+    prev.isExpanded === next.isExpanded &&
+    prev.chaptersLoading === next.chaptersLoading &&
+    prev.chapters === next.chapters &&
+    prev.onToggleExpand === next.onToggleExpand &&
+    prev.onChapterPress === next.onChapterPress &&
+    prev.onDownloadStatusChange === next.onDownloadStatusChange
+  );
+}
 
 export const BookCardRow = memo(function BookCardRow({
   book,
   languageCode,
+  audioOnly,
   isExpanded = false,
   chapters = [],
   chaptersLoading = false,
@@ -38,10 +63,14 @@ export const BookCardRow = memo(function BookCardRow({
   onDownloadStatusChange,
 }: BookCardRowProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
+  const { t: tc } = useTranslation('common');
   const isScriptureDownloaded = book.downloadStatus === 'downloaded';
+  const isAudioDownloadedInList = book.audioDownloadStatus === 'downloaded';
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const [downloadSessionActive, setDownloadSessionActive] = useState(false);
 
   const {
     isDownloading: isScriptureDownloading,
@@ -54,18 +83,23 @@ export const BookCardRow = memo(function BookCardRow({
     cancelDownload: cancelScriptureDownload,
     deleteScriptureDownload,
   } = useBookDownload({
-      languageCode,
-      bookSlug: book.slug,
-      onComplete: onDownloadStatusChange,
-    });
+    languageCode,
+    bookSlug: book.slug,
+    bookName: book.name,
+    enabled: menuVisible || downloadSessionActive,
+    onComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded', kind: 'scripture' }),
+    onDeleteComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'pending', kind: 'scripture' }),
+  });
 
   const {
     isDownloading: isAudioDownloading,
     progress: audioProgress,
     fileSizeLabel: audioFileSizeLabel,
-    isDownloaded: isAudioDownloaded,
     hasAudio,
     isChecking: isAudioChecking,
+    isDownloaded: isAudioDownloaded,
     error: audioError,
     clearError: clearAudioError,
     startDownload: startAudioDownload,
@@ -74,15 +108,34 @@ export const BookCardRow = memo(function BookCardRow({
   } = useBookAudioDownload({
     languageCode,
     bookSlug: book.slug,
-    onComplete: onDownloadStatusChange,
+    bookName: book.name,
+    enabled: menuVisible || downloadSessionActive,
+    onComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'downloaded', kind: 'audio' }),
+    onDeleteComplete: () =>
+      onDownloadStatusChange?.({ bookSlug: book.slug, status: 'pending', kind: 'audio' }),
   });
+
+  useEffect(() => {
+    if (isScriptureDownloading || isAudioDownloading) {
+      setDownloadSessionActive(true);
+      return;
+    }
+    if (!menuVisible) {
+      setDownloadSessionActive(false);
+    }
+  }, [isAudioDownloading, isScriptureDownloading, menuVisible]);
 
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);
 
-  const isFullyDownloaded = isScriptureDownloaded && (!hasAudio || isAudioDownloaded);
+  const bookHasAudio = book.hasAudio === true;
+  const isFullyDownloaded = audioOnly
+    ? isAudioDownloadedInList
+    : isScriptureDownloaded && (!bookHasAudio || isAudioDownloadedInList);
 
   const openDownloadMenu = useCallback(() => {
+    Keyboard.dismiss();
     downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setMenuAnchor({ x, y, width, height });
       setMenuVisible(true);
@@ -163,11 +216,7 @@ export const BookCardRow = memo(function BookCardRow({
       <View style={styles.titleGroup}>
         {isFullyDownloaded ? (
           <IconSymbol
-            name={{
-              ios: 'checkmark.circle.fill',
-              android: 'download_done',
-              web: 'download_done',
-            }}
+            name={DOWNLOAD_DONE_ICON_NAME}
             size={28}
             color={theme.iconSuccess}
           />
@@ -179,8 +228,8 @@ export const BookCardRow = memo(function BookCardRow({
       <IconSymbol
         name={
           isExpanded
-            ? { ios: 'chevron.up', android: 'keyboard_arrow_up', web: 'keyboard_arrow_up' }
-            : { ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down' }
+            ? { ios: 'chevron.up', android: 'keyboard_arrow_up' }
+            : { ios: 'chevron.down', android: 'keyboard_arrow_down' }
         }
         size={28}
         color={theme.iconTertiary}
@@ -191,7 +240,9 @@ export const BookCardRow = memo(function BookCardRow({
   const toggleProps = {
     onPress: onToggleExpand,
     accessibilityRole: 'button' as const,
-    accessibilityLabel: `${isExpanded ? 'Collapse' : 'Expand'} ${book.name}`,
+    accessibilityLabel: isExpanded
+      ? t('accessibility.collapse', { name: book.name })
+      : t('accessibility.expand', { name: book.name }),
     accessibilityState: { expanded: isExpanded },
   };
 
@@ -237,26 +288,22 @@ export const BookCardRow = memo(function BookCardRow({
           accessibilityRole="button"
           accessibilityLabel={
             isAnyDownloadActive
-              ? `Download in progress for ${book.name}`
+              ? t('accessibility.downloadInProgress', { name: book.name })
               : isFullyDownloaded
-                ? `Delete ${book.name}`
-                : `Download ${book.name}`
+                ? t('accessibility.delete', { name: book.name })
+                : t('accessibility.download', { name: book.name })
           }>
           {isAnyDownloadActive ? (
             <ActivityIndicator size="small" color={theme.tabActive} />
           ) : isFullyDownloaded ? (
             <IconSymbol
-              name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+              name={DELETE_ICON_NAME}
               size={24}
               color={theme.iconDanger}
             />
           ) : (
             <IconSymbol
-              name={{
-                ios: 'arrow.down.circle',
-                android: 'file_download',
-                web: 'file_download',
-              }}
+              name={DOWNLOAD_ICON_NAME}
               size={28}
               color={theme.iconPrimary}
             />
@@ -269,7 +316,7 @@ export const BookCardRow = memo(function BookCardRow({
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
         menuProps={{
-          scriptureFileSize: scriptureFileSizeLabel ?? '—',
+          scriptureFileSize: scriptureFileSizeLabel ?? tc('emDash'),
           scriptureStatus: resolveDownloadStatus(
             isScriptureDownloading,
             isScriptureDownloaded,
@@ -277,7 +324,7 @@ export const BookCardRow = memo(function BookCardRow({
           ),
           scriptureProgress,
           onScripturePress: handleScripturePress,
-          audioFileSize: audioFileSizeLabel ?? '—',
+          audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus: resolveDownloadStatus(
             isAudioDownloading,
             isAudioDownloaded,
@@ -290,7 +337,7 @@ export const BookCardRow = memo(function BookCardRow({
       />
     </View>
   );
-});
+}, areBookCardRowPropsEqual);
 
 const styles = StyleSheet.create({
   row: {

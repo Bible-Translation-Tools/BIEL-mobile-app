@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,35 +17,45 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioOnlyChapterScreen } from '@/components/reading/audio-only-chapter-screen';
 import { AudioPlayButton } from '@/components/reading/audio-play-button';
-import { ReadingChapterList } from '@/components/reading/reading-chapter-list';
+import { ChapterItem } from '@/components/reading/chapter-item';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
-import { ReadingTextSettingsProvider } from '@/contexts/reading-text-settings-context';
-import { normalizeRouteParam } from '@/utils/route-params';
 import { ReadingLayout } from '@/constants/theme';
 import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
+import { useStopPlaybackOnLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
+import { getResumedPlaybackChapter } from '@/services/track-player/chapter-playback';
+import { useReadingTextStyles } from '@/stores/reading-text-settings-store';
 import type { ChapterContent } from '@/types/reading';
+import { normalizeRouteParam } from '@/utils/route-params';
 
 export default function ReadingScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const colorScheme = useColorScheme();
-  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam } =
+  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam, openAudio: openAudioParam } =
     useLocalSearchParams<{
       languageCode: string;
       bookSlug: string;
       bookName?: string;
       chapter: string;
       audioOnly?: string;
+      openAudio?: string;
     }>();
 
   const ietfCode = normalizeRouteParam(languageCode) ?? '';
   const resolvedBookSlug = normalizeRouteParam(bookSlug) ?? '';
   const resolvedBookName = normalizeRouteParam(bookName);
   const audioOnly = audioOnlyParam === '1' || audioOnlyParam === 'true';
+  const openAudio = openAudioParam === '1' || openAudioParam === 'true';
   const chapterNumber = Number.parseInt(normalizeRouteParam(chapter) ?? '', 10);
+  const resumedPlaybackChapter = openAudio ? getResumedPlaybackChapter() : null;
+  const effectiveChapterNumber =
+    resumedPlaybackChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined);
+
+  useStopPlaybackOnLeave();
 
   const {
     chapters,
@@ -64,7 +75,7 @@ export default function ReadingScreen() {
   } = useReaderScroll(
     audioOnly ? undefined : languageCode,
     audioOnly ? undefined : bookSlug,
-    audioOnly || !Number.isFinite(chapterNumber) ? undefined : chapterNumber,
+    audioOnly || effectiveChapterNumber == null ? undefined : effectiveChapterNumber,
   );
 
   const displayBookName =
@@ -77,7 +88,7 @@ export default function ReadingScreen() {
     useReaderToolbar(displayBookName);
 
   const currentAudioChapter =
-    visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined);
+    visibleChapter ?? effectiveChapterNumber;
   const currentChapterHasAudio = useChapterHasAudio({
     languageCode,
     bookSlug,
@@ -97,8 +108,28 @@ export default function ReadingScreen() {
   const hasPreviousRef = useRef(false);
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
-  const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
+  const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(openAudio);
+  const isAudioPanelOpenRef = useRef(openAudio);
   const playVerseAtRef = useRef<((chapter: number, verse: number) => void) | undefined>(undefined);
+  const currentPlayingVerseRef = useRef(currentPlayingVerse);
+  const currentPlayingChapterRef = useRef(currentPlayingChapter);
+
+  useEffect(() => {
+    if (!openAudio) return;
+    isAudioPanelOpenRef.current = true;
+    setIsAudioPanelOpen(true);
+    if (resumedPlaybackChapter != null) {
+      setCurrentPlayingChapter(resumedPlaybackChapter);
+    }
+  }, [openAudio, resumedPlaybackChapter]);
+
+  useEffect(() => {
+    currentPlayingVerseRef.current = currentPlayingVerse;
+  }, [currentPlayingVerse]);
+
+  useEffect(() => {
+    currentPlayingChapterRef.current = currentPlayingChapter;
+  }, [currentPlayingChapter]);
 
   useEffect(() => {
     chaptersRef.current = chapters;
@@ -127,11 +158,95 @@ export default function ReadingScreen() {
     };
   }, []);
 
+  const scrollRetryCountRef = useRef(0);
+  const prevPlayingChapterRef = useRef<number | null>(null);
+
+  const scrollToPlayingVerse = useCallback(() => {
+    if (!isAudioPanelOpenRef.current || audioPanelHeightRef.current <= 0) return;
+
+    const verse = currentPlayingVerseRef.current;
+    const chapter = currentPlayingChapterRef.current;
+    if (verse == null || chapter == null) return;
+
+    const chapterView = chapterViewRefsRef.current.get(chapter);
+    const verseY = verseLayoutsRef.current.get(chapter)?.get(verse);
+    if (!chapterView || verseY == null) {
+      if (scrollRetryCountRef.current < 3) {
+        scrollRetryCountRef.current += 1;
+        requestAnimationFrame(() => scrollToPlayingVerse());
+      }
+      return;
+    }
+
+    scrollRetryCountRef.current = 0;
+
+    const scrollRef = listRef.current?.getNativeScrollRef?.();
+    if (!scrollRef) return;
+
+    requestAnimationFrame(() => {
+      chapterView.measureLayout(
+        scrollRef as unknown as Parameters<View['measureLayout']>[0],
+        (_x, chapterY) => {
+          const viewportH = viewportHeightRef.current;
+          if (viewportH <= 0) return;
+
+          const verseAbsoluteY = chapterY + verseY;
+          const currentScroll = scrollYRef.current;
+          const TOP_PAD = 60;
+          const PANEL_BUFFER = 150;
+          const bottomPad = audioPanelHeightRef.current + PANEL_BUFFER;
+          const visibleTop = currentScroll + TOP_PAD;
+          const visibleBottom = currentScroll + viewportH - bottomPad;
+
+          if (verseAbsoluteY < visibleTop || verseAbsoluteY > visibleBottom) {
+            listRef.current?.scrollToOffset({
+              offset: Math.max(0, verseAbsoluteY - TOP_PAD),
+              animated: true,
+            });
+          }
+        },
+        () => {},
+      );
+    });
+  }, []);
+
+  const { fontSize, lineHeight, verseNumberFontSize, footnoteMarkerFontSize } =
+    useReadingTextStyles();
+
+  const listExtraData = useMemo(
+    () =>
+      [
+        fontSize,
+        lineHeight,
+        verseNumberFontSize,
+        footnoteMarkerFontSize,
+        currentPlayingChapter,
+        currentPlayingVerse,
+        isAudioPanelOpen,
+      ].join(':'),
+    [
+      fontSize,
+      lineHeight,
+      verseNumberFontSize,
+      footnoteMarkerFontSize,
+      currentPlayingChapter,
+      currentPlayingVerse,
+      isAudioPanelOpen,
+    ],
+  );
+
   const handleVerseLayout = useCallback(
     (chapterValue: number, verseToY: Map<number, number>) => {
       verseLayoutsRef.current.set(chapterValue, verseToY);
+      if (
+        currentPlayingChapterRef.current === chapterValue &&
+        currentPlayingVerseRef.current != null
+      ) {
+        scrollRetryCountRef.current = 0;
+        requestAnimationFrame(() => scrollToPlayingVerse());
+      }
     },
-    [],
+    [scrollToPlayingVerse],
   );
 
   useEffect(() => {
@@ -139,9 +254,10 @@ export default function ReadingScreen() {
   }, [languageCode, bookSlug, chapterNumber]);
 
   useEffect(() => {
+    if (openAudio && resumedPlaybackChapter != null) return;
     setCurrentPlayingVerse(null);
     setCurrentPlayingChapter(null);
-  }, [languageCode, bookSlug, chapterNumber]);
+  }, [languageCode, bookSlug, chapterNumber, openAudio, resumedPlaybackChapter]);
 
   const scrollToInitialChapter = useCallback(
     (index: number) => {
@@ -188,46 +304,47 @@ export default function ReadingScreen() {
   };
 
   useEffect(() => {
-    if (currentPlayingVerse == null) return;
-    if (currentPlayingChapter == null) return;
+    if (!isAudioPanelOpen || currentPlayingVerse == null || currentPlayingChapter == null) return;
 
-    const chapterView = chapterViewRefsRef.current.get(currentPlayingChapter);
-    const verseY = verseLayoutsRef.current.get(currentPlayingChapter)?.get(currentPlayingVerse);
-    if (!chapterView || verseY == null) return;
+    const chapterChanged = prevPlayingChapterRef.current !== currentPlayingChapter;
+    prevPlayingChapterRef.current = currentPlayingChapter;
+    scrollRetryCountRef.current = 0;
 
-    const scrollRef = listRef.current?.getNativeScrollRef?.();
-    if (!scrollRef) return;
+    const chapterIndex = chapters.findIndex((item) => item.chapter === currentPlayingChapter);
+    const chapterNotMounted = !chapterViewRefsRef.current.has(currentPlayingChapter);
+    if (chapterIndex >= 0 && (chapterChanged || chapterNotMounted)) {
+      listRef.current?.scrollToIndex({
+        index: chapterIndex,
+        animated: true,
+        viewPosition: 0,
+      });
+    }
 
-    requestAnimationFrame(() => {
-      chapterView.measureLayout(
-        scrollRef as unknown as Parameters<View['measureLayout']>[0],
-        (_x, chapterY) => {
-          const viewportH = viewportHeightRef.current;
-          if (viewportH <= 0) return;
+    const scheduleVerseScroll = () => scrollToPlayingVerse();
+    if (chapterChanged || chapterNotMounted) {
+      requestAnimationFrame(() => requestAnimationFrame(scheduleVerseScroll));
+    } else {
+      scheduleVerseScroll();
+    }
+  }, [
+    chapters,
+    currentPlayingVerse,
+    currentPlayingChapter,
+    isAudioPanelOpen,
+    scrollToPlayingVerse,
+  ]);
 
-          const verseAbsoluteY = chapterY + verseY;
-          const currentScroll = scrollYRef.current;
-          const TOP_PAD = 60;
-          const PANEL_BUFFER = 150;
-          const bottomPad = audioPanelHeightRef.current + PANEL_BUFFER;
-          const visibleTop = currentScroll + TOP_PAD;
-          const visibleBottom = currentScroll + viewportH - bottomPad;
-
-          if (verseAbsoluteY < visibleTop || verseAbsoluteY > visibleBottom) {
-            listRef.current?.scrollToOffset({
-              offset: Math.max(0, verseAbsoluteY - TOP_PAD),
-              animated: true,
-            });
-          }
-        },
-        () => {},
-      );
-    });
-  }, [currentPlayingVerse, currentPlayingChapter]);
+  useEffect(() => {
+    scrollRetryCountRef.current = 0;
+    scrollToPlayingVerse();
+  }, [fontSize, lineHeight, scrollToPlayingVerse]);
 
   const getCurrentChapterForAudio = useCallback(
-    () => visibleChapter ?? (Number.isFinite(chapterNumber) ? chapterNumber : undefined),
-    [visibleChapter, chapterNumber],
+    () =>
+      (openAudio ? resumedPlaybackChapter : undefined) ??
+      visibleChapter ??
+      effectiveChapterNumber,
+    [effectiveChapterNumber, openAudio, resumedPlaybackChapter, visibleChapter],
   );
 
   const getAdjacentChapterForAudio = useCallback(
@@ -279,11 +396,44 @@ export default function ReadingScreen() {
     playVerseAtRef.current?.(chapter, verse);
   }, []);
 
+  const renderItem = useCallback(
+    ({ item, index }: { item: ChapterContent; index: number }) => (
+      <ChapterItem
+        bookName={displayBookName}
+        chapter={item}
+        isFirst={index === 0}
+        highlightedVerse={item.chapter === currentPlayingChapter ? currentPlayingVerse : null}
+        onRootRef={getChapterRefSetter(item.chapter)}
+        onVerseLayout={handleVerseLayout}
+        onVersePress={
+          isAudioPanelOpen ? (verse) => handleVersePress(item.chapter, verse) : undefined
+        }
+      />
+    ),
+    [
+      displayBookName,
+      currentPlayingChapter,
+      currentPlayingVerse,
+      getChapterRefSetter,
+      handleVerseLayout,
+      handleVersePress,
+      isAudioPanelOpen,
+    ],
+  );
+
+  const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
+
+  const ListFooter = loadingMore ? (
+    <View style={styles.footerLoader}>
+      <ActivityIndicator size="small" color={theme.iconPrimary} />
+    </View>
+  ) : null;
+
   if (
     (audioOnly || audioOnlyFallback) &&
     ietfCode &&
     resolvedBookSlug &&
-    Number.isFinite(chapterNumber)
+    effectiveChapterNumber != null
   ) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -292,17 +442,16 @@ export default function ReadingScreen() {
           languageCode={ietfCode}
           bookSlug={resolvedBookSlug}
           bookName={resolvedBookName}
-          chapter={chapterNumber}
+          chapter={effectiveChapterNumber}
         />
       </View>
     );
   }
 
   return (
-    <ReadingTextSettingsProvider>
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
           <ReadingToolbar
             chapterTitle={toolbarChapterTitle}
             downloadContext={
@@ -324,26 +473,29 @@ export default function ReadingScreen() {
           <View style={styles.centered}>
             <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
             <Pressable onPress={refetch} accessibilityRole="button">
-              <Text style={[styles.retry, { color: theme.text }]}>Tap to retry</Text>
+              <Text style={[styles.retry, { color: theme.text }]}>{t('tapToRetry')}</Text>
             </Pressable>
           </View>
         ) : chapters.length > 0 ? (
-          <ReadingChapterList
-            listRef={listRef}
-            chapters={chapters}
-            displayBookName={displayBookName}
-            currentPlayingChapter={currentPlayingChapter}
-            currentPlayingVerse={currentPlayingVerse}
-            isAudioPanelOpen={isAudioPanelOpen}
-            loadingMore={loadingMore}
-            themeIconPrimary={theme.iconPrimary}
-            getChapterRefSetter={getChapterRefSetter}
-            handleVerseLayout={handleVerseLayout}
-            handleVersePress={handleVersePress}
+          <FlatList
+            ref={listRef}
+            data={chapters}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            extraData={listExtraData}
+            style={styles.list}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            maintainVisibleContentPosition={{
+              minIndexForVisible: 0,
+              autoscrollToTopThreshold: 10,
+            }}
             onScroll={onScroll}
+            scrollEventThrottle={16}
             onEndReached={() => {
               if (hasMore) loadMore();
             }}
+            onEndReachedThreshold={0.3}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
             onScrollToIndexFailed={onScrollToIndexFailed}
@@ -355,14 +507,16 @@ export default function ReadingScreen() {
               contentHeightRef.current = height;
               checkFillViewport(viewportHeightRef.current, contentHeightRef.current);
             }}
+            ListFooterComponent={ListFooter}
           />
         ) : null}
 
-        {chapters.length > 0 && (currentChapterHasAudio) ? (
+        {chapters.length > 0 && currentChapterHasAudio ? (
           <AudioPlayButton
             languageCode={languageCode}
             bookSlug={bookSlug}
             passageBookName={displayBookName}
+            initialPanelOpen={openAudio}
             getCurrentChapter={getCurrentChapterForAudio}
             getNextChapter={getNextChapterForAudio}
             getPreviousChapter={getPreviousChapterForAudio}
@@ -370,14 +524,17 @@ export default function ReadingScreen() {
             onCurrentChapterChange={setCurrentPlayingChapter}
             onPanelHeightChange={(height) => {
               audioPanelHeightRef.current = height;
+              if (height > 0) scrollToPlayingVerse();
             }}
-            onPanelOpenChange={setIsAudioPanelOpen}
+            onPanelOpenChange={(open) => {
+              isAudioPanelOpenRef.current = open;
+              setIsAudioPanelOpen(open);
+            }}
             playVerseAtRef={playVerseAtRef}
           />
         ) : null}
-        </SafeAreaView>
-      </View>
-    </ReadingTextSettingsProvider>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -387,6 +544,18 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    paddingHorizontal: ReadingLayout.padding,
+    paddingTop: ReadingLayout.padding,
+    paddingBottom: ReadingLayout.scrollBottomInset,
+  },
+  footerLoader: {
+    paddingVertical: ReadingLayout.contentGap,
+    alignItems: 'center',
   },
   centered: {
     flex: 1,

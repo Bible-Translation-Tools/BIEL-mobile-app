@@ -1,5 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
+import { VolumeSlider } from '@/components/reading/volume-slider';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MediaPlayerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -10,13 +12,13 @@ type MediaPlayerControlsProps = {
   isLoading?: boolean;
   error?: string | null;
   canStepVerse?: boolean;
+  volume?: number;
   playIconSize?: number;
   onTogglePlay?: () => void;
   onPreviousVerse?: () => void;
   onNextVerse?: () => void;
+  onVolumeChange?: (volume: number) => void;
 };
-
-const VOLUME_PLACEHOLDER = 0.5;
 
 export function MediaPlayerControls({
   passage,
@@ -24,12 +26,15 @@ export function MediaPlayerControls({
   isLoading = false,
   error,
   canStepVerse = false,
+  volume = 1,
   playIconSize = 24,
   onTogglePlay,
   onPreviousVerse,
   onNextVerse,
+  onVolumeChange,
 }: MediaPlayerControlsProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const playDisabled = isLoading || Boolean(error);
 
   return (
@@ -43,18 +48,17 @@ export function MediaPlayerControls({
             { opacity: !canStepVerse ? 0.4 : pressed ? 0.6 : 1 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Previous verse"
+          accessibilityLabel={t('previousVerse')}
           accessibilityState={{ disabled: !canStepVerse }}>
           <IconSymbol
             name={{
               ios: 'backward.end.fill',
               android: 'skip-previous',
-              web: 'skip-previous',
             }}
             size={36}
             color={theme.iconPrimary}
           />
-          <Text style={[styles.verseLabel, { color: theme.text }]}>Verse</Text>
+          <Text style={[styles.verseLabel, { color: theme.text }]}>{t('verse')}</Text>
         </Pressable>
 
         <Pressable
@@ -69,15 +73,15 @@ export function MediaPlayerControls({
           ]}
           accessibilityRole="button"
           accessibilityState={{ disabled: playDisabled }}
-          accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
+          accessibilityLabel={isPlaying ? t('pause') : t('play')}>
           {isLoading ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <IconSymbol
               name={
                 isPlaying
-                  ? { ios: 'pause.fill', android: 'pause', web: 'pause' }
-                  : { ios: 'play.fill', android: 'play-arrow', web: 'play-arrow' }
+                  ? { ios: 'pause.fill', android: 'pause' }
+                  : { ios: 'play.fill', android: 'play-arrow' }
               }
               size={playIconSize}
               color="#ffffff"
@@ -93,14 +97,14 @@ export function MediaPlayerControls({
             { opacity: !canStepVerse ? 0.4 : pressed ? 0.6 : 1 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Next verse"
+          accessibilityLabel={t('nextVerse')}
           accessibilityState={{ disabled: !canStepVerse }}>
           <IconSymbol
-            name={{ ios: 'forward.end.fill', android: 'skip-next', web: 'skip-next' }}
+            name={{ ios: 'forward.end.fill', android: 'skip-next' }}
             size={36}
             color={theme.iconPrimary}
           />
-          <Text style={[styles.verseLabel, { color: theme.text }]}>Verse</Text>
+          <Text style={[styles.verseLabel, { color: theme.text }]}>{t('verse')}</Text>
         </Pressable>
       </View>
 
@@ -114,26 +118,13 @@ export function MediaPlayerControls({
         </Text>
       ) : null}
 
-      <View style={styles.volumeRow} accessibilityRole="adjustable" accessibilityLabel="Volume">
-        <IconSymbol
-          name={{ ios: 'speaker.wave.1.fill', android: 'volume-mute', web: 'volume-mute' }}
-          size={16}
-          color={theme.iconPrimary}
+      {onVolumeChange ? (
+        <VolumeSlider
+          value={volume}
+          onValueChange={onVolumeChange}
+          accessibilityLabel={t('volume')}
         />
-        <View style={[styles.volumeTrack, { backgroundColor: theme.background }]}>
-          <View
-            style={[
-              styles.volumeFill,
-              { backgroundColor: theme.tabActive, width: `${VOLUME_PLACEHOLDER * 100}%` },
-            ]}
-          />
-        </View>
-        <IconSymbol
-          name={{ ios: 'speaker.wave.3.fill', android: 'volume-up', web: 'volume-up' }}
-          size={16}
-          color={theme.iconPrimary}
-        />
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -175,21 +166,5 @@ const styles = StyleSheet.create({
   errorText: {
     ...Typography.bodySm,
     textAlign: 'center',
-  },
-  volumeRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  volumeTrack: {
-    flex: 1,
-    height: 4,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  volumeFill: {
-    height: '100%',
-    borderRadius: 5,
   },
 });

@@ -1,46 +1,102 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { fetchBooksForLanguage, fetchBooksForLanguageOffline } from '@/api/services/books';
-import { listDownloadedBookSlugs } from '@/db';
+import { resolveLanguageAudioBooks } from '@/api/services/offline-audio';
+import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
 import type { BookItem } from '@/types/book';
+import type { DownloadStatus } from '@/types/download';
+
+export type BookDownloadStatusChange = {
+  bookSlug: string;
+  status: DownloadStatus;
+  kind?: 'scripture' | 'audio';
+};
+
+async function getDownloadStatusSets(languageCode: string) {
+  const [downloadedSlugs, audioDownloadedSlugs, audioBooks] = await Promise.all([
+    listDownloadedBookSlugs(languageCode).catch(() => []),
+    listDownloadedAudioBookSlugs(languageCode).catch(() => []),
+    resolveLanguageAudioBooks(languageCode).catch(() => null),
+  ]);
+
+  return {
+    downloadedSet: new Set(downloadedSlugs.map((slug) => slug.toUpperCase())),
+    audioDownloadedSet: new Set(audioDownloadedSlugs.map((slug) => slug.toUpperCase())),
+    audioAvailableSet: audioBooks
+      ? new Set(audioBooks.map((book) => book.bookSlug.toUpperCase()))
+      : null,
+  };
+}
+
+function mapBooksWithDownloadStatus(
+  items: BookItem[],
+  downloadedSet: Set<string>,
+  audioDownloadedSet: Set<string>,
+  audioAvailableSet: Set<string> | null,
+): BookItem[] {
+  return items.map((book) => {
+    const canonicalSlug = book.slug.toUpperCase();
+    return {
+      ...book,
+      downloadStatus: downloadedSet.has(canonicalSlug) ? 'downloaded' : 'pending',
+      audioDownloadStatus: audioDownloadedSet.has(canonicalSlug) ? 'downloaded' : 'pending',
+      hasAudio: audioAvailableSet ? audioAvailableSet.has(canonicalSlug) : book.hasAudio,
+    };
+  });
+}
 
 async function applyDownloadStatus(
   items: BookItem[],
   languageCode: string,
 ): Promise<BookItem[]> {
-  const downloadedSlugs = await listDownloadedBookSlugs(languageCode).catch(() => []);
-  const downloadedSet = new Set(downloadedSlugs.map((slug) => slug.toUpperCase()));
-
-  return items.map((book) => ({
-    ...book,
-    downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
-  }));
+  const { downloadedSet, audioDownloadedSet, audioAvailableSet } =
+    await getDownloadStatusSets(languageCode);
+  return mapBooksWithDownloadStatus(items, downloadedSet, audioDownloadedSet, audioAvailableSet);
 }
 
 export function useBooks(languageCode: string | undefined) {
+  const { t } = useTranslation('books');
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshDownloadStatus = useCallback(async () => {
-    if (!languageCode) return;
+  const refreshDownloadStatus = useCallback(
+    async (change?: BookDownloadStatusChange) => {
+      if (!languageCode) return;
 
-    const downloadedSlugs = await listDownloadedBookSlugs(languageCode).catch(() => []);
-    const downloadedSet = new Set(downloadedSlugs.map((slug) => slug.toUpperCase()));
+      if (change) {
+        setBooks((current) =>
+          current.map((book) => {
+            if (book.slug.toUpperCase() !== change.bookSlug.toUpperCase()) {
+              return book;
+            }
 
-    setBooks((current) =>
-      current.map((book) => ({
-        ...book,
-        downloadStatus: downloadedSet.has(book.slug.toUpperCase()) ? 'downloaded' : 'pending',
-      })),
-    );
-  }, [languageCode]);
+            if (change.kind === 'audio') {
+              return { ...book, audioDownloadStatus: change.status };
+            }
+
+            return { ...book, downloadStatus: change.status };
+          }),
+        );
+        return;
+      }
+
+      const { downloadedSet, audioDownloadedSet, audioAvailableSet } =
+        await getDownloadStatusSets(languageCode);
+
+      setBooks((current) =>
+        mapBooksWithDownloadStatus(current, downloadedSet, audioDownloadedSet, audioAvailableSet),
+      );
+    },
+    [languageCode],
+  );
 
   const refetch = useCallback(async () => {
     if (!languageCode) {
       setBooks([]);
       setLoading(false);
-      setError('Language not found');
+      setError(t('languageNotFound'));
       return;
     }
 
@@ -75,12 +131,12 @@ export function useBooks(languageCode: string | undefined) {
     } catch (err) {
       if (offlineItems.length === 0) {
         setBooks([]);
-        setError(err instanceof Error ? err.message : 'Failed to load books');
+        setError(err instanceof Error ? err.message : t('failedToLoadBooks'));
       }
     } finally {
       setLoading(false);
     }
-  }, [languageCode]);
+  }, [languageCode, t]);
 
   useEffect(() => {
     refetch();

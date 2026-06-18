@@ -89,6 +89,90 @@ function parseChaptersArray(chapters: Map<number, OfflineChapter>, value: unknow
   }
 }
 
+function collectChapterNumber(numbers: Set<number>, chapterNumber: number) {
+  if (Number.isFinite(chapterNumber) && chapterNumber >= 1) {
+    numbers.add(chapterNumber);
+  }
+}
+
+function collectChapterNumberFromRecord(numbers: Set<number>, key: string, value: unknown) {
+  const chapterNumber = Number.parseInt(key, 10);
+  if (!Number.isNaN(chapterNumber) && /^\d+$/.test(key.trim())) {
+    collectChapterNumber(numbers, chapterNumber);
+    return;
+  }
+
+  if (value != null && typeof value === 'object') {
+    const fromField = parseChapterNumber(
+      (value as Record<string, unknown>).chapter ?? (value as Record<string, unknown>).number,
+    );
+    if (!Number.isNaN(fromField)) {
+      collectChapterNumber(numbers, fromField);
+    }
+  }
+}
+
+function collectChapterNumbersFromObject(numbers: Set<number>, value: Record<string, unknown>) {
+  for (const [key, chapterValue] of Object.entries(value)) {
+    collectChapterNumberFromRecord(numbers, key, chapterValue);
+  }
+}
+
+function collectChapterNumbersFromArray(numbers: Set<number>, value: unknown[]) {
+  for (const item of value) {
+    if (item == null || typeof item !== 'object') continue;
+    const chapterNumber = parseChapterNumber(
+      (item as Record<string, unknown>).number ?? (item as Record<string, unknown>).chapter,
+    );
+    if (!Number.isNaN(chapterNumber)) {
+      collectChapterNumber(numbers, chapterNumber);
+    }
+  }
+}
+
+/**
+ * Returns sorted chapter numbers without loading chapter HTML into memory.
+ */
+export function extractChapterNumbersFromWholeBookJson(payload: unknown): number[] {
+  const numbers = new Set<number>();
+
+  if (payload == null) {
+    return [];
+  }
+
+  if (Array.isArray(payload)) {
+    collectChapterNumbersFromArray(numbers, payload);
+    return [...numbers].sort((a, b) => a - b);
+  }
+
+  if (typeof payload !== 'object') {
+    return [];
+  }
+
+  const root = payload as Record<string, unknown>;
+
+  if (root.chapters != null) {
+    if (Array.isArray(root.chapters)) {
+      collectChapterNumbersFromArray(numbers, root.chapters);
+    } else if (typeof root.chapters === 'object') {
+      collectChapterNumbersFromObject(numbers, root.chapters as Record<string, unknown>);
+    }
+  }
+
+  if (root.content != null && typeof root.content === 'object' && !Array.isArray(root.content)) {
+    collectChapterNumbersFromObject(numbers, root.content as Record<string, unknown>);
+  }
+
+  for (const [key, value] of Object.entries(root)) {
+    if (key === 'chapters' || key === 'content' || key === 'metadata' || key === 'meta') {
+      continue;
+    }
+    collectChapterNumberFromRecord(numbers, key, value);
+  }
+
+  return [...numbers].sort((a, b) => a - b);
+}
+
 /**
  * Parses an external whole-book JSON payload into an internal OfflineBook model.
  */

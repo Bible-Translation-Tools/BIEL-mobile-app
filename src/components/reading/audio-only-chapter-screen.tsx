@@ -1,10 +1,12 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioOnlyToolbar } from '@/components/reading/audio-only-toolbar';
 import { MediaPlayerControls } from '@/components/reading/media-player-controls';
 import { ReadingLayout } from '@/constants/theme';
 import { useAudioChapterReader } from '@/hooks/use-audio-chapter-reader';
+import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
 
 type AudioOnlyChapterScreenProps = {
@@ -21,6 +23,7 @@ export function AudioOnlyChapterScreen({
   chapter,
 }: AudioOnlyChapterScreenProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const displayBookName = bookName ?? bookSlug;
 
   const {
@@ -34,8 +37,11 @@ export function AudioOnlyChapterScreen({
     refetchChapters,
   } = useAudioChapterReader(languageCode, bookSlug, displayBookName, chapter);
 
+  const showPlayer = !loading && !error;
+  useSystemVolumeSync(showPlayer);
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['left', 'right']}>
       <AudioOnlyToolbar
         languageCode={languageCode}
         bookSlug={bookSlug}
@@ -50,7 +56,7 @@ export function AudioOnlyChapterScreen({
         <View style={styles.centered}>
           <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
           <Pressable onPress={refetchChapters} accessibilityRole="button">
-            <Text style={[styles.retry, { color: theme.text }]}>Tap to retry</Text>
+            <Text style={[styles.retry, { color: theme.text }]}>{t('tapToRetry')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -65,6 +71,8 @@ export function AudioOnlyChapterScreen({
             onTogglePlay={audio.togglePlay}
             onPreviousVerse={handlePreviousVerse}
             onNextVerse={handleNextVerse}
+            volume={audio.volume}
+            onVolumeChange={audio.setVolume}
           />
         </View>
       )}

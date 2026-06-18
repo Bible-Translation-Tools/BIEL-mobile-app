@@ -13,6 +13,7 @@ export const Colors = {
     textHeading: '#1d2a38',
     background: '#f2f7fd',
     backgroundAccent: '#bfd6f7',
+    surfaceAccent: '#bfd6f7',
     backgroundElement: '#ffffff',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#767676',
@@ -32,6 +33,7 @@ export const Colors = {
     textHeading: '#eaeaea',
     background: '#2c2c2c',
     backgroundAccent: '#3d4f63',
+    surfaceAccent: '#0044A6',
     backgroundElement: '#212121',
     backgroundSelected: '#2E3135',
     textSecondary: '#cacaca',
@@ -109,6 +111,7 @@ export const DownloadMenuLayout = {
   progressSuccessTrack: '#eef0ff',
   menuMaxWidth: 342,
   anchorGap: 8,
+  menuTopOffset: 16,
   screenPadding: 16,
 } as const;
 
@@ -160,7 +163,10 @@ export const ReadingLayout = {
   sectionGap: 8,
   toolbarHeight: 48,
   toolbarPaddingH: 16,
+  toolbarPaddingTop: 4,
   toolbarPaddingV: 10,
+  /** Subtract from the status-bar safe inset so toolbar controls sit closer to the top. */
+  toolbarStatusBarInsetReduction: 8,
   toolbarIconSize: 24,
   toolbarSettingsIconSize: 22,
   toolbarTrailingGap: 16,
@@ -168,8 +174,13 @@ export const ReadingLayout = {
   toolbarTitleScrollThreshold: 32,
   playButtonSize: 54,
   playButtonBottom: 20,
-  scrollBottomInset: 100,
+  /** Bottom padding on the chapter list so the audio panel / FAB does not cover text. */
+  scrollBottomInset: 220,
 } as const;
+
+export function getToolbarTopInset(statusBarInset: number): number {
+  return Math.max(statusBarInset - ReadingLayout.toolbarStatusBarInsetReduction, 0);
+}
 
 export const MediaPlayerLayout = {
   topRadius: 20,

@@ -1,0 +1,139 @@
+{
+  "common": {
+    "ok": "Aceptar",
+    "retry": "Toca para reintentar",
+    "clearSearch": "Borrar búsqueda",
+    "goBack": "Volver",
+    "back": "Atrás",
+    "emDash": "—"
+  },
+  "home": {
+    "title": "Explorar la Biblia",
+    "searchPlaceholder": "Buscar idioma aquí...",
+    "searchAccessibility": "Buscar idiomas",
+    "noLanguagesFound": "No se encontraron idiomas",
+    "failedToLoadLanguages": "No se pudieron cargar los idiomas",
+    "accessibility": {
+      "openLanguage": "Abrir {{name}}",
+      "downloadInProgress": "Descarga en curso de {{name}}",
+      "downloaded": "{{name}} descargado",
+      "download": "Descargar {{name}}"
+    }
+  },
+  "books": {
+    "title": "Biblia",
+    "searchPlaceholder": "Buscar libro aquí...",
+    "searchAccessibility": "Buscar libros",
+    "oldTestament": "Antiguo Testamento",
+    "newTestament": "Nuevo Testamento",
+    "noBooksFound": "No se encontraron libros",
+    "languageNotFound": "Idioma no encontrado",
+    "failedToLoadBooks": "No se pudieron cargar los libros",
+    "contentLicense": "El contenido está licenciado bajo CC BY-SA 4.0.",
+    "contentLicenseLearnMore": "Más información",
+    "accessibility": {
+      "expand": "Expandir {{name}}",
+      "collapse": "Contraer {{name}}",
+      "downloadInProgress": "Descarga en curso de {{name}}",
+      "delete": "Eliminar {{name}}",
+      "download": "Descargar {{name}}"
+    }
+  },
+  "reading": {
+    "scripture": "Escritura",
+    "audio": "Audio",
+    "textSettings": "Ajustes de texto",
+    "textSize": "Tamaño de texto",
+    "lineHeight": "Interlineado",
+    "reset": "Restablecer",
+    "verse": "Versículo",
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "failedToLoadChapter": "No se pudo cargar el capítulo",
+    "tapToRetry": "Toca para reintentar",
+    "decreaseTextSize": "Reducir tamaño de texto",
+    "increaseTextSize": "Aumentar tamaño de texto",
+    "decreaseLineHeight": "Reducir interlineado",
+    "increaseLineHeight": "Aumentar interlineado",
+    "resetTextSettings": "Restablecer ajustes de texto",
+    "closeTextSettings": "Cerrar ajustes de texto",
+    "downloadChapter": "Descargar capítulo",
+    "goBack": "Volver",
+    "previousVerse": "Versículo anterior",
+    "nextVerse": "Versículo siguiente",
+    "volume": "Volumen",
+    "partOfFullBookTitle": "Parte de la descarga del libro completo",
+    "partOfFullBookMessage": "Este capítulo está disponible sin conexión porque se descargó el libro completo. Elimínalo desde la lista de libros.",
+    "downloadChapterAudio": "Descargar audio del capítulo",
+    "audioPlayer": "Reproductor de audio",
+    "closeAudioPlayer": "Cerrar reproductor de audio",
+    "openAudioPlayer": "Abrir reproductor de audio",
+    "accessibility": {
+      "textSettings": "Ajustes de texto"
+    }
+  },
+  "download": {
+    "title": "Descargar",
+    "closeMenu": "Cerrar menú de descarga",
+    "allScripture": "Toda la Escritura",
+    "allAudio": "Todo el audio",
+    "checking": "Comprobando...",
+    "downloading": "Descargando...",
+    "downloaded": "Descargado",
+    "downloadFailedTitle": "Error de descarga",
+    "downloadFailedMessage": "No se pudo completar la descarga",
+    "deleteFailedTitle": "Error al eliminar",
+    "deleteFailedMessage": "No se pudo eliminar la descarga",
+    "confirmDeleteTitle": "¿Eliminar {{title}} descargado?",
+    "confirmDeleteMessage": "Puedes descargarlo de nuevo más tarde.",
+    "confirmDeleteCancel": "Cancelar",
+    "confirmDeleteAction": "Eliminar",
+    "couldNotDownloadChapter": "No se pudo descargar el capítulo",
+    "couldNotRemoveChapter": "No se pudo eliminar el capítulo descargado",
+    "couldNotDownloadAudio": "No se pudo descargar el audio",
+    "couldNotRemoveAudio": "No se pudo eliminar el audio descargado",
+    "couldNotDownloadLanguage": "No se pudo descargar el idioma",
+    "couldNotDownloadScripture": "No se pudo descargar la escritura",
+    "couldNotRemoveScripture": "No se pudo eliminar la escritura descargada",
+    "notification": {
+      "channelName": "Descargas de libros",
+      "downloadingScripture": "Descargando {{name}}",
+      "downloadingAudio": "Descargando {{name}} (audio)",
+      "downloadingMultiple": "Descargando {{count}} libros",
+      "progress": "{{percent}}%",
+      "complete": "{{name}} descargado",
+      "failed": "Error al descargar {{name}}"
+    },
+    "accessibility": {
+      "checking": "Comprobando disponibilidad de {{title}}",
+      "cancel": "Cancelar descarga de {{title}}",
+      "delete": "Eliminar {{title}} descargado",
+      "downloaded": "{{title}} descargado",
+      "unavailable": "{{title}} no disponible",
+      "download": "Descargar {{title}}"
+    }
+  },
+  "settings": {
+    "title": "Ajustes del sistema",
+    "close": "Cerrar ajustes del sistema",
+    "theme": {
+      "system": {
+        "title": "Automático",
+        "subtitle": "Seguir ajustes del sistema"
+      },
+      "light": {
+        "title": "Modo claro",
+        "subtitle": "Ignorar ajustes del sistema"
+      },
+      "dark": {
+        "title": "Modo oscuro",
+        "subtitle": "Ignorar ajustes del sistema"
+      }
+    }
+  },
+  "locale": {
+    "pickerTitle": "Idioma de la interfaz",
+    "changeInterfaceLanguage": "Cambiar idioma de la interfaz",
+    "closePicker": "Cerrar menú de idioma de la interfaz"
+  }
+}

@@ -9,8 +9,9 @@ const MATERIAL_ICON_ALIASES: Record<string, MaterialIconName> = {
   add: 'add',
   arrow_back: 'arrow-back',
   chevron_right: 'chevron-right',
+  download: 'download',
   download_done: 'download-done',
-  file_download: 'file-download',
+  file_download: 'download',
   format_align_left: 'format-align-left',
   format_line_spacing: 'format-line-spacing',
   format_size: 'format-size',
@@ -29,8 +30,22 @@ export type IconSymbolName =
   | {
       ios: string;
       android: string;
-      web: string;
     };
+
+/** Material icons rendered on every platform (including iOS). */
+export const DOWNLOAD_ICON_NAME = 'download';
+export const DOWNLOAD_DONE_ICON_NAME = 'download-done';
+export const DELETE_ICON_NAME = 'delete';
+export const SETTINGS_ICON_NAME = 'settings';
+export const TRANSLATE_ICON_NAME = 'translate';
+
+const MATERIAL_ICON_NAMES = new Set<string>([
+  DOWNLOAD_ICON_NAME,
+  DOWNLOAD_DONE_ICON_NAME,
+  DELETE_ICON_NAME,
+  SETTINGS_ICON_NAME,
+  TRANSLATE_ICON_NAME,
+]);
 
 type IconSymbolProps = {
   name: IconSymbolName;
@@ -39,8 +54,21 @@ type IconSymbolProps = {
   style?: StyleProp<ViewStyle>;
 };
 
+function usesMaterialIconOnIos(name: IconSymbolName): boolean {
+  if (typeof name === 'string') {
+    return MATERIAL_ICON_NAMES.has(name);
+  }
+
+  return MATERIAL_ICON_NAMES.has(name.ios) || MATERIAL_ICON_NAMES.has(name.android);
+}
+
 function resolveMaterialName(name: IconSymbolName): MaterialIconName {
-  const raw = typeof name === 'object' ? (Platform.OS === 'web' ? name.web : name.android) : name;
+  const raw =
+    typeof name === 'object'
+      ? Platform.OS === 'ios' && usesMaterialIconOnIos(name)
+        ? name.ios
+        : name.android
+      : name;
   return MATERIAL_ICON_ALIASES[raw] ?? (raw as MaterialIconName);
 }
 
@@ -50,7 +78,7 @@ function resolveSymbolName(name: IconSymbolName): SymbolViewProps['name'] {
 }
 
 export function IconSymbol({ name, size = 24, color, style }: IconSymbolProps) {
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === 'ios' && !usesMaterialIconOnIos(name)) {
     return (
       <SymbolView
         name={resolveSymbolName(name)}

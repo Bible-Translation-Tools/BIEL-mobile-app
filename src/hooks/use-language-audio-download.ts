@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
+
 import {
   deleteLanguageAudio,
   downloadLanguageAudio,
   getLanguageAudioTotalBytes,
   getLanguageDownloadedAudioByteSize,
-  isBookAudioDownloaded,
+  isLanguageAudioDownloaded,
   resolveLanguageAudioBooks,
 } from '@/api/services/offline-audio';
 import { useContentDownload } from '@/hooks/use-content-download';
@@ -19,13 +21,14 @@ export function useLanguageAudioDownload({
   enabled = true,
   onComplete,
 }: UseLanguageAudioDownloadOptions) {
+  const { t } = useTranslation('download');
   const {
     canDownload,
     ...rest
   } = useContentDownload({
     enabled,
     partialSizeLabel: true,
-    downloadFailedMessage: 'Could not download audio',
+    downloadFailedMessage: t('couldNotDownloadAudio'),
     onComplete,
     download: (options) => downloadLanguageAudio(languageCode, options),
     deleteContent: () => deleteLanguageAudio(languageCode),
@@ -34,17 +37,7 @@ export function useLanguageAudioDownload({
       return bytes > 0 ? bytes : null;
     },
     getTotalBytes: () => getLanguageAudioTotalBytes(languageCode),
-    getIsDownloaded: async () => {
-      const books = await resolveLanguageAudioBooks(languageCode).catch(() => []);
-      if (books.length === 0) return false;
-
-      for (const book of books) {
-        if (!(await isBookAudioDownloaded(languageCode, book.bookSlug))) {
-          return false;
-        }
-      }
-      return true;
-    },
+    getIsDownloaded: () => isLanguageAudioDownloaded(languageCode).catch(() => false),
     getCanDownload: async () => {
       const books = await resolveLanguageAudioBooks(languageCode).catch(() => []);
       return books.length > 0;

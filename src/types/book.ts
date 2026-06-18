@@ -12,6 +12,8 @@ export type BookItem = {
   slug: string;
   testament: Testament;
   downloadStatus: DownloadStatus;
+  audioDownloadStatus: DownloadStatus;
+  hasAudio: boolean;
 };
 
 export type ApiBookMetadata = {

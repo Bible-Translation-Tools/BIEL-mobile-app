@@ -7,6 +7,7 @@ import {
   View,
   type LayoutRectangle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
 import { DownloadMenuLayout, SystemSettingsLayout } from '@/constants/theme';
@@ -48,7 +49,7 @@ function computeMenuPosition(anchor: SystemSettingsAnchor): MenuPosition {
         horizontalPadding,
         anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
       )
-    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
+    : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, right, width: menuWidth };
 }
@@ -58,6 +59,8 @@ export const SystemSettingsPopover = memo(function SystemSettingsPopover({
   anchor,
   onClose,
 }: SystemSettingsPopoverProps) {
+  const { t } = useTranslation('settings');
+
   if (!visible || anchor == null) {
     return null;
   }
@@ -76,7 +79,7 @@ export const SystemSettingsPopover = memo(function SystemSettingsPopover({
           style={styles.dismissLayer}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close system settings"
+          accessibilityLabel={t('close')}
         />
         <View
           style={[

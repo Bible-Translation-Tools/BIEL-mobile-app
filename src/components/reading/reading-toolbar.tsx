@@ -1,23 +1,27 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Platform, Pressable, StatusBar as RNStatusBar, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  DownloadMenuPopover,
-  type DownloadMenuAnchor,
+    DownloadMenuPopover,
+    type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
+import { TextFormatSizeIcon } from '@/components/icons/textformat-size-icon';
 import {
-  TextSettingsPopover,
-  type TextSettingsAnchor,
+    TextSettingsPopover,
+    type TextSettingsAnchor,
 } from '@/components/reading/text-settings-popover';
 import {
-  SettingsToolbarButton,
-  type SettingsToolbarButtonRef,
+    SettingsToolbarButton,
+    type SettingsToolbarButtonRef,
 } from '@/components/settings/settings-toolbar-button';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ReadingLayout, Typography } from '@/constants/theme';
+import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
+import { stopPlaybackBeforeLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ChapterDownloadContext = {
@@ -39,6 +43,8 @@ function ReadingToolbarDownloadButton({
   chapter,
 }: ReadingToolbarDownloadButtonProps) {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
+  const { t: tc } = useTranslation('common');
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -87,10 +93,7 @@ function ReadingToolbarDownloadButton({
 
     if (scriptureStatus === 'downloaded') {
       if (!scriptureStandalone) {
-        Alert.alert(
-          'Part of full book download',
-          'This chapter is available offline because the full book was downloaded. Remove it from the book list.',
-        );
+        Alert.alert(t('partOfFullBookTitle'), t('partOfFullBookMessage'));
         return;
       }
 
@@ -136,9 +139,9 @@ function ReadingToolbarDownloadButton({
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
           onPress={openDownloadMenu}
           accessibilityRole="button"
-          accessibilityLabel="Download chapter">
+          accessibilityLabel={t('downloadChapter')}>
           <IconSymbol
-            name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+            name={DOWNLOAD_ICON_NAME}
             size={ReadingLayout.toolbarIconSize}
             color={theme.iconPrimary}
           />
@@ -149,14 +152,15 @@ function ReadingToolbarDownloadButton({
         visible={menuVisible}
         anchor={menuAnchor}
         onClose={closeDownloadMenu}
+        rightOffset={12}
         menuProps={{
-          scriptureTitle: 'Scripture',
-          scriptureFileSize: scriptureFileSizeLabel ?? '—',
+          scriptureTitle: t('scripture'),
+          scriptureFileSize: scriptureFileSizeLabel ?? tc('emDash'),
           scriptureStatus,
           scriptureProgress,
           onScripturePress: handleScripturePress,
-          audioTitle: 'Audio',
-          audioFileSize: audioFileSizeLabel ?? '—',
+          audioTitle: t('audio'),
+          audioFileSize: audioFileSizeLabel ?? tc('emDash'),
           audioStatus,
           audioProgress,
           onAudioPress: handleAudioPress,
@@ -174,7 +178,7 @@ function DisabledDownloadButton() {
     <View style={styles.iconButtonDisabledWrapper}>
       <View style={[styles.iconButton, styles.iconButtonDisabled]}>
         <IconSymbol
-          name={{ ios: 'arrow.down.circle', android: 'file_download', web: 'file_download' }}
+          name={DOWNLOAD_ICON_NAME}
           size={ReadingLayout.toolbarIconSize}
           color={theme.iconPrimary}
         />
@@ -186,7 +190,20 @@ function DisabledDownloadButton() {
 export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbarProps) {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation('reading');
+  const insets = useSafeAreaInsets();
   const isElevated = chapterTitle != null;
+  const headerBackground = isElevated ? theme.surfaceAccent : theme.background;
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    RNStatusBar.setBackgroundColor(headerBackground, true);
+
+    return () => {
+      RNStatusBar.setBackgroundColor(theme.background, true);
+    };
+  }, [headerBackground, theme.background]);
   const textSettingsAnchorRef = useRef<View>(null);
   const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
   const [textSettingsVisible, setTextSettingsVisible] = useState(false);
@@ -214,23 +231,25 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
   return (
     <View
       style={[
-        styles.toolbar,
+        styles.header,
+        { paddingTop: getToolbarTopInset(insets.top), backgroundColor: headerBackground },
         isElevated && [
-          styles.toolbarElevated,
-          {
-            backgroundColor: theme.backgroundAccent,
-            shadowColor: '#000',
-          },
+          styles.headerElevated,
+          { shadowColor: '#000' },
         ],
       ]}>
+      <View style={styles.toolbar}>
       <View style={styles.leading}>
         <Pressable
           style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
-          onPress={() => router.back()}
+          onPress={() => {
+            stopPlaybackBeforeLeave();
+            router.back();
+          }}
           accessibilityRole="button"
-          accessibilityLabel="Go back">
+          accessibilityLabel={t('goBack')}>
           <IconSymbol
-            name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+            name={{ ios: 'chevron.left', android: 'arrow_back' }}
             size={ReadingLayout.toolbarIconSize}
             color={theme.iconPrimary}
           />
@@ -257,13 +276,9 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
             ]}
             onPress={openTextSettings}
             accessibilityRole="button"
-            accessibilityLabel="Text settings"
+            accessibilityLabel={t('accessibility.textSettings')}
             accessibilityState={{ expanded: textSettingsVisible }}>
-            <IconSymbol
-              name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
-              size={ReadingLayout.toolbarIconSize}
-              color={theme.iconPrimary}
-            />
+            <TextFormatSizeIcon size={ReadingLayout.toolbarIconSize} color={theme.iconPrimary} />
           </Pressable>
         </View>
         {downloadContext ? (
@@ -292,24 +307,29 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
         anchor={textSettingsAnchor}
         onClose={closeTextSettings}
       />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    width: '100%',
+  },
+  headerElevated: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2.5,
+    elevation: 3,
+  },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     height: ReadingLayout.toolbarHeight,
     paddingHorizontal: ReadingLayout.toolbarPaddingH,
-    paddingVertical: ReadingLayout.toolbarPaddingV,
-  },
-  toolbarElevated: {
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.25,
-    shadowRadius: 2.5,
-    elevation: 3,
+    paddingTop: ReadingLayout.toolbarPaddingTop,
+    paddingBottom: ReadingLayout.toolbarPaddingV,
   },
   leading: {
     flex: 1,

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
+  RefreshControl,
   StyleSheet,
   Text,
   type ListRenderItem,
@@ -9,10 +11,12 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { BookLayout } from '@/constants/theme';
 import { useBookChapters } from '@/hooks/use-book-chapters';
 import { useTheme } from '@/hooks/use-theme';
+import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import type { BookItem, ChapterItem } from '@/types/book';
 
 import { BookCardRow } from './book-card-row';
@@ -25,21 +29,27 @@ type BookListProps = {
   error?: string | null;
   onRetry?: () => void;
   onChapterPress?: (book: BookItem, chapter: ChapterItem) => void;
-  onDownloadStatusChange?: () => void;
+  onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
+  onRefresh?: () => void | Promise<void>;
+  refreshing?: boolean;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
+  ListFooterComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type BookListEmptyProps = {
   loading: boolean;
+  refreshing: boolean;
   error: string | null;
   onRetry?: () => void;
 };
 
-function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
+function BookListEmpty({ loading, refreshing, error, onRetry }: BookListEmptyProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
+  const { t: tc } = useTranslation('common');
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={theme.iconPrimary} />
@@ -53,7 +63,7 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
         <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
         {onRetry ? (
           <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-            Tap to retry
+            {tc('retry')}
           </Text>
         ) : null}
       </View>
@@ -62,7 +72,7 @@ function BookListEmpty({ loading, error, onRetry }: BookListEmptyProps) {
 
   return (
     <View style={styles.centered}>
-      <Text style={[styles.message, { color: theme.textSecondary }]}>No books found</Text>
+      <Text style={[styles.message, { color: theme.textSecondary }]}>{t('noBooksFound')}</Text>
     </View>
   );
 }
@@ -76,11 +86,15 @@ export function BookList({
   onRetry,
   onChapterPress,
   onDownloadStatusChange,
+  onRefresh,
+  refreshing = false,
   ListHeaderComponent,
+  ListFooterComponent,
   contentContainerStyle,
 }: BookListProps) {
+  const theme = useTheme();
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
-  const { loadChapters, getChapters, isLoading } = useBookChapters(languageCode, audioOnly);
+  const { loadChapters, getChapters, isLoading, clearCache } = useBookChapters(languageCode, audioOnly);
 
   const expandedBook = books.find((book) => book.id === expandedBookId);
 
@@ -100,6 +114,13 @@ export function BookList({
     }
   }, [expandedBook, loadChapters]);
 
+  const handleRefresh = useCallback(async () => {
+    if (!onRefresh) return;
+
+    clearCache();
+    await onRefresh();
+  }, [clearCache, onRefresh]);
+
   const renderItem: ListRenderItem<BookItem> = useCallback(
     ({ item }) => {
       const isExpanded = expandedBookId === item.id;
@@ -108,23 +129,44 @@ export function BookList({
         <BookCardRow
           book={item}
           languageCode={languageCode}
+          audioOnly={audioOnly}
           isExpanded={isExpanded}
           chapters={getChapters(item.slug)}
           chaptersLoading={isLoading(item.slug)}
-          onToggleExpand={() =>
-            setExpandedBookId((current) => (current === item.id ? null : item.id))
-          }
+          onToggleExpand={() => {
+            Keyboard.dismiss();
+            const willExpand = expandedBookId !== item.id;
+            if (willExpand) {
+              void loadChapters(item.slug);
+            }
+            setExpandedBookId((current) => (current === item.id ? null : item.id));
+          }}
           onChapterPress={
-            onChapterPress ? (chapter) => onChapterPress(item, chapter) : undefined
+            onChapterPress
+              ? (chapter) => {
+                  Keyboard.dismiss();
+                  onChapterPress(item, chapter);
+                }
+              : undefined
           }
           onDownloadStatusChange={onDownloadStatusChange}
         />
       );
     },
-    [expandedBookId, getChapters, isLoading, languageCode, onChapterPress, onDownloadStatusChange],
+    [
+      expandedBookId,
+      getChapters,
+      isLoading,
+      languageCode,
+      audioOnly,
+      loadChapters,
+      onChapterPress,
+      onDownloadStatusChange,
+    ],
   );
 
   const listHeader = ListHeaderComponent;
+  const isEmpty = books.length === 0;
 
   return (
     <FlatList
@@ -134,11 +176,33 @@ export function BookList({
       keyExtractor={(item) => item.id}
       extraData={expandedBookId}
       ListHeaderComponent={listHeader}
+      ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
-        <BookListEmpty loading={loading} error={error} onRetry={onRetry} />
+        <View style={styles.emptyFill}>
+          <BookListEmpty
+            loading={loading}
+            refreshing={refreshing}
+            error={error}
+            onRetry={onRetry}
+          />
+        </View>
+      }
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.iconPrimary}
+            colors={[theme.tabActive]}
+          />
+        ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
-      contentContainerStyle={[styles.content, contentContainerStyle]}
+      contentContainerStyle={[
+        styles.content,
+        isEmpty && styles.contentEmpty,
+        contentContainerStyle,
+      ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       initialNumToRender={12}
@@ -158,8 +222,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: BookLayout.padding,
     paddingBottom: 40,
+  },
+  contentEmpty: {
+    flex: 1,
+  },
+  emptyFill: {
+    flex: 1,
+    justifyContent: 'center',
   },
   separator: {
     height: BookLayout.listGap,

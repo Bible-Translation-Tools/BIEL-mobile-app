@@ -1,14 +1,16 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { TextSettingsStepper } from '@/components/reading/text-settings-stepper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, TextSettingsLayout, Typography } from '@/constants/theme';
-import { useReadingTextSettingsActions } from '@/contexts/reading-text-settings-context';
+import { useReadingTextSettingsActions } from '@/stores/reading-text-settings-store';
 import { useTheme } from '@/hooks/use-theme';
 
 export const TextSettingsMenu = memo(function TextSettingsMenu() {
   const theme = useTheme();
+  const { t } = useTranslation('reading');
   const {
     increaseTextSize,
     decreaseTextSize,
@@ -32,24 +34,24 @@ export const TextSettingsMenu = memo(function TextSettingsMenu() {
         },
         styles.menuShadow,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>Text Settings</Text>
+      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('textSettings')}</Text>
 
       <View style={styles.row}>
         <View style={styles.rowLabel}>
           <IconSymbol
-            name={{ ios: 'textformat.size', android: 'format-size', web: 'format-size' }}
+            name={{ ios: 'textformat.size', android: 'format-size' }}
             size={TextSettingsLayout.rowIconSize}
             color={theme.iconPrimary}
           />
-          <Text style={[styles.rowTitle, { color: theme.text }]}>Text Size</Text>
+          <Text style={[styles.rowTitle, { color: theme.text }]}>{t('textSize')}</Text>
         </View>
         <TextSettingsStepper
           onDecrease={decreaseTextSize}
           onIncrease={increaseTextSize}
           decreaseDisabled={!canDecreaseTextSize}
           increaseDisabled={!canIncreaseTextSize}
-          decreaseLabel="Decrease text size"
-          increaseLabel="Increase text size"
+          decreaseLabel={t('decreaseTextSize')}
+          increaseLabel={t('increaseTextSize')}
         />
       </View>
 
@@ -59,20 +61,19 @@ export const TextSettingsMenu = memo(function TextSettingsMenu() {
             name={{
               ios: 'arrow.up.and.down.text.horizontal',
               android: 'format-line-spacing',
-              web: 'format-line-spacing',
             }}
             size={TextSettingsLayout.rowIconSize}
             color={theme.iconPrimary}
           />
-          <Text style={[styles.rowTitle, { color: theme.text }]}>Line Height</Text>
+          <Text style={[styles.rowTitle, { color: theme.text }]}>{t('lineHeight')}</Text>
         </View>
         <TextSettingsStepper
           onDecrease={decreaseLineHeight}
           onIncrease={increaseLineHeight}
           decreaseDisabled={!canDecreaseLineHeight}
           increaseDisabled={!canIncreaseLineHeight}
-          decreaseLabel="Decrease line height"
-          increaseLabel="Increase line height"
+          decreaseLabel={t('decreaseLineHeight')}
+          increaseLabel={t('increaseLineHeight')}
         />
       </View>
 
@@ -81,14 +82,14 @@ export const TextSettingsMenu = memo(function TextSettingsMenu() {
         onPress={reset}
         disabled={isDefault}
         accessibilityRole="button"
-        accessibilityLabel="Reset text settings"
+        accessibilityLabel={t('resetTextSettings')}
         accessibilityState={{ disabled: isDefault }}>
         <Text
           style={[
             styles.resetText,
             { color: isDefault ? theme.textPlaceholder : theme.tabActive },
           ]}>
-          Reset
+          {t('reset')}
         </Text>
       </Pressable>
     </View>
