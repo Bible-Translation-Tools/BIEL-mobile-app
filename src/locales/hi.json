@@ -29,6 +29,8 @@
     "noBooksFound": "कोई पुस्तक नहीं मिली",
     "languageNotFound": "भाषा नहीं मिली",
     "failedToLoadBooks": "पुस्तकें लोड नहीं हो सकीं",
+    "contentLicense": "यह सामग्री क्रिएटिव कॉमन्स अट्रिब्यूशन-शेयरअलाइक 4.0 इंटरनेशनल लाइसेंस के तहत लाइसेंस प्राप्त है।",
+    "contentLicenseLearnMore": "और जानें",
     "accessibility": {
       "expand": "{{name}} विस्तृत करें",
       "collapse": "{{name}} संकुचित करें",

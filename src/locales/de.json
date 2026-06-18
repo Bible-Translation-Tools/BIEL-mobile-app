@@ -29,6 +29,8 @@
     "noBooksFound": "Keine Bücher gefunden",
     "languageNotFound": "Sprache nicht gefunden",
     "failedToLoadBooks": "Bücher konnten nicht geladen werden",
+    "contentLicense": "Der Inhalt ist lizenziert unter der Creative Commons Attribution-ShareAlike 4.0 International Lizenz.",
+    "contentLicenseLearnMore": "Mehr erfahren",
     "accessibility": {
       "expand": "{{name}} erweitern",
       "collapse": "{{name}} einklappen",

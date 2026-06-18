@@ -29,6 +29,8 @@
     "noBooksFound": "Книги не найдены",
     "languageNotFound": "Язык не найден",
     "failedToLoadBooks": "Не удалось загрузить книги",
+    "contentLicense": "Контент распространяется по лицензии Creative Commons «Атрибуция — На тех же условиях» 4.0 Всемирная.",
+    "contentLicenseLearnMore": "Подробнее",
     "accessibility": {
       "expand": "Развернуть {{name}}",
       "collapse": "Свернуть {{name}}",
