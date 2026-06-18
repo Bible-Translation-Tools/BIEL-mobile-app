@@ -93,6 +93,17 @@ export default function BookSelectionScreen() {
     [searchQuery, activeTestament],
   );
 
+  const listFooter = useMemo(
+    () => (
+      <View style={styles.licenseFooter}>
+        <Text style={[styles.licenseText, { color: theme.textSecondary }]}>
+          {t('contentLicense')}
+        </Text>
+      </View>
+    ),
+    [t, theme.textSecondary],
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
@@ -112,6 +123,7 @@ export default function BookSelectionScreen() {
             onChapterPress={handleChapterPress}
             onDownloadStatusChange={refreshDownloadStatus}
             ListHeaderComponent={listHeader}
+            ListFooterComponent={listFooter}
             contentContainerStyle={styles.listContent}
           />
         ) : (
@@ -148,6 +160,15 @@ const styles = StyleSheet.create({
   },
   missingLanguageText: {
     fontSize: 16,
+    textAlign: 'center',
+  },
+  licenseFooter: {
+    marginTop: 'auto',
+    paddingTop: BookLayout.contentGap,
+  },
+  licenseText: {
+    fontSize: 12,
+    lineHeight: 18,
     textAlign: 'center',
   },
 });

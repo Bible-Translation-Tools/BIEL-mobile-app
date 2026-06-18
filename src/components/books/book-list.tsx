@@ -33,6 +33,7 @@ type BookListProps = {
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
   ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
+  ListFooterComponent?: React.ComponentType | React.ReactElement | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -88,6 +89,7 @@ export function BookList({
   onRefresh,
   refreshing = false,
   ListHeaderComponent,
+  ListFooterComponent,
   contentContainerStyle,
 }: BookListProps) {
   const theme = useTheme();
@@ -164,6 +166,7 @@ export function BookList({
   );
 
   const listHeader = ListHeaderComponent;
+  const isEmpty = books.length === 0;
 
   return (
     <FlatList
@@ -173,13 +176,16 @@ export function BookList({
       keyExtractor={(item) => item.id}
       extraData={expandedBookId}
       ListHeaderComponent={listHeader}
+      ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
-        <BookListEmpty
-          loading={loading}
-          refreshing={refreshing}
-          error={error}
-          onRetry={onRetry}
-        />
+        <View style={styles.emptyFill}>
+          <BookListEmpty
+            loading={loading}
+            refreshing={refreshing}
+            error={error}
+            onRetry={onRetry}
+          />
+        </View>
       }
       refreshControl={
         onRefresh ? (
@@ -192,7 +198,11 @@ export function BookList({
         ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
-      contentContainerStyle={[styles.content, contentContainerStyle]}
+      contentContainerStyle={[
+        styles.content,
+        isEmpty && styles.contentEmpty,
+        contentContainerStyle,
+      ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       initialNumToRender={12}
@@ -212,8 +222,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: BookLayout.padding,
     paddingBottom: 40,
+  },
+  contentEmpty: {
+    flex: 1,
+  },
+  emptyFill: {
+    flex: 1,
+    justifyContent: 'center',
   },
   separator: {
     height: BookLayout.listGap,
