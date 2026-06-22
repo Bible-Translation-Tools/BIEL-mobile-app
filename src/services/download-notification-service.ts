@@ -28,10 +28,10 @@ function clearDismissTimer() {
 }
 
 function taskTitle(task: DownloadProgressTask): string {
-  if (task.kind === 'book-audio') {
-    return i18n.t('download:notification.downloadingAudio', { name: task.bookName });
+  if (task.kind === 'book-audio' || task.kind === 'language-audio') {
+    return i18n.t('download:notification.downloadingAudio', { name: task.displayName });
   }
-  return i18n.t('download:notification.downloadingScripture', { name: task.bookName });
+  return i18n.t('download:notification.downloadingScripture', { name: task.displayName });
 }
 
 function resetProgressSyncState() {
@@ -172,8 +172,8 @@ export async function showDownloadFinishedNotification(
   clearDismissTimer();
 
   const title = succeeded
-    ? i18n.t('download:notification.complete', { name: task.bookName })
-    : i18n.t('download:notification.failed', { name: task.bookName });
+    ? i18n.t('download:notification.complete', { name: task.displayName })
+    : i18n.t('download:notification.failed', { name: task.displayName });
 
   const body = succeeded
     ? undefined

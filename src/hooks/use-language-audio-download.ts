@@ -12,12 +12,14 @@ import { useContentDownload } from '@/hooks/use-content-download';
 
 type UseLanguageAudioDownloadOptions = {
   languageCode: string;
+  languageName: string;
   enabled?: boolean;
   onComplete?: () => void;
 };
 
 export function useLanguageAudioDownload({
   languageCode,
+  languageName,
   enabled = true,
   onComplete,
 }: UseLanguageAudioDownloadOptions) {
@@ -28,6 +30,11 @@ export function useLanguageAudioDownload({
   } = useContentDownload({
     enabled,
     partialSizeLabel: true,
+    globalSync: {
+      languageCode,
+      languageName,
+      kind: 'language-audio',
+    },
     downloadFailedMessage: t('couldNotDownloadAudio'),
     onComplete,
     download: (options) => downloadLanguageAudio(languageCode, options),

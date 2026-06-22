@@ -4,18 +4,18 @@ import {
   syncDownloadNotification,
 } from '@/services/download-notification-service';
 import {
-  isBookDownloadActive,
+  isDownloadActive,
   removeDownloadTask,
   updateDownloadTaskProgress,
   upsertDownloadTask,
 } from '@/stores/download-progress-store';
 import {
-  buildBookDownloadTaskId,
-  type GlobalBookDownloadSync,
+  buildDownloadTaskId,
+  type GlobalDownloadSync,
 } from '@/types/download-progress';
 
 type ActiveJob = {
-  sync: GlobalBookDownloadSync;
+  sync: GlobalDownloadSync;
   controller: AbortController;
 };
 
@@ -29,20 +29,20 @@ function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-export function cancelGlobalBookDownload(sync: GlobalBookDownloadSync): void {
-  const id = buildBookDownloadTaskId(sync);
+export function cancelGlobalBookDownload(sync: GlobalDownloadSync): void {
+  const id = buildDownloadTaskId(sync);
   activeJobs.get(id)?.controller.abort();
 }
 
 export async function runGlobalBookDownload(params: {
-  sync: GlobalBookDownloadSync;
+  sync: GlobalDownloadSync;
   download: ContentDownloadHandlers['download'];
   errorFallback: string;
   onSuccess?: () => void;
   onError?: (message: string) => void;
 }): Promise<void> {
-  const id = buildBookDownloadTaskId(params.sync);
-  if (isBookDownloadActive(params.sync) || activeJobs.has(id)) {
+  const id = buildDownloadTaskId(params.sync);
+  if (isDownloadActive(params.sync) || activeJobs.has(id)) {
     return;
   }
 

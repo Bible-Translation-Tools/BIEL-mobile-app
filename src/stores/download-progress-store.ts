@@ -1,10 +1,10 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
 import {
-  buildBookDownloadTaskId,
+  buildDownloadTaskId,
   type DownloadProgressTask,
   type DownloadTaskStatus,
-  type GlobalBookDownloadSync,
+  type GlobalDownloadSync,
 } from '@/types/download-progress';
 
 const listeners = new Set<() => void>();
@@ -27,25 +27,27 @@ export function getDownloadTask(id: string): DownloadProgressTask | undefined {
   return tasks.get(id);
 }
 
-export function getBookDownloadTask(sync: GlobalBookDownloadSync): DownloadProgressTask | undefined {
-  return tasks.get(buildBookDownloadTaskId(sync));
+export function getDownloadTaskForSync(sync: GlobalDownloadSync): DownloadProgressTask | undefined {
+  return tasks.get(buildDownloadTaskId(sync));
 }
 
-export function isBookDownloadActive(sync: GlobalBookDownloadSync): boolean {
-  return tasks.get(buildBookDownloadTaskId(sync))?.status === 'downloading';
+export function isDownloadActive(sync: GlobalDownloadSync): boolean {
+  return tasks.get(buildDownloadTaskId(sync))?.status === 'downloading';
 }
 
 export function upsertDownloadTask(
-  sync: GlobalBookDownloadSync,
+  sync: GlobalDownloadSync,
   patch: Partial<Pick<DownloadProgressTask, 'progress' | 'status' | 'errorMessage'>>,
 ): DownloadProgressTask {
-  const id = buildBookDownloadTaskId(sync);
+  const id = buildDownloadTaskId(sync);
   const existing = tasks.get(id);
+  const displayName = 'bookName' in sync ? sync.bookName : sync.languageName;
+  const bookSlug = 'bookSlug' in sync ? sync.bookSlug : undefined;
   const next: DownloadProgressTask = {
     id,
     languageCode: sync.languageCode,
-    bookSlug: sync.bookSlug,
-    bookName: sync.bookName,
+    displayName,
+    bookSlug,
     kind: sync.kind,
     progress: patch.progress ?? existing?.progress ?? 0,
     status: patch.status ?? existing?.status ?? 'downloading',
@@ -98,8 +100,8 @@ export function useDownloadProgressStore(): DownloadProgressTask[] {
   );
 }
 
-export function useBookDownloadProgress(sync: GlobalBookDownloadSync | undefined) {
-  const id = sync ? buildBookDownloadTaskId(sync) : null;
+export function useDownloadProgress(sync: GlobalDownloadSync | undefined) {
+  const id = sync ? buildDownloadTaskId(sync) : null;
 
   const getTaskSnapshot = useCallback(() => {
     if (!id) return undefined;

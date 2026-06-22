@@ -1,5 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -37,6 +37,7 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const [downloadSessionActive, setDownloadSessionActive] = useState(false);
 
   const {
     isDownloading,
@@ -49,7 +50,8 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     cancelDownload,
   } = useLanguageDownload({
     languageCode: language.code,
-    enabled: canDownloadText,
+    languageName: language.nationalName,
+    enabled: canDownloadText && (menuVisible || downloadSessionActive),
     onComplete: onDownloadStatusChange,
   });
 
@@ -66,9 +68,20 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     cancelDownload: cancelAudioDownload,
   } = useLanguageAudioDownload({
     languageCode: language.code,
-    enabled: canDownloadAudio,
+    languageName: language.nationalName,
+    enabled: canDownloadAudio && (menuVisible || downloadSessionActive),
     onComplete: onDownloadStatusChange,
   });
+
+  useEffect(() => {
+    if (isDownloading || isAudioDownloading) {
+      setDownloadSessionActive(true);
+      return;
+    }
+    if (!menuVisible) {
+      setDownloadSessionActive(false);
+    }
+  }, [isAudioDownloading, isDownloading, menuVisible]);
 
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);

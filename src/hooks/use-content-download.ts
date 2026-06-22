@@ -11,11 +11,11 @@ import {
 } from '@/services/book-download-runner';
 import {
     removeDownloadTask,
-    useBookDownloadProgress,
+    useDownloadProgress,
 } from '@/stores/download-progress-store';
 import {
-    buildBookDownloadTaskId,
-    type GlobalBookDownloadSync,
+    buildDownloadTaskId,
+    type GlobalDownloadSync,
 } from '@/types/download-progress';
 import { scheduleIdleTask } from '@/utils/yield-to-ui';
 
@@ -47,7 +47,7 @@ export type UseContentDownloadOptions = ContentDownloadHandlers & {
   onComplete?: () => void;
   onDeleteComplete?: () => void;
   /** When set, download progress survives navigation and syncs to system notifications. */
-  globalSync?: GlobalBookDownloadSync;
+  globalSync?: GlobalDownloadSync;
 };
 
 function computeFileSizeLabel(
@@ -110,7 +110,7 @@ export function useContentDownload({
   const [error, setError] = useState<ContentDownloadError | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const progressSampleRef = useRef({ value: -1, at: 0 });
-  const globalTask = useBookDownloadProgress(globalSync);
+  const globalTask = useDownloadProgress(globalSync);
   const usesGlobalSync = globalSync != null;
 
   const scheduleOnComplete = useCallback((callback?: () => void) => {
@@ -146,7 +146,7 @@ export function useContentDownload({
   const clearError = useCallback(() => {
     setError(null);
     if (globalSync) {
-      removeDownloadTask(buildBookDownloadTaskId(globalSync));
+      removeDownloadTask(buildDownloadTaskId(globalSync));
     }
   }, [globalSync]);
 

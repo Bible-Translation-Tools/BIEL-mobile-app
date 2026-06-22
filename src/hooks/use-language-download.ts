@@ -10,12 +10,14 @@ import { useContentDownload } from '@/hooks/use-content-download';
 
 type UseLanguageDownloadOptions = {
   languageCode: string;
+  languageName: string;
   enabled?: boolean;
   onComplete?: () => void;
 };
 
 export function useLanguageDownload({
   languageCode,
+  languageName,
   enabled = true,
   onComplete,
 }: UseLanguageDownloadOptions) {
@@ -24,6 +26,11 @@ export function useLanguageDownload({
   return useContentDownload({
     enabled,
     partialSizeLabel: true,
+    globalSync: {
+      languageCode,
+      languageName,
+      kind: 'language-scripture',
+    },
     downloadFailedMessage: t('couldNotDownloadLanguage'),
     onComplete,
     download: (options) => downloadLanguageScripture(languageCode, options),
