@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const PROGRESS_MIN_DELTA = 0.05;
@@ -323,10 +323,21 @@ export function useContentDownload({
     ? globalTask?.status === 'downloading'
     : isDownloading;
   const resolvedProgress = usesGlobalSync ? (globalTask?.progress ?? 0) : progress;
-  const resolvedError =
-    usesGlobalSync && globalTask?.status === 'failed' && globalTask.errorMessage
-      ? { title: resolvedDownloadFailedTitle, message: globalTask.errorMessage }
-      : error;
+  const resolvedError = useMemo(() => {
+    if (usesGlobalSync && globalTask?.status === 'failed' && globalTask.errorMessage) {
+      return {
+        title: resolvedDownloadFailedTitle,
+        message: globalTask.errorMessage,
+      };
+    }
+    return error;
+  }, [
+    error,
+    globalTask?.errorMessage,
+    globalTask?.status,
+    resolvedDownloadFailedTitle,
+    usesGlobalSync,
+  ]);
 
   const deleteDownload = useCallback(async () => {
     clearError();

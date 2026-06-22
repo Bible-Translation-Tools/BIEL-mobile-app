@@ -183,29 +183,89 @@ function mergeChapterRecords(
   return [...mergedByNumber.values()].sort((a, b) => a.chapterNumber - b.chapterNumber);
 }
 
+function isChapterMp3Available(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+  existing?: AudioChapterRecord,
+): boolean {
+  if (getChapterMp3File(languageCode, bookSlug, chapter).exists) {
+    return true;
+  }
+
+  if (existing?.mp3Path && new File(existing.mp3Path).exists) {
+    return true;
+  }
+
+  return false;
+}
+
 function isBookFullyDownloadedLocally(
   manifest: Pick<AudioBookManifest, 'chapters'>,
   languageCode: string,
   bookSlug: string,
-  downloadedNumbers: number[],
+  chapterRecords: AudioChapterRecord[],
 ): boolean {
-  if (manifest.chapters.length === 0 || downloadedNumbers.length === 0) {
+  if (manifest.chapters.length === 0) {
     return false;
   }
 
-  const downloadedSet = new Set(downloadedNumbers);
-  for (const chapter of manifest.chapters) {
-    if (!downloadedSet.has(chapter.chapter)) {
-      return false;
-    }
+  return manifest.chapters.every((chapter) => {
+    const existing = chapterRecords.find((record) => record.chapterNumber === chapter.chapter);
+    return isChapterMp3Available(languageCode, bookSlug, chapter.chapter, existing);
+  });
+}
 
-    const mp3File = getChapterMp3File(languageCode, bookSlug, chapter.chapter);
-    if (!mp3File.exists) {
-      return false;
-    }
+function listMissingAudioChapters(
+  manifest: Pick<AudioBookManifest, 'chapters'>,
+  languageCode: string,
+  bookSlug: string,
+  chapterRecords: AudioChapterRecord[],
+): number[] {
+  return manifest.chapters
+    .map((chapter) => chapter.chapter)
+    .filter((chapter) => {
+      const existing = chapterRecords.find((record) => record.chapterNumber === chapter);
+      return !isChapterMp3Available(languageCode, bookSlug, chapter, existing);
+    })
+    .sort((a, b) => a - b);
+}
+
+function buildIncompleteBookAudioError(
+  manifest: Pick<AudioBookManifest, 'chapters'>,
+  languageCode: string,
+  bookSlug: string,
+  chapterRecords: AudioChapterRecord[],
+  failedDuringDownload: number[] = [],
+): Error {
+  const missing =
+    failedDuringDownload.length > 0
+      ? [...new Set(failedDuringDownload)].sort((a, b) => a - b)
+      : listMissingAudioChapters(manifest, languageCode, bookSlug, chapterRecords);
+
+  if (missing.length === 1) {
+    return new Error(`Could not download audio for chapter ${missing[0]}`);
   }
 
-  return true;
+  if (missing.length > 1) {
+    return new Error(
+      `Could not download audio for ${missing.length} chapters: ${missing.join(', ')}`,
+    );
+  }
+
+  return new Error('Could not download all audio chapters');
+}
+
+function buildLanguageAudioFailureError(
+  failedBooks: { bookName: string; message: string }[],
+): Error {
+  if (failedBooks.length === 1) {
+    const failed = failedBooks[0]!;
+    return new Error(`${failed.bookName}: ${failed.message}`);
+  }
+
+  const bookNames = failedBooks.map((book) => book.bookName).join(', ');
+  return new Error(`Could not download audio for ${failedBooks.length} books: ${bookNames}`);
 }
 
 export async function resolveBookAudioChapters(
@@ -282,23 +342,19 @@ export async function isBookAudioDownloaded(
   bookSlug: string,
 ): Promise<boolean> {
   const canonicalSlug = normalizeBookSlug(bookSlug);
-  const downloadedNumbers = await getOfflineAudioChapterNumbers(languageCode, canonicalSlug);
-  if (downloadedNumbers.length === 0) return false;
-
-  for (const chapterNumber of downloadedNumbers) {
-    const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapterNumber);
-    if (!mp3File.exists) return false;
-  }
 
   try {
-    const manifest = await resolveBookAudioChapters(languageCode, canonicalSlug);
+    const [manifest, existingChapters] = await Promise.all([
+      resolveBookAudioChapters(languageCode, canonicalSlug),
+      listAudioChaptersForBook(languageCode, canonicalSlug),
+    ]);
     if (manifest.chapters.length === 0) return false;
 
     const isComplete = isBookFullyDownloadedLocally(
       manifest,
       languageCode,
       canonicalSlug,
-      downloadedNumbers,
+      existingChapters,
     );
     if (isComplete) {
       await markAudioBookComplete(languageCode, canonicalSlug);
@@ -441,28 +497,33 @@ async function writeChapterAudioFiles(
   }
 
   const mp3File = getChapterMp3File(languageCode, bookSlug, chapterAudio.chapter);
-  const mp3Promise = writeBinaryFile(chapterAudio.mp3Url, mp3File, {
+  const mp3ByteSize = await writeBinaryFile(chapterAudio.mp3Url, mp3File, {
     signal: options?.signal,
   });
 
-  const cuePromise = chapterAudio.cueUrl
-    ? (async () => {
-        const cueFile = getChapterCueFile(languageCode, bookSlug, chapterAudio.chapter);
-        const cueByteSize = await writeTextFile(chapterAudio.cueUrl!, cueFile, {
-          signal: options?.signal,
-        });
-        return { cuePath: cueFile.uri, cueByteSize };
-      })()
-    : Promise.resolve({ cuePath: null as string | null, cueByteSize: 0 });
+  let cuePath: string | null = null;
+  let cueByteSize = 0;
 
-  const [mp3ByteSize, cueResult] = await Promise.all([mp3Promise, cuePromise]);
+  if (chapterAudio.cueUrl) {
+    try {
+      const cueFile = getChapterCueFile(languageCode, bookSlug, chapterAudio.chapter);
+      cueByteSize = await writeTextFile(chapterAudio.cueUrl, cueFile, {
+        signal: options?.signal,
+      });
+      cuePath = cueFile.uri;
+    } catch (err) {
+      if (isAbortError(err)) {
+        throw err;
+      }
+    }
+  }
 
   return {
     chapterNumber: chapterAudio.chapter,
     mp3Path: mp3File.uri,
-    cuePath: cueResult.cuePath,
+    cuePath,
     mp3ByteSize,
-    cueByteSize: cueResult.cueByteSize,
+    cueByteSize,
   };
 }
 
@@ -491,8 +552,7 @@ export async function downloadBookAudio(
   const existingChapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
   const pendingChapters = manifest.chapters.filter((chapterAudio) => {
     const existing = existingChapters.find((chapter) => chapter.chapterNumber === chapterAudio.chapter);
-    if (!existing) return true;
-    return !new File(existing.mp3Path).exists;
+    return !isChapterMp3Available(languageCode, canonicalSlug, chapterAudio.chapter, existing);
   });
 
   const persistChapters = async (chapters: AudioChapterRecord[], isComplete: boolean) => {
@@ -512,12 +572,12 @@ export async function downloadBookAudio(
       manifest,
       languageCode,
       canonicalSlug,
-      merged.map((chapter) => chapter.chapterNumber),
+      merged,
     );
     await persistChapters(merged, isComplete);
 
     if (!isComplete) {
-      throw new Error('Could not download all audio chapters');
+      throw buildIncompleteBookAudioError(manifest, languageCode, canonicalSlug, merged);
     }
 
     options?.onProgress?.(1);
@@ -526,6 +586,7 @@ export async function downloadBookAudio(
 
   const totalChapters = pendingChapters.length;
   const progressByChapter = new Array<number>(totalChapters).fill(0);
+  const failedChapters: number[] = [];
   const reportProgress = () => {
     const overall =
       progressByChapter.reduce((sum, chapterProgress) => sum + chapterProgress, 0) /
@@ -559,6 +620,7 @@ export async function downloadBookAudio(
             reportProgress();
             return null;
           }
+          failedChapters.push(chapterAudio.chapter);
           progressByChapter[index] = 1;
           reportProgress();
           return null;
@@ -580,7 +642,7 @@ export async function downloadBookAudio(
     manifest,
     languageCode,
     canonicalSlug,
-    merged.map((chapter) => chapter.chapterNumber),
+    merged,
   );
 
   if (merged.length > 0) {
@@ -588,7 +650,13 @@ export async function downloadBookAudio(
   }
 
   if (!isComplete) {
-    throw new Error('Could not download all audio chapters');
+    throw buildIncompleteBookAudioError(
+      manifest,
+      languageCode,
+      canonicalSlug,
+      merged,
+      failedChapters,
+    );
   }
 
   options?.onProgress?.(1);
@@ -615,8 +683,8 @@ export async function isLanguageAudioDownloaded(languageCode: string): Promise<b
   }
 
   for (const [bookSlug, manifest] of manifests) {
-    const downloadedNumbers = await getOfflineAudioChapterNumbers(languageCode, bookSlug);
-    if (!isBookFullyDownloadedLocally(manifest, languageCode, bookSlug, downloadedNumbers)) {
+    const existingChapters = await listAudioChaptersForBook(languageCode, bookSlug);
+    if (!isBookFullyDownloadedLocally(manifest, languageCode, bookSlug, existingChapters)) {
       return false;
     }
   }
@@ -641,8 +709,8 @@ export async function getLanguageAudioTotalBytes(languageCode: string): Promise<
     const storedBytes = downloadedBytesBySlug.get(bookSlug);
 
     if (storedBytes != null) {
-      const downloadedNumbers = await getOfflineAudioChapterNumbers(languageCode, bookSlug);
-      if (isBookFullyDownloadedLocally(manifest, languageCode, bookSlug, downloadedNumbers)) {
+      const existingChapters = await listAudioChaptersForBook(languageCode, bookSlug);
+      if (isBookFullyDownloadedLocally(manifest, languageCode, bookSlug, existingChapters)) {
         total += storedBytes;
         continue;
       }
@@ -681,6 +749,8 @@ export async function downloadLanguageAudio(
     return;
   }
 
+  const failedBooks: { bookName: string; message: string }[] = [];
+
   for (let index = 0; index < pendingBooks.length; index++) {
     if (options?.signal?.aborted) {
       break;
@@ -695,9 +765,24 @@ export async function downloadLanguageAudio(
           options?.onProgress?.(overall);
         },
       });
-    } catch {
-      // Failed books are skipped; abort is handled inside downloadBookAudio.
+    } catch (err) {
+      if (isAbortError(err)) {
+        break;
+      }
+
+      failedBooks.push({
+        bookName: book.bookName,
+        message: err instanceof Error ? err.message : 'Download failed',
+      });
     }
+  }
+
+  if (options?.signal?.aborted) {
+    return;
+  }
+
+  if (failedBooks.length > 0) {
+    throw buildLanguageAudioFailureError(failedBooks);
   }
 
   options?.onProgress?.(1);
@@ -835,9 +920,15 @@ export async function downloadChapterAudio(
 
   if (cue.cueUrl) {
     options?.onProgress?.(0.7);
-    const cueFile = getChapterCueFile(languageCode, canonicalSlug, chapter);
-    cueByteSize = await writeTextFile(cue.cueUrl, cueFile, { signal: options?.signal });
-    cuePath = cueFile.uri;
+    try {
+      const cueFile = getChapterCueFile(languageCode, canonicalSlug, chapter);
+      cueByteSize = await writeTextFile(cue.cueUrl, cueFile, { signal: options?.signal });
+      cuePath = cueFile.uri;
+    } catch (err) {
+      if (isAbortError(err)) {
+        throw err;
+      }
+    }
   }
 
   const manifest = await resolveBookAudioChapters(languageCode, canonicalSlug).catch(() => ({
