@@ -8,15 +8,7 @@ import {
     DownloadMenuPopover,
     type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { TextFormatSizeIcon } from '@/components/icons/textformat-size-icon';
-import {
-    TextSettingsPopover,
-    type TextSettingsAnchor,
-} from '@/components/reading/text-settings-popover';
-import {
-    SettingsToolbarButton,
-    type SettingsToolbarButtonRef,
-} from '@/components/settings/settings-toolbar-button';
+import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
@@ -204,29 +196,6 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
       RNStatusBar.setBackgroundColor(theme.background, true);
     };
   }, [headerBackground, theme.background]);
-  const textSettingsAnchorRef = useRef<View>(null);
-  const systemSettingsRef = useRef<SettingsToolbarButtonRef>(null);
-  const [textSettingsVisible, setTextSettingsVisible] = useState(false);
-  const [textSettingsAnchor, setTextSettingsAnchor] = useState<TextSettingsAnchor | null>(null);
-
-  const openTextSettings = useCallback(() => {
-    if (textSettingsVisible) {
-      setTextSettingsVisible(false);
-      setTextSettingsAnchor(null);
-      return;
-    }
-
-    systemSettingsRef.current?.close();
-    textSettingsAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setTextSettingsAnchor({ x, y, width, height });
-      setTextSettingsVisible(true);
-    });
-  }, [textSettingsVisible]);
-
-  const closeTextSettings = useCallback(() => {
-    setTextSettingsVisible(false);
-    setTextSettingsAnchor(null);
-  }, []);
 
   return (
     <View
@@ -264,23 +233,6 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
       </View>
 
       <View style={styles.trailing}>
-        <View ref={textSettingsAnchorRef} collapsable={false}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.iconButton,
-              textSettingsVisible && {
-                borderColor: theme.textLabel,
-                backgroundColor: theme.backgroundElement,
-              },
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
-            onPress={openTextSettings}
-            accessibilityRole="button"
-            accessibilityLabel={t('accessibility.textSettings')}
-            accessibilityState={{ expanded: textSettingsVisible }}>
-            <TextFormatSizeIcon size={ReadingLayout.toolbarIconSize} color={theme.iconPrimary} />
-          </Pressable>
-        </View>
         {downloadContext ? (
           <ReadingToolbarDownloadButton
             key={`${downloadContext.languageCode}:${downloadContext.bookSlug}:${downloadContext.chapter}`}
@@ -292,21 +244,11 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
           <DisabledDownloadButton />
         )}
         <SettingsToolbarButton
-          ref={systemSettingsRef}
           iconSize={ReadingLayout.toolbarSettingsIconSize}
           hitSize={ReadingLayout.toolbarIconSize}
-          onOpen={() => {
-            setTextSettingsVisible(false);
-            setTextSettingsAnchor(null);
-          }}
+          showTextSettings
         />
       </View>
-
-      <TextSettingsPopover
-        visible={textSettingsVisible}
-        anchor={textSettingsAnchor}
-        onClose={closeTextSettings}
-      />
       </View>
     </View>
   );

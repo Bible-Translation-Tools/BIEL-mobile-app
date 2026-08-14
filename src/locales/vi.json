@@ -116,6 +116,14 @@
   "settings": {
     "title": "Cài đặt hệ thống",
     "close": "Đóng cài đặt hệ thống",
+    "menu": {
+      "title": "Menu",
+      "close": "Đóng menu",
+      "downloadsLibrary": "Thư viện tải xuống",
+      "systemSettings": "Cài đặt hệ thống",
+      "textSettings": "Cài đặt văn bản",
+      "back": "Quay lại"
+    },
     "theme": {
       "system": {
         "title": "Tự động",

@@ -116,6 +116,14 @@
   "settings": {
     "title": "System Settings",
     "close": "Close system settings",
+    "menu": {
+      "title": "Menu",
+      "close": "Close menu",
+      "downloadsLibrary": "Downloads Library",
+      "systemSettings": "System Settings",
+      "textSettings": "Text Settings",
+      "back": "Back"
+    },
     "theme": {
       "system": {
         "title": "Automatic",

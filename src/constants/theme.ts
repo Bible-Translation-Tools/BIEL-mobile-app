@@ -133,6 +133,21 @@ export const SystemSettingsLayout = {
   themeIconSize: 24,
 } as const;
 
+export const MenuDrawerLayout = {
+  widthRatio: 312 / 412,
+  maxWidth: 312,
+  headerHeight: 64,
+  headerPadding: 16,
+  itemPadding: 16,
+  itemSectionGap: 11,
+  itemRowGap: 9,
+  downloadsIconSize: 28,
+  settingsIconSize: 24,
+  textSettingsIconSize: 28,
+  closeIconSize: 24,
+  overlayOpacity: 0.2,
+} as const;
+
 export const HomeLayout = {
   padding: 16,
   contentGap: 20,

@@ -116,6 +116,14 @@
   "settings": {
     "title": "Pengaturan sistem",
     "close": "Tutup pengaturan sistem",
+    "menu": {
+      "title": "Menu",
+      "close": "Tutup menu",
+      "downloadsLibrary": "Perpustakaan unduhan",
+      "systemSettings": "Pengaturan sistem",
+      "textSettings": "Pengaturan teks",
+      "back": "Kembali"
+    },
     "theme": {
       "system": {
         "title": "Otomatis",

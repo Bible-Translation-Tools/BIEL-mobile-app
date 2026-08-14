@@ -19,6 +19,8 @@ const MATERIAL_ICON_ALIASES: Record<string, MaterialIconName> = {
   keyboard_arrow_down: 'keyboard-arrow-down',
   keyboard_arrow_right: 'keyboard-arrow-right',
   keyboard_arrow_up: 'keyboard-arrow-up',
+  'library-books': 'library-books',
+  menu: 'menu',
   volume_up: 'volume-up',
   close: 'close',
   'light-mode': 'light-mode',
@@ -37,12 +39,14 @@ export const DOWNLOAD_ICON_NAME = 'download';
 export const DOWNLOAD_DONE_ICON_NAME = 'download-done';
 export const DELETE_ICON_NAME = 'delete';
 export const SETTINGS_ICON_NAME = 'settings';
+export const MENU_ICON_NAME = 'menu';
 export const TRANSLATE_ICON_NAME = 'translate';
 
 const MATERIAL_ICON_NAMES = new Set<string>([
   DOWNLOAD_ICON_NAME,
   DOWNLOAD_DONE_ICON_NAME,
   DELETE_ICON_NAME,
+  MENU_ICON_NAME,
   SETTINGS_ICON_NAME,
   TRANSLATE_ICON_NAME,
 ]);

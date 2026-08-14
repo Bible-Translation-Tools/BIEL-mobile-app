@@ -116,6 +116,14 @@
   "settings": {
     "title": "सिस्टम सेटिंग",
     "close": "सिस्टम सेटिंग बंद करें",
+    "menu": {
+      "title": "मेनू",
+      "close": "मेनू बंद करें",
+      "downloadsLibrary": "डाउनलोड लाइब्रेरी",
+      "systemSettings": "सिस्टम सेटिंग",
+      "textSettings": "पाठ सेटिंग",
+      "back": "वापस"
+    },
     "theme": {
       "system": {
         "title": "स्वचालित",

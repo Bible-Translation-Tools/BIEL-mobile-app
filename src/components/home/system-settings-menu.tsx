@@ -1,4 +1,3 @@
-import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -40,32 +39,35 @@ const THEME_OPTION_CONFIG: ThemeOption[] = [
   },
 ];
 
-export const SystemSettingsMenu = memo(function SystemSettingsMenu() {
+type SystemSettingsMenuProps = {
+  embedded?: boolean;
+};
+
+export function SystemSettingsMenu({ embedded = false }: SystemSettingsMenuProps) {
   const theme = useTheme();
   const { themePreference, setThemePreference } = useAppearance();
   const { t } = useTranslation('settings');
 
-  const themeOptions = useMemo(
-    () =>
-      THEME_OPTION_CONFIG.map((option) => ({
-        ...option,
-        title: t(option.titleKey),
-        subtitle: t(option.subtitleKey),
-      })),
-    [t],
-  );
+  const themeOptions = THEME_OPTION_CONFIG.map((option) => ({
+    ...option,
+    title: t(option.titleKey),
+    subtitle: t(option.subtitleKey),
+  }));
 
   return (
     <View
       style={[
         styles.menu,
-        {
+        !embedded && {
           backgroundColor: theme.backgroundElement,
           borderColor: theme.border,
         },
-        styles.menuShadow,
+        !embedded && styles.menuShadow,
+        embedded && styles.menuEmbedded,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
+      {!embedded ? (
+        <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
+      ) : null}
 
       {themeOptions.map((option) => {
         const selected = themePreference === option.value;
@@ -97,7 +99,7 @@ export const SystemSettingsMenu = memo(function SystemSettingsMenu() {
       })}
     </View>
   );
-});
+}
 
 const styles = StyleSheet.create({
   menu: {
@@ -105,6 +107,11 @@ const styles = StyleSheet.create({
     borderRadius: DownloadMenuLayout.menuRadius,
     borderWidth: 1,
     padding: DownloadMenuLayout.menuPadding,
+    gap: DownloadMenuLayout.menuGap,
+  },
+  menuEmbedded: {
+    borderWidth: 0,
+    padding: 0,
     gap: DownloadMenuLayout.menuGap,
   },
   menuShadow: {

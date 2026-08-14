@@ -8,7 +8,13 @@ import { DownloadMenuLayout, TextSettingsLayout, Typography } from '@/constants/
 import { useReadingTextSettingsActions } from '@/stores/reading-text-settings-store';
 import { useTheme } from '@/hooks/use-theme';
 
-export const TextSettingsMenu = memo(function TextSettingsMenu() {
+type TextSettingsMenuProps = {
+  embedded?: boolean;
+};
+
+export const TextSettingsMenu = memo(function TextSettingsMenu({
+  embedded = false,
+}: TextSettingsMenuProps) {
   const theme = useTheme();
   const { t } = useTranslation('reading');
   const {
@@ -28,13 +34,16 @@ export const TextSettingsMenu = memo(function TextSettingsMenu() {
     <View
       style={[
         styles.menu,
-        {
+        !embedded && {
           backgroundColor: theme.backgroundElement,
           borderColor: theme.border,
         },
-        styles.menuShadow,
+        !embedded && styles.menuShadow,
+        embedded && styles.menuEmbedded,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('textSettings')}</Text>
+      {!embedded ? (
+        <Text style={[styles.title, { color: theme.textSecondary }]}>{t('textSettings')}</Text>
+      ) : null}
 
       <View style={styles.row}>
         <View style={styles.rowLabel}>
@@ -103,6 +112,11 @@ const styles = StyleSheet.create({
     padding: DownloadMenuLayout.menuPadding,
     gap: DownloadMenuLayout.menuGap,
     width: TextSettingsLayout.menuWidth,
+  },
+  menuEmbedded: {
+    borderWidth: 0,
+    padding: 0,
+    width: '100%',
   },
   menuShadow: {
     shadowColor: '#000',
