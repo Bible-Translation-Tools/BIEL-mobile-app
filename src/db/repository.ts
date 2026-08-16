@@ -329,6 +329,61 @@ export async function listDownloadedBookSlugs(languageCode: string): Promise<str
   return rows.map((row) => row.book_slug);
 }
 
+export type LocalContentBookRecord = {
+  bookSlug: string;
+  bookName: string;
+  hasText: boolean;
+  hasAudio: boolean;
+};
+
+/** Books with any local scripture (whole/chapter) or audio for a language. */
+export async function listLocalContentBooksForLanguage(
+  languageCode: string,
+): Promise<LocalContentBookRecord[]> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{
+      book_slug: string;
+      book_name: string;
+      has_text: number;
+      has_audio: number;
+    }>(
+      `SELECT
+         book_slug,
+         MAX(book_name) AS book_name,
+         MAX(has_text) AS has_text,
+         MAX(has_audio) AS has_audio
+       FROM (
+         SELECT book_slug, book_name, 1 AS has_text, 0 AS has_audio
+         FROM books
+         WHERE language_code = ?
+         UNION ALL
+         SELECT book_slug, book_name, 1 AS has_text, 0 AS has_audio
+         FROM scripture_chapters
+         WHERE language_code = ?
+         UNION ALL
+         SELECT book_slug, book_name, 0 AS has_text, 1 AS has_audio
+         FROM audio_books
+         WHERE language_code = ?
+       )
+       GROUP BY book_slug
+       ORDER BY book_slug ASC`,
+      languageCode,
+      languageCode,
+      languageCode,
+    );
+
+    return rows.map((row) => ({
+      bookSlug: row.book_slug,
+      bookName: row.book_name,
+      hasText: row.has_text === 1,
+      hasAudio: row.has_audio === 1,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getDownloadedBookCountsByLanguage(): Promise<Record<string, number>> {
   try {
     const db = await getDb();

@@ -3,12 +3,20 @@ import { useTranslation } from 'react-i18next';
 
 import {
   getLanguageCatalogSnapshot,
+  loadDownloadedLanguagesCatalog,
   loadLanguageCatalog,
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
 } from '@/services/language-catalog';
+import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
 
-function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
+function readInitialState(
+  downloadsLibraryActive: boolean,
+): LanguageCatalogSnapshot & { loading: boolean } {
+  if (downloadsLibraryActive) {
+    return { languages: [], error: null, loading: true };
+  }
+
   const preloaded = getLanguageCatalogSnapshot();
   if (preloaded) {
     return { ...preloaded, loading: false };
@@ -19,20 +27,29 @@ function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
 
 export function useLanguages() {
   const { t } = useTranslation('home');
-  const [state, setState] = useState(readInitialState);
+  const downloadsLibraryActive = useDownloadsLibraryActive();
+  const [state, setState] = useState(() => readInitialState(downloadsLibraryActive));
 
   const refreshDownloadStatus = useCallback(async () => {
+    if (downloadsLibraryActive) {
+      const next = await loadDownloadedLanguagesCatalog();
+      setState({ ...next, loading: false });
+      return;
+    }
+
     const next = await refreshLanguageCatalogDownloadStatus();
     if (next) {
       setState({ ...next, loading: false });
     }
-  }, []);
+  }, [downloadsLibraryActive]);
 
   const refetch = useCallback(async () => {
     setState((current) => ({ ...current, loading: true, error: null }));
 
     try {
-      const next = await loadLanguageCatalog({ force: true });
+      const next = downloadsLibraryActive
+        ? await loadDownloadedLanguagesCatalog()
+        : await loadLanguageCatalog({ force: true });
       setState({ ...next, loading: false });
     } catch (err) {
       setState({
@@ -41,16 +58,20 @@ export function useLanguages() {
         loading: false,
       });
     }
-  }, [t]);
+  }, [downloadsLibraryActive, t]);
 
   useEffect(() => {
-    if (getLanguageCatalogSnapshot()) {
-      return;
-    }
-
     let cancelled = false;
 
-    loadLanguageCatalog()
+    setState((current) => ({ ...current, loading: true, error: null }));
+
+    const load = downloadsLibraryActive
+      ? loadDownloadedLanguagesCatalog()
+      : getLanguageCatalogSnapshot()
+        ? Promise.resolve(getLanguageCatalogSnapshot()!)
+        : loadLanguageCatalog();
+
+    load
       .then((next) => {
         if (!cancelled) {
           setState({ ...next, loading: false });
@@ -69,7 +90,7 @@ export function useLanguages() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [downloadsLibraryActive, t]);
 
   return {
     languages: state.languages,

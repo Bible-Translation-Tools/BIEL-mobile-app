@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -16,6 +17,10 @@ import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
 import { IconSymbol, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  setDownloadsLibraryActive,
+  useDownloadsLibraryActive,
+} from '@/stores/downloads-library-store';
 
 type DrawerView = 'menu' | 'system-settings' | 'text-settings';
 
@@ -88,9 +93,17 @@ type DrawerMenuItemProps = {
   iconSize: number;
   onPress?: () => void;
   disabled?: boolean;
+  selected?: boolean;
 };
 
-function DrawerMenuItem({ label, icon, iconSize, onPress, disabled }: DrawerMenuItemProps) {
+function DrawerMenuItem({
+  label,
+  icon,
+  iconSize,
+  onPress,
+  disabled,
+  selected = false,
+}: DrawerMenuItemProps) {
   const theme = useTheme();
 
   return (
@@ -98,13 +111,20 @@ function DrawerMenuItem({ label, icon, iconSize, onPress, disabled }: DrawerMenu
       <Pressable
         style={({ pressed }) => [
           styles.menuItem,
+          selected && {
+            backgroundColor: theme.backgroundSelected,
+            borderRadius: 8,
+            paddingVertical: 8,
+            paddingHorizontal: 8,
+            marginHorizontal: -8,
+          },
           { opacity: disabled ? 0.5 : pressed ? 0.7 : 1 },
         ]}
         onPress={disabled ? undefined : onPress}
         disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityState={{ disabled: disabled ?? false }}>
+        accessibilityState={{ disabled: disabled ?? false, selected }}>
         <IconSymbol name={icon} size={iconSize} color={theme.iconPrimary} />
         <Text style={[styles.menuItemLabel, { color: theme.text }]}>{label}</Text>
       </Pressable>
@@ -115,7 +135,9 @@ function DrawerMenuItem({ label, icon, iconSize, onPress, disabled }: DrawerMenu
 export function SettingsDrawer({ visible, onClose, showTextSettings = false }: SettingsDrawerProps) {
   const { t } = useTranslation('settings');
   const theme = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const downloadsLibraryActive = useDownloadsLibraryActive();
   const [view, setView] = useState<DrawerView>('menu');
   const drawerWidth = Math.min(
     MenuDrawerLayout.maxWidth,
@@ -131,6 +153,17 @@ export function SettingsDrawer({ visible, onClose, showTextSettings = false }: S
   const handleClose = () => {
     setView('menu');
     onClose();
+  };
+
+  const handleDownloadsLibraryPress = () => {
+    const nextActive = !downloadsLibraryActive;
+    setDownloadsLibraryActive(nextActive);
+    handleClose();
+    if (router.canDismiss()) {
+      router.dismissTo('/');
+    } else {
+      router.replace('/');
+    }
   };
 
   if (!visible) {
@@ -182,7 +215,8 @@ export function SettingsDrawer({ visible, onClose, showTextSettings = false }: S
                 label={t('menu.downloadsLibrary')}
                 icon={DOWNLOADS_LIBRARY_ICON}
                 iconSize={MenuDrawerLayout.downloadsIconSize}
-                disabled
+                selected={downloadsLibraryActive}
+                onPress={handleDownloadsLibraryPress}
               />
               <DrawerMenuItem
                 label={t('menu.systemSettings')}

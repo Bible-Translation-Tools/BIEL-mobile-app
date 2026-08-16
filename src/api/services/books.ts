@@ -4,6 +4,7 @@ import { BOOKS_FOR_LANGUAGE_QUERY } from '@/api/graphql/queries';
 import {
   listBookCatalog,
   listDownloadedBooksForLanguage,
+  listLocalContentBooksForLanguage,
   replaceBookCatalog,
 } from '@/db';
 import type { ApiBookMetadata, BookItem, BooksQueryResult } from '@/types/book';
@@ -88,6 +89,25 @@ export async function fetchBooksForLanguageOffline(languageCode: string): Promis
   }
 
   return sortBooks([...bySlug.values()]);
+}
+
+/** Books that have local scripture and/or audio — Downloads Library / offline-only list. */
+export async function fetchDownloadedBooksForLanguage(languageCode: string): Promise<BookItem[]> {
+  const records = await listLocalContentBooksForLanguage(languageCode);
+  return sortBooks(
+    records.map((record) => {
+      const slug = record.bookSlug;
+      return {
+        id: slug,
+        name: record.bookName,
+        slug,
+        testament: isOldTestament(slug) ? 'old' : 'new',
+        downloadStatus: record.hasText ? 'downloaded' : 'pending',
+        audioDownloadStatus: record.hasAudio ? 'downloaded' : 'pending',
+        hasAudio: record.hasAudio,
+      } satisfies BookItem;
+    }),
+  );
 }
 
 /** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */

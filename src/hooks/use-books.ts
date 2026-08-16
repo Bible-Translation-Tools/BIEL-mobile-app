@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fetchBooksForLanguage, fetchBooksForLanguageOffline } from '@/api/services/books';
+import {
+  fetchBooksForLanguage,
+  fetchBooksForLanguageOffline,
+  fetchDownloadedBooksForLanguage,
+} from '@/api/services/books';
 import { resolveLanguageAudioBooks } from '@/api/services/offline-audio';
 import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
+import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
 
@@ -57,6 +62,7 @@ async function applyDownloadStatus(
 
 export function useBooks(languageCode: string | undefined) {
   const { t } = useTranslation('books');
+  const downloadsLibraryActive = useDownloadsLibraryActive();
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +70,17 @@ export function useBooks(languageCode: string | undefined) {
   const refreshDownloadStatus = useCallback(
     async (change?: BookDownloadStatusChange) => {
       if (!languageCode) return;
+
+      if (downloadsLibraryActive) {
+        try {
+          const items = await fetchDownloadedBooksForLanguage(languageCode);
+          const withStatus = await applyDownloadStatus(items, languageCode);
+          setBooks(withStatus);
+        } catch {
+          // Keep current list if refresh fails.
+        }
+        return;
+      }
 
       if (change) {
         setBooks((current) =>
@@ -89,7 +106,7 @@ export function useBooks(languageCode: string | undefined) {
         mapBooksWithDownloadStatus(current, downloadedSet, audioDownloadedSet, audioAvailableSet),
       );
     },
-    [languageCode],
+    [downloadsLibraryActive, languageCode],
   );
 
   const refetch = useCallback(async () => {
@@ -102,6 +119,21 @@ export function useBooks(languageCode: string | undefined) {
 
     setLoading(true);
     setError(null);
+
+    if (downloadsLibraryActive) {
+      try {
+        const items = await fetchDownloadedBooksForLanguage(languageCode);
+        const withStatus = await applyDownloadStatus(items, languageCode);
+        setBooks(withStatus);
+        setError(null);
+      } catch (err) {
+        setBooks([]);
+        setError(err instanceof Error ? err.message : t('failedToLoadBooks'));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     let offlineItems: BookItem[] = [];
     try {
@@ -136,7 +168,7 @@ export function useBooks(languageCode: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [languageCode, t]);
+  }, [downloadsLibraryActive, languageCode, t]);
 
   useEffect(() => {
     refetch();
