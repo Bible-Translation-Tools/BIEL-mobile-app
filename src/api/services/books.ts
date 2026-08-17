@@ -4,10 +4,13 @@ import { BOOKS_FOR_LANGUAGE_QUERY } from '@/api/graphql/queries';
 import {
   listBookCatalog,
   listDownloadedBooksForLanguage,
+  listLanguagesWithDownloads,
+  listLocalContentBooks,
   listLocalContentBooksForLanguage,
   replaceBookCatalog,
 } from '@/db';
 import type { ApiBookMetadata, BookItem, BooksQueryResult } from '@/types/book';
+import type { LanguageItem } from '@/types/language';
 
 function mapApiBookToItem(book: ApiBookMetadata): BookItem | null {
   const slug = book.book_slug?.trim();
@@ -91,23 +94,55 @@ export async function fetchBooksForLanguageOffline(languageCode: string): Promis
   return sortBooks([...bySlug.values()]);
 }
 
+function localRecordToBookItem(record: {
+  bookSlug: string;
+  bookName: string;
+  hasText: boolean;
+  hasAudio: boolean;
+}): BookItem {
+  const slug = record.bookSlug;
+  return {
+    id: slug,
+    name: record.bookName,
+    slug,
+    testament: isOldTestament(slug) ? 'old' : 'new',
+    downloadStatus: record.hasText ? 'downloaded' : 'pending',
+    audioDownloadStatus: record.hasAudio ? 'downloaded' : 'pending',
+    hasAudio: record.hasAudio,
+  } satisfies BookItem;
+}
+
 /** Books that have local scripture and/or audio — Downloads Library / offline-only list. */
 export async function fetchDownloadedBooksForLanguage(languageCode: string): Promise<BookItem[]> {
   const records = await listLocalContentBooksForLanguage(languageCode);
-  return sortBooks(
-    records.map((record) => {
-      const slug = record.bookSlug;
-      return {
-        id: slug,
-        name: record.bookName,
-        slug,
-        testament: isOldTestament(slug) ? 'old' : 'new',
-        downloadStatus: record.hasText ? 'downloaded' : 'pending',
-        audioDownloadStatus: record.hasAudio ? 'downloaded' : 'pending',
-        hasAudio: record.hasAudio,
-      } satisfies BookItem;
-    }),
-  );
+  return sortBooks(records.map(localRecordToBookItem));
+}
+
+export type DownloadedLibraryLanguage = {
+  language: LanguageItem;
+  books: BookItem[];
+};
+
+/** Languages with local books for the Downloads Library accordion. Local DB only. */
+export async function fetchDownloadedLibrary(): Promise<DownloadedLibraryLanguage[]> {
+  const [languages, records] = await Promise.all([
+    listLanguagesWithDownloads(),
+    listLocalContentBooks(),
+  ]);
+
+  const booksByLanguage = new Map<string, BookItem[]>();
+  for (const record of records) {
+    const key = record.languageCode.toUpperCase();
+    const books = booksByLanguage.get(key) ?? [];
+    books.push(localRecordToBookItem(record));
+    booksByLanguage.set(key, books);
+  }
+
+  return languages.flatMap((language) => {
+    const books = booksByLanguage.get(language.code.toUpperCase());
+    if (!books || books.length === 0) return [];
+    return [{ language, books: sortBooks(books) }];
+  });
 }
 
 /** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */

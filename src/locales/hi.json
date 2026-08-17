@@ -113,6 +113,30 @@
       "download": "{{title}} डाउनलोड करें"
     }
   },
+  "library": {
+    "title": "डाउनलोड लाइब्रेरी",
+    "searchPlaceholder": "यहाँ पुस्तक खोजें...",
+    "searchAccessibility": "डाउनलोड की गई पुस्तकें खोजें",
+    "filterTitle": "फ़िल्टर",
+    "filterAccessibility": "डाउनलोड फ़िल्टर करें",
+    "closeFilter": "फ़िल्टर बंद करें",
+    "filter": {
+      "all": "सभी",
+      "scripture": "शास्त्र",
+      "audio": "ऑडियो",
+      "both": "दोनों"
+    },
+    "content": {
+      "both": "दोनों",
+      "mixed": "मिश्रित",
+      "text": "पाठ",
+      "audio": "ऑडियो"
+    },
+    "booksDownloaded_one": "{{count}} पुस्तक डाउनलोड हुई",
+    "booksDownloaded_other": "{{count}} पुस्तकें डाउनलोड हुईं",
+    "noDownloads": "अभी कोई डाउनलोड नहीं",
+    "failedToLoad": "डाउनलोड लोड नहीं हो सके"
+  },
   "settings": {
     "title": "सिस्टम सेटिंग",
     "close": "सिस्टम सेटिंग बंद करें",

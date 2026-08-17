@@ -113,6 +113,30 @@
       "download": "Tải xuống {{title}}"
     }
   },
+  "library": {
+    "title": "Thư viện tải xuống",
+    "searchPlaceholder": "Tìm sách tại đây...",
+    "searchAccessibility": "Tìm sách đã tải xuống",
+    "filterTitle": "Lọc",
+    "filterAccessibility": "Lọc bản tải xuống",
+    "closeFilter": "Đóng bộ lọc",
+    "filter": {
+      "all": "Tất cả",
+      "scripture": "Kinh văn",
+      "audio": "Âm thanh",
+      "both": "Cả hai"
+    },
+    "content": {
+      "both": "Cả hai",
+      "mixed": "Hỗn hợp",
+      "text": "Văn bản",
+      "audio": "Âm thanh"
+    },
+    "booksDownloaded_one": "{{count}} sách đã tải xuống",
+    "booksDownloaded_other": "{{count}} sách đã tải xuống",
+    "noDownloads": "Chưa có bản tải xuống",
+    "failedToLoad": "Không thể tải danh sách tải xuống"
+  },
   "settings": {
     "title": "Cài đặt hệ thống",
     "close": "Đóng cài đặt hệ thống",

@@ -113,6 +113,30 @@
       "download": "Download {{title}}"
     }
   },
+  "library": {
+    "title": "Downloads Library",
+    "searchPlaceholder": "Search book here...",
+    "searchAccessibility": "Search downloaded books",
+    "filterTitle": "Filter",
+    "filterAccessibility": "Filter downloads",
+    "closeFilter": "Close filter",
+    "filter": {
+      "all": "All",
+      "scripture": "Scripture",
+      "audio": "Audio",
+      "both": "Both"
+    },
+    "content": {
+      "both": "Both",
+      "mixed": "Mixed",
+      "text": "Text",
+      "audio": "Audio"
+    },
+    "booksDownloaded_one": "{{count}} book downloaded",
+    "booksDownloaded_other": "{{count}} books downloaded",
+    "noDownloads": "No downloads yet",
+    "failedToLoad": "Failed to load downloads"
+  },
   "settings": {
     "title": "System Settings",
     "close": "Close system settings",

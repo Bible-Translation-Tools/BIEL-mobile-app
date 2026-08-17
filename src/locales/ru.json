@@ -113,6 +113,30 @@
       "download": "Загрузить {{title}}"
     }
   },
+  "library": {
+    "title": "Библиотека загрузок",
+    "searchPlaceholder": "Искать книгу здесь...",
+    "searchAccessibility": "Искать загруженные книги",
+    "filterTitle": "Фильтр",
+    "filterAccessibility": "Фильтровать загрузки",
+    "closeFilter": "Закрыть фильтр",
+    "filter": {
+      "all": "Все",
+      "scripture": "Писание",
+      "audio": "Аудио",
+      "both": "Оба"
+    },
+    "content": {
+      "both": "Оба",
+      "mixed": "Смешанное",
+      "text": "Текст",
+      "audio": "Аудио"
+    },
+    "booksDownloaded_one": "{{count}} книга загружена",
+    "booksDownloaded_other": "{{count}} книг загружено",
+    "noDownloads": "Пока нет загрузок",
+    "failedToLoad": "Не удалось загрузить список"
+  },
   "settings": {
     "title": "Системные настройки",
     "close": "Закрыть системные настройки",

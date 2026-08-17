@@ -18,6 +18,15 @@ async function getMergedOfflineChapterNumbers(
   return [...new Set([...scripture, ...audio])].sort((a, b) => a - b);
 }
 
+/** Local chapter numbers only — used by Downloads Library (no network). */
+export async function fetchOfflineChaptersForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<ChapterItem[]> {
+  const numbers = await getMergedOfflineChapterNumbers(languageCode, bookSlug);
+  return numbers.map((number) => ({ number }));
+}
+
 export async function fetchAudioChaptersForBook(
   languageCode: string,
   bookSlug: string,

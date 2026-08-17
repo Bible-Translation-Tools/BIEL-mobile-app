@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DownloadsLibraryView } from '@/components/download/downloads-library-view';
 import { HomeHeader } from '@/components/home/home-header';
 import { HomeToolbar } from '@/components/home/home-toolbar';
 import { LanguageList } from '@/components/home/language-list';
@@ -16,16 +17,24 @@ import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
 import type { LanguageItem } from '@/types/language';
 
 export default function HomeScreen() {
+  const downloadsLibraryActive = useDownloadsLibraryActive();
+
+  if (downloadsLibraryActive) {
+    return <DownloadsLibraryView />;
+  }
+
+  return <CatalogHomeScreen />;
+}
+
+function CatalogHomeScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const downloadsLibraryActive = useDownloadsLibraryActive();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [listKey, setListKey] = useState(0);
   const { languages, loading, error, refetch, refreshDownloadStatus } = useLanguages();
   const { t } = useTranslation('home');
-  const { t: ts } = useTranslation('settings');
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -36,11 +45,6 @@ export default function HomeScreen() {
       setRefreshing(false);
     }
   }, [refetch]);
-
-  useEffect(() => {
-    setListKey((current) => current + 1);
-    setSearchQuery('');
-  }, [downloadsLibraryActive]);
 
   const filteredLanguages = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -89,14 +93,10 @@ export default function HomeScreen() {
   const listHeader = useMemo(
     () => (
       <View style={styles.listHeader}>
-        <HomeHeader
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          title={downloadsLibraryActive ? ts('menu.downloadsLibrary') : t('title')}
-        />
+        <HomeHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       </View>
     ),
-    [downloadsLibraryActive, searchQuery, t, ts],
+    [searchQuery],
   );
 
   return (

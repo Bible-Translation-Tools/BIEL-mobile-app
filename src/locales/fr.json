@@ -113,6 +113,30 @@
       "download": "Télécharger {{title}}"
     }
   },
+  "library": {
+    "title": "Bibliothèque de téléchargements",
+    "searchPlaceholder": "Rechercher un livre...",
+    "searchAccessibility": "Rechercher les livres téléchargés",
+    "filterTitle": "Filtrer",
+    "filterAccessibility": "Filtrer les téléchargements",
+    "closeFilter": "Fermer le filtre",
+    "filter": {
+      "all": "Tous",
+      "scripture": "Écriture",
+      "audio": "Audio",
+      "both": "Les deux"
+    },
+    "content": {
+      "both": "Les deux",
+      "mixed": "Mixte",
+      "text": "Texte",
+      "audio": "Audio"
+    },
+    "booksDownloaded_one": "{{count}} livre téléchargé",
+    "booksDownloaded_other": "{{count}} livres téléchargés",
+    "noDownloads": "Aucun téléchargement pour le moment",
+    "failedToLoad": "Impossible de charger les téléchargements"
+  },
   "settings": {
     "title": "Paramètres système",
     "close": "Fermer les paramètres système",

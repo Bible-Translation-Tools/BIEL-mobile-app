@@ -27,6 +27,10 @@ export const Colors = {
     iconTertiary: '#8b8b8b',
     iconSuccess: '#22ac52',
     iconDanger: '#d32f2f',
+    badgeBothBackground: '#fbf5ff',
+    badgeBothForeground: '#a02af4',
+    badgeMixedBackground: '#fff6ec',
+    badgeMixedForeground: '#f47e2a',
   },
   dark: {
     text: '#eaeaea',
@@ -47,6 +51,10 @@ export const Colors = {
     iconTertiary: '#767676',
     iconSuccess: '#22ac52',
     iconDanger: '#ef5350',
+    badgeBothBackground: '#3b2450',
+    badgeBothForeground: '#d9b3ff',
+    badgeMixedBackground: '#3d2a1a',
+    badgeMixedForeground: '#f47e2a',
   },
 } as const;
 
@@ -159,6 +167,20 @@ export const HomeLayout = {
   cardPaddingV: 12,
   downloadButtonSize: 70,
   bookIconSize: 38,
+} as const;
+
+export const DownloadsLibraryLayout = {
+  filterButtonSize: 48,
+  filterIconSize: 28,
+  badgeIconSize: 16,
+  badgePaddingH: 8,
+  badgePaddingV: 4,
+  badgeGap: 4,
+  badgeRadius: 20,
+  languageTitleSize: 20,
+  languageTitleLineHeight: 24,
+  countGap: 20,
+  accordionGap: 20,
 } as const;
 
 export const BookLayout = {

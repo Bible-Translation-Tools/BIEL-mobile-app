@@ -113,6 +113,30 @@
       "download": "Unduh {{title}}"
     }
   },
+  "library": {
+    "title": "Perpustakaan unduhan",
+    "searchPlaceholder": "Cari kitab di sini...",
+    "searchAccessibility": "Cari kitab yang diunduh",
+    "filterTitle": "Filter",
+    "filterAccessibility": "Filter unduhan",
+    "closeFilter": "Tutup filter",
+    "filter": {
+      "all": "Semua",
+      "scripture": "Naskah",
+      "audio": "Audio",
+      "both": "Keduanya"
+    },
+    "content": {
+      "both": "Keduanya",
+      "mixed": "Campuran",
+      "text": "Teks",
+      "audio": "Audio"
+    },
+    "booksDownloaded_one": "{{count}} kitab diunduh",
+    "booksDownloaded_other": "{{count}} kitab diunduh",
+    "noDownloads": "Belum ada unduhan",
+    "failedToLoad": "Gagal memuat unduhan"
+  },
   "settings": {
     "title": "Pengaturan sistem",
     "close": "Tutup pengaturan sistem",

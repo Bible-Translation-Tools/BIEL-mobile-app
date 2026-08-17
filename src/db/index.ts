@@ -31,6 +31,7 @@ export {
   listDownloadedAudioBooksForLanguage,
   listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
+  listLocalContentBooks,
   listLocalContentBooksForLanguage,
   listScriptureChapterNumbersForBook,
   markAudioBookComplete,

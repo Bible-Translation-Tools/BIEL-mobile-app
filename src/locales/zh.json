@@ -113,6 +113,30 @@
       "download": "下载 {{title}}"
     }
   },
+  "library": {
+    "title": "下载库",
+    "searchPlaceholder": "在此搜索书卷...",
+    "searchAccessibility": "搜索已下载的书卷",
+    "filterTitle": "筛选",
+    "filterAccessibility": "筛选下载",
+    "closeFilter": "关闭筛选",
+    "filter": {
+      "all": "全部",
+      "scripture": "经文",
+      "audio": "音频",
+      "both": "两者"
+    },
+    "content": {
+      "both": "两者",
+      "mixed": "混合",
+      "text": "文本",
+      "audio": "音频"
+    },
+    "booksDownloaded_one": "已下载 {{count}} 卷",
+    "booksDownloaded_other": "已下载 {{count}} 卷",
+    "noDownloads": "暂无下载",
+    "failedToLoad": "无法加载下载内容"
+  },
   "settings": {
     "title": "系统设置",
     "close": "关闭系统设置",

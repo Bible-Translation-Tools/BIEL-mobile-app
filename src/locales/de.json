@@ -113,6 +113,30 @@
       "download": "{{title}} herunterladen"
     }
   },
+  "library": {
+    "title": "Download-Bibliothek",
+    "searchPlaceholder": "Buch hier suchen...",
+    "searchAccessibility": "Heruntergeladene Bücher suchen",
+    "filterTitle": "Filter",
+    "filterAccessibility": "Downloads filtern",
+    "closeFilter": "Filter schließen",
+    "filter": {
+      "all": "Alle",
+      "scripture": "Schrift",
+      "audio": "Audio",
+      "both": "Beides"
+    },
+    "content": {
+      "both": "Beides",
+      "mixed": "Gemischt",
+      "text": "Text",
+      "audio": "Audio"
+    },
+    "booksDownloaded_one": "{{count}} Buch heruntergeladen",
+    "booksDownloaded_other": "{{count}} Bücher heruntergeladen",
+    "noDownloads": "Noch keine Downloads",
+    "failedToLoad": "Downloads konnten nicht geladen werden"
+  },
   "settings": {
     "title": "Systemeinstellungen",
     "close": "Systemeinstellungen schließen",

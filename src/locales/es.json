@@ -113,6 +113,30 @@
       "download": "Descargar {{title}}"
     }
   },
+  "library": {
+    "title": "Biblioteca de descargas",
+    "searchPlaceholder": "Buscar libro aquí...",
+    "searchAccessibility": "Buscar libros descargados",
+    "filterTitle": "Filtrar",
+    "filterAccessibility": "Filtrar descargas",
+    "closeFilter": "Cerrar filtro",
+    "filter": {
+      "all": "Todo",
+      "scripture": "Escritura",
+      "audio": "Audio",
+      "both": "Ambos"
+    },
+    "content": {
+      "both": "Ambos",
+      "mixed": "Mixto",
+      "text": "Texto",
+      "audio": "Audio"
+    },
+    "booksDownloaded_one": "{{count}} libro descargado",
+    "booksDownloaded_other": "{{count}} libros descargados",
+    "noDownloads": "Aún no hay descargas",
+    "failedToLoad": "No se pudieron cargar las descargas"
+  },
   "settings": {
     "title": "Ajustes del sistema",
     "close": "Cerrar ajustes del sistema",
