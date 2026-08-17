@@ -38,6 +38,9 @@
       "delete": "Удалить {{name}}",
       "download": "Загрузить {{name}}",
       "chapter": "Глава {{number}}",
+      "chapterText": "Глава {{number}}, текст",
+      "chapterAudio": "Глава {{number}}, аудио",
+      "chapterBoth": "Глава {{number}}, текст и аудио",
       "chapterUnavailable": "Глава {{number}}, не загружена"
     }
   },
@@ -133,6 +136,9 @@
       "mixed": "Смешанное",
       "text": "Текст",
       "audio": "Аудио"
+    },
+    "legend": {
+      "both": "Текст и аудио"
     },
     "booksDownloaded_one": "{{count}} книга загружена",
     "booksDownloaded_other": "{{count}} книг загружено",

@@ -38,6 +38,9 @@
       "delete": "Hapus {{name}}",
       "download": "Unduh {{name}}",
       "chapter": "Pasal {{number}}",
+      "chapterText": "Pasal {{number}}, teks",
+      "chapterAudio": "Pasal {{number}}, audio",
+      "chapterBoth": "Pasal {{number}}, teks dan audio",
       "chapterUnavailable": "Pasal {{number}}, belum diunduh"
     }
   },
@@ -133,6 +136,9 @@
       "mixed": "Campuran",
       "text": "Teks",
       "audio": "Audio"
+    },
+    "legend": {
+      "both": "Teks & Audio"
     },
     "booksDownloaded_one": "{{count}} kitab diunduh",
     "booksDownloaded_other": "{{count}} kitab diunduh",

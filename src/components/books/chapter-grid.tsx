@@ -8,9 +8,17 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { BookLayout } from '@/constants/theme';
+import { BookLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { ChapterItem } from '@/types/book';
+import {
+  CHAPTER_CONTENT_LEGEND_ORDER,
+  CONTENT_TYPE_COLORS,
+  getChapterContentIndicator,
+  type ContentTypeIndicator,
+} from '@/types/content-type';
+
+type ChapterContentIndicator = Exclude<ContentTypeIndicator, 'mixed'>;
 
 type ChapterGridProps = {
   chapters: ChapterItem[];
@@ -28,12 +36,44 @@ function isChapterAvailable(chapter: ChapterItem): boolean {
   return chapter.available !== false;
 }
 
+function getPresentContentIndicators(chapters: ChapterItem[]): ChapterContentIndicator[] {
+  const present = new Set<ChapterContentIndicator>();
+  for (const chapter of chapters) {
+    const indicator = getChapterContentIndicator(chapter);
+    if (indicator) present.add(indicator);
+  }
+  return CHAPTER_CONTENT_LEGEND_ORDER.filter((indicator) => present.has(indicator));
+}
+
+function getChapterAccessibilityLabel(
+  chapter: ChapterItem,
+  available: boolean,
+  indicator: ChapterContentIndicator | null,
+  t: (key: string, options: { number: number }) => string,
+): string {
+  if (!available) {
+    return t('accessibility.chapterUnavailable', { number: chapter.number });
+  }
+  if (indicator === 'both') {
+    return t('accessibility.chapterBoth', { number: chapter.number });
+  }
+  if (indicator === 'text') {
+    return t('accessibility.chapterText', { number: chapter.number });
+  }
+  if (indicator === 'audio') {
+    return t('accessibility.chapterAudio', { number: chapter.number });
+  }
+  return t('accessibility.chapter', { number: chapter.number });
+}
+
 export function ChapterGrid({ chapters, loading = false, onChapterPress }: ChapterGridProps) {
   const theme = useTheme();
   const { t } = useTranslation('books');
+  const { t: tl } = useTranslation('library');
   const [gridWidth, setGridWidth] = useState(0);
 
   const cellSize = gridWidth > 0 ? getCellSize(gridWidth) : 0;
+  const legendIndicators = getPresentContentIndicators(chapters);
 
   if (loading) {
     return (
@@ -49,53 +89,98 @@ export function ChapterGrid({ chapters, loading = false, onChapterPress }: Chapt
 
   return (
     <View
-      style={[styles.grid, { gap: BookLayout.chapterGap }]}
+      style={[
+        styles.container,
+        legendIndicators.length > 0 ? { gap: BookLayout.chapterLegendGap } : null,
+      ]}
       onLayout={(event) => {
         const width = event.nativeEvent.layout.width;
         if (width > 0) setGridWidth(width);
       }}>
-      {cellSize > 0
-        ? chapters.map((chapter) => {
-            const available = isChapterAvailable(chapter);
+      <View style={[styles.grid, { gap: BookLayout.chapterGap }]}>
+        {cellSize > 0
+          ? chapters.map((chapter) => {
+              const available = isChapterAvailable(chapter);
+              const indicator = available ? getChapterContentIndicator(chapter) : null;
+              const colors = indicator ? CONTENT_TYPE_COLORS[indicator] : null;
+
+              return (
+                <Pressable
+                  key={chapter.number}
+                  style={({ pressed }) => [
+                    styles.cell,
+                    {
+                      width: cellSize,
+                      backgroundColor: colors
+                        ? theme[colors.background]
+                        : available
+                          ? theme.backgroundElement
+                          : theme.backgroundSelected,
+                      borderColor: colors ? theme[colors.foreground] : theme.border,
+                      opacity: available ? (pressed ? 0.85 : 1) : 1,
+                    },
+                  ]}
+                  onPress={available ? () => onChapterPress?.(chapter) : undefined}
+                  disabled={!available}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: !available }}
+                  accessibilityLabel={getChapterAccessibilityLabel(
+                    chapter,
+                    available,
+                    indicator,
+                    t,
+                  )}>
+                  <Text
+                    style={[
+                      styles.cellLabel,
+                      {
+                        color: colors
+                          ? theme[colors.foreground]
+                          : available
+                            ? theme.text
+                            : theme.textLabel,
+                      },
+                    ]}
+                    numberOfLines={1}>
+                    {chapter.number}
+                  </Text>
+                </Pressable>
+              );
+            })
+          : null}
+      </View>
+      {legendIndicators.length > 0 ? (
+        <View style={styles.legend}>
+          {legendIndicators.map((indicator) => {
+            const colors = CONTENT_TYPE_COLORS[indicator];
+            const label =
+              indicator === 'both' ? tl('legend.both') : tl(`content.${indicator}`);
 
             return (
-              <Pressable
-                key={chapter.number}
-                style={({ pressed }) => [
-                  styles.cell,
-                  {
-                    width: cellSize,
-                    backgroundColor: available ? theme.backgroundElement : theme.backgroundSelected,
-                    borderColor: theme.border,
-                    opacity: available ? (pressed ? 0.85 : 1) : 1,
-                  },
-                ]}
-                onPress={available ? () => onChapterPress?.(chapter) : undefined}
-                disabled={!available}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: !available }}
-                accessibilityLabel={
-                  available
-                    ? t('accessibility.chapter', { number: chapter.number })
-                    : t('accessibility.chapterUnavailable', { number: chapter.number })
-                }>
-                <Text
+              <View key={indicator} style={styles.legendItem}>
+                <View
                   style={[
-                    styles.cellLabel,
-                    { color: available ? theme.text : theme.textLabel },
+                    styles.legendSwatch,
+                    {
+                      backgroundColor: theme[colors.background],
+                      borderColor: theme[colors.foreground],
+                    },
                   ]}
-                  numberOfLines={1}>
-                  {chapter.number}
-                </Text>
-              </Pressable>
+                />
+                <Text style={[styles.legendLabel, { color: theme.text }]}>{label}</Text>
+              </View>
             );
-          })
-        : null}
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -116,6 +201,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
     flexShrink: 0,
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: BookLayout.chapterLegendItemGap,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: BookLayout.chapterLegendSwatchGap,
+  },
+  legendSwatch: {
+    width: BookLayout.chapterLegendSwatchSize,
+    height: BookLayout.chapterLegendSwatchSize,
+    borderRadius: BookLayout.chapterLegendSwatchRadius,
+    borderWidth: BookLayout.chapterLegendSwatchBorderWidth,
+    flexShrink: 0,
+  },
+  legendLabel: {
+    ...Typography.bodyXs,
+    fontWeight: '500',
   },
   loading: {
     paddingVertical: 24,

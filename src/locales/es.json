@@ -38,6 +38,9 @@
       "delete": "Eliminar {{name}}",
       "download": "Descargar {{name}}",
       "chapter": "Capítulo {{number}}",
+      "chapterText": "Capítulo {{number}}, texto",
+      "chapterAudio": "Capítulo {{number}}, audio",
+      "chapterBoth": "Capítulo {{number}}, texto y audio",
       "chapterUnavailable": "Capítulo {{number}}, no descargado"
     }
   },
@@ -133,6 +136,9 @@
       "mixed": "Mixto",
       "text": "Texto",
       "audio": "Audio"
+    },
+    "legend": {
+      "both": "Texto y audio"
     },
     "booksDownloaded_one": "{{count}} libro descargado",
     "booksDownloaded_other": "{{count}} libros descargados",

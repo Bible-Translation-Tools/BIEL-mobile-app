@@ -38,6 +38,9 @@
       "delete": "{{name}} हटाएँ",
       "download": "{{name}} डाउनलोड करें",
       "chapter": "अध्याय {{number}}",
+      "chapterText": "अध्याय {{number}}, पाठ",
+      "chapterAudio": "अध्याय {{number}}, ऑडियो",
+      "chapterBoth": "अध्याय {{number}}, पाठ और ऑडियो",
       "chapterUnavailable": "अध्याय {{number}}, डाउनलोड नहीं है"
     }
   },
@@ -133,6 +136,9 @@
       "mixed": "मिश्रित",
       "text": "पाठ",
       "audio": "ऑडियो"
+    },
+    "legend": {
+      "both": "पाठ और ऑडियो"
     },
     "booksDownloaded_one": "{{count}} पुस्तक डाउनलोड हुई",
     "booksDownloaded_other": "{{count}} पुस्तकें डाउनलोड हुईं",

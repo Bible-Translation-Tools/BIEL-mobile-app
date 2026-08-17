@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/icon-symbol';
 import { DownloadsLibraryLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import type { ContentTypeIndicator } from '@/types/content-type';
+import { CONTENT_TYPE_COLORS, type ContentTypeIndicator } from '@/types/content-type';
 
 type ContentTypeBadgeProps = {
   indicator: ContentTypeIndicator;
@@ -18,9 +18,9 @@ type ContentTypeBadgeProps = {
 export function ContentTypeBadge({ indicator }: ContentTypeBadgeProps) {
   const theme = useTheme();
   const { t } = useTranslation('library');
-  const isMixed = indicator === 'mixed';
-  const backgroundColor = isMixed ? theme.badgeMixedBackground : theme.badgeBothBackground;
-  const foregroundColor = isMixed ? theme.badgeMixedForeground : theme.badgeBothForeground;
+  const { background, foreground } = CONTENT_TYPE_COLORS[indicator];
+  const backgroundColor = theme[background];
+  const foregroundColor = theme[foreground];
 
   return (
     <View style={[styles.badge, { backgroundColor }]}>

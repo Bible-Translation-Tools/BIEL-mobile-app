@@ -38,6 +38,9 @@
       "delete": "Xóa {{name}}",
       "download": "Tải xuống {{name}}",
       "chapter": "Chương {{number}}",
+      "chapterText": "Chương {{number}}, văn bản",
+      "chapterAudio": "Chương {{number}}, âm thanh",
+      "chapterBoth": "Chương {{number}}, văn bản và âm thanh",
       "chapterUnavailable": "Chương {{number}}, chưa tải xuống"
     }
   },
@@ -133,6 +136,9 @@
       "mixed": "Hỗn hợp",
       "text": "Văn bản",
       "audio": "Âm thanh"
+    },
+    "legend": {
+      "both": "Văn bản & Âm thanh"
     },
     "booksDownloaded_one": "{{count}} sách đã tải xuống",
     "booksDownloaded_other": "{{count}} sách đã tải xuống",

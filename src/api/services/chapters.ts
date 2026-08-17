@@ -19,12 +19,18 @@ async function getMergedOfflineChapterNumbers(
   return [...new Set([...scripture, ...audio])].sort((a, b) => a - b);
 }
 
-/** Full book chapter grid for Downloads Library: every chapter, with local availability. */
+/** Full book chapter grid for Downloads Library: every chapter, with local text/audio flags. */
 export async function fetchOfflineChaptersForBook(
   languageCode: string,
   bookSlug: string,
 ): Promise<ChapterItem[]> {
-  const localNumbers = new Set(await getMergedOfflineChapterNumbers(languageCode, bookSlug));
+  const [scripture, audio] = await Promise.all([
+    getOfflineChapterNumbers(languageCode, bookSlug),
+    getOfflineAudioChapterNumbers(languageCode, bookSlug),
+  ]);
+  const scriptureSet = new Set(scripture);
+  const audioSet = new Set(audio);
+  const localNumbers = new Set([...scripture, ...audio]);
   const canonicalCount = getCanonicalChapterCount(bookSlug) ?? 0;
   const maxLocal = localNumbers.size > 0 ? Math.max(...localNumbers) : 0;
   const total = Math.max(canonicalCount, maxLocal);
@@ -35,7 +41,9 @@ export async function fetchOfflineChaptersForBook(
 
   return Array.from({ length: total }, (_, index) => {
     const number = index + 1;
-    return { number, available: localNumbers.has(number) };
+    const hasText = scriptureSet.has(number);
+    const hasAudio = audioSet.has(number);
+    return { number, available: hasText || hasAudio, hasText, hasAudio };
   });
 }
 

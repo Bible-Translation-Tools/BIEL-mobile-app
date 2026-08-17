@@ -6,6 +6,10 @@ export type ChapterItem = {
   number: number;
   /** When false, the chapter has no local content. Omit or true = available. */
   available?: boolean;
+  /** Local scripture for this chapter. Omit when content type is unknown (catalog). */
+  hasText?: boolean;
+  /** Local audio for this chapter. Omit when content type is unknown (catalog). */
+  hasAudio?: boolean;
 };
 
 export type BookItem = {
