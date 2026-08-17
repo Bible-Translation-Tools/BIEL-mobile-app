@@ -36,7 +36,9 @@
       "collapse": "{{name}} संकुचित करें",
       "downloadInProgress": "{{name}} का डाउनलोड जारी है",
       "delete": "{{name}} हटाएँ",
-      "download": "{{name}} डाउनलोड करें"
+      "download": "{{name}} डाउनलोड करें",
+      "chapter": "अध्याय {{number}}",
+      "chapterUnavailable": "अध्याय {{number}}, डाउनलोड नहीं है"
     }
   },
   "reading": {

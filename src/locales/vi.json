@@ -36,7 +36,9 @@
       "collapse": "Thu gọn {{name}}",
       "downloadInProgress": "Đang tải xuống {{name}}",
       "delete": "Xóa {{name}}",
-      "download": "Tải xuống {{name}}"
+      "download": "Tải xuống {{name}}",
+      "chapter": "Chương {{number}}",
+      "chapterUnavailable": "Chương {{number}}, chưa tải xuống"
     }
   },
   "reading": {

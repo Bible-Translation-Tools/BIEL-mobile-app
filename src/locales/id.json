@@ -36,7 +36,9 @@
       "collapse": "Ciutkan {{name}}",
       "downloadInProgress": "Unduhan {{name}} sedang berlangsung",
       "delete": "Hapus {{name}}",
-      "download": "Unduh {{name}}"
+      "download": "Unduh {{name}}",
+      "chapter": "Pasal {{number}}",
+      "chapterUnavailable": "Pasal {{number}}, belum diunduh"
     }
   },
   "reading": {

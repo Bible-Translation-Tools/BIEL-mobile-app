@@ -4,6 +4,8 @@ export type Testament = 'old' | 'new';
 
 export type ChapterItem = {
   number: number;
+  /** When false, the chapter has no local content. Omit or true = available. */
+  available?: boolean;
 };
 
 export type BookItem = {

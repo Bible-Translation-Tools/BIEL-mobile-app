@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  LayoutChangeEvent,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { BookLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -24,8 +24,13 @@ function getCellSize(gridWidth: number): number {
   return (gridWidth - (columns - 1) * gap) / columns;
 }
 
+function isChapterAvailable(chapter: ChapterItem): boolean {
+  return chapter.available !== false;
+}
+
 export function ChapterGrid({ chapters, loading = false, onChapterPress }: ChapterGridProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
   const [gridWidth, setGridWidth] = useState(0);
 
   const cellSize = gridWidth > 0 ? getCellSize(gridWidth) : 0;
@@ -50,28 +55,41 @@ export function ChapterGrid({ chapters, loading = false, onChapterPress }: Chapt
         if (width > 0) setGridWidth(width);
       }}>
       {cellSize > 0
-        ? chapters.map((chapter) => (
-            <Pressable
-              key={chapter.number}
-              style={({ pressed }) => [
-                styles.cell,
-                {
-                  width: cellSize,
-                  backgroundColor: theme.backgroundElement,
-                  borderColor: theme.border,
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-              onPress={() => onChapterPress?.(chapter)}
-              accessibilityRole="button"
-              accessibilityLabel={`Chapter ${chapter.number}`}>
-              <Text
-                style={[styles.cellLabel, { color: theme.text }]}
-                numberOfLines={1}>
-                {chapter.number}
-              </Text>
-            </Pressable>
-          ))
+        ? chapters.map((chapter) => {
+            const available = isChapterAvailable(chapter);
+
+            return (
+              <Pressable
+                key={chapter.number}
+                style={({ pressed }) => [
+                  styles.cell,
+                  {
+                    width: cellSize,
+                    backgroundColor: available ? theme.backgroundElement : theme.backgroundSelected,
+                    borderColor: theme.border,
+                    opacity: available ? (pressed ? 0.85 : 1) : 1,
+                  },
+                ]}
+                onPress={available ? () => onChapterPress?.(chapter) : undefined}
+                disabled={!available}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !available }}
+                accessibilityLabel={
+                  available
+                    ? t('accessibility.chapter', { number: chapter.number })
+                    : t('accessibility.chapterUnavailable', { number: chapter.number })
+                }>
+                <Text
+                  style={[
+                    styles.cellLabel,
+                    { color: available ? theme.text : theme.textLabel },
+                  ]}
+                  numberOfLines={1}>
+                  {chapter.number}
+                </Text>
+              </Pressable>
+            );
+          })
         : null}
     </View>
   );

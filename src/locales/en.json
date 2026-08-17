@@ -36,7 +36,9 @@
       "collapse": "Collapse {{name}}",
       "downloadInProgress": "Download in progress for {{name}}",
       "delete": "Delete {{name}}",
-      "download": "Download {{name}}"
+      "download": "Download {{name}}",
+      "chapter": "Chapter {{number}}",
+      "chapterUnavailable": "Chapter {{number}}, not downloaded"
     }
   },
   "reading": {

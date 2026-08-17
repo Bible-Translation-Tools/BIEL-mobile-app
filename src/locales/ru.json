@@ -36,7 +36,9 @@
       "collapse": "Свернуть {{name}}",
       "downloadInProgress": "Идёт загрузка {{name}}",
       "delete": "Удалить {{name}}",
-      "download": "Загрузить {{name}}"
+      "download": "Загрузить {{name}}",
+      "chapter": "Глава {{number}}",
+      "chapterUnavailable": "Глава {{number}}, не загружена"
     }
   },
   "reading": {

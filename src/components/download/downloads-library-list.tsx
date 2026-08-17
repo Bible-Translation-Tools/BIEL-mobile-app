@@ -198,6 +198,14 @@ export function DownloadsLibraryList({
     await onRefresh();
   }, [clearCache, onRefresh]);
 
+  const handleDownloadStatusChange = useCallback(() => {
+    clearCache();
+    onDownloadStatusChange();
+    if (expandedBook) {
+      void loadChapters(expandedBook.languageCode, expandedBook.bookId);
+    }
+  }, [clearCache, expandedBook, loadChapters, onDownloadStatusChange]);
+
   const handleToggleBook = useCallback(
     (languageCode: string, book: BookItem) => {
       Keyboard.dismiss();
@@ -231,7 +239,7 @@ export function DownloadsLibraryList({
         }}
         onToggleBook={(book) => handleToggleBook(item.language.code, book)}
         onChapterPress={onChapterPress}
-        onDownloadStatusChange={() => onDownloadStatusChange()}
+        onDownloadStatusChange={handleDownloadStatusChange}
       />
     ),
     [
@@ -241,7 +249,7 @@ export function DownloadsLibraryList({
       handleToggleBook,
       isLoading,
       onChapterPress,
-      onDownloadStatusChange,
+      handleDownloadStatusChange,
     ],
   );
 
