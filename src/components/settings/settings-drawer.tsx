@@ -13,8 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
+import { ChapterDownloadMenu, type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
-import { IconSymbol, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
+import { IconSymbol, DOWNLOAD_ICON_NAME, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -22,12 +23,14 @@ import {
   useDownloadsLibraryActive,
 } from '@/stores/downloads-library-store';
 
-type DrawerView = 'menu' | 'system-settings' | 'text-settings';
+type DrawerView = 'menu' | 'system-settings' | 'text-settings' | 'chapter-download';
 
 type SettingsDrawerProps = {
   visible: boolean;
   onClose: () => void;
   showTextSettings?: boolean;
+  downloadContext?: ChapterDownloadContext;
+  audioOnlyDownload?: boolean;
 };
 
 type DrawerHeaderProps = {
@@ -132,7 +135,13 @@ function DrawerMenuItem({
   );
 }
 
-export function SettingsDrawer({ visible, onClose, showTextSettings = false }: SettingsDrawerProps) {
+export function SettingsDrawer({
+  visible,
+  onClose,
+  showTextSettings = false,
+  downloadContext,
+  audioOnlyDownload = false,
+}: SettingsDrawerProps) {
   const { t } = useTranslation('settings');
   const theme = useTheme();
   const router = useRouter();
@@ -203,12 +212,12 @@ export function SettingsDrawer({ visible, onClose, showTextSettings = false }: S
           {view === 'menu' ? (
             <>
               <DrawerHeader title={t('menu.title')} onClose={handleClose} />
-              {showTextSettings ? (
+              {downloadContext ? (
                 <DrawerMenuItem
-                  label={t('menu.textSettings')}
-                  icon={TEXT_SETTINGS_ICON}
-                  iconSize={MenuDrawerLayout.textSettingsIconSize}
-                  onPress={() => setView('text-settings')}
+                  label={t('menu.download')}
+                  icon={DOWNLOAD_ICON_NAME}
+                  iconSize={MenuDrawerLayout.downloadsIconSize}
+                  onPress={() => setView('chapter-download')}
                 />
               ) : null}
               <DrawerMenuItem
@@ -218,6 +227,14 @@ export function SettingsDrawer({ visible, onClose, showTextSettings = false }: S
                 selected={downloadsLibraryActive}
                 onPress={handleDownloadsLibraryPress}
               />
+              {showTextSettings ? (
+                <DrawerMenuItem
+                  label={t('menu.textSettings')}
+                  icon={TEXT_SETTINGS_ICON}
+                  iconSize={MenuDrawerLayout.textSettingsIconSize}
+                  onPress={() => setView('text-settings')}
+                />
+              ) : null}
               <DrawerMenuItem
                 label={t('menu.systemSettings')}
                 icon={SETTINGS_ICON_NAME}
@@ -228,13 +245,28 @@ export function SettingsDrawer({ visible, onClose, showTextSettings = false }: S
           ) : (
             <>
               <DrawerHeader
-                title={view === 'text-settings' ? t('menu.textSettings') : t('title')}
+                title={
+                  view === 'text-settings'
+                    ? t('menu.textSettings')
+                    : view === 'chapter-download'
+                      ? t('menu.download')
+                      : t('title')
+                }
                 onClose={handleClose}
                 onBack={() => setView('menu')}
               />
               <View style={styles.settingsContent}>
                 {view === 'text-settings' ? (
                   <TextSettingsMenu embedded />
+                ) : view === 'chapter-download' && downloadContext ? (
+                  <ChapterDownloadMenu
+                    key={`${downloadContext.languageCode}:${downloadContext.bookSlug}:${downloadContext.chapter}`}
+                    embedded
+                    audioOnly={audioOnlyDownload}
+                    languageCode={downloadContext.languageCode}
+                    bookSlug={downloadContext.bookSlug}
+                    chapter={downloadContext.chapter}
+                  />
                 ) : (
                   <SystemSettingsMenu embedded />
                 )}

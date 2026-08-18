@@ -24,6 +24,7 @@ type DownloadMenuProps = {
   onAudioPress?: () => void;
   audioDisabled?: boolean;
   hideScripture?: boolean;
+  embedded?: boolean;
 };
 
 export const DownloadMenu = memo(function DownloadMenu({
@@ -41,6 +42,7 @@ export const DownloadMenu = memo(function DownloadMenu({
   onAudioPress,
   audioDisabled = false,
   hideScripture = false,
+  embedded = false,
 }: DownloadMenuProps) {
   const theme = useTheme();
   const { t } = useTranslation('download');
@@ -70,13 +72,16 @@ export const DownloadMenu = memo(function DownloadMenu({
     <View
       style={[
         styles.menu,
-        {
+        !embedded && {
           backgroundColor: theme.backgroundElement,
           borderColor: theme.border,
         },
-        styles.menuShadow,
+        !embedded && styles.menuShadow,
+        embedded && styles.menuEmbedded,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
+      {!embedded ? (
+        <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
+      ) : null}
       {hideScripture ? null : (
         <DownloadStatusOption
           title={resolvedScriptureTitle}
@@ -107,6 +112,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: DownloadMenuLayout.menuPadding,
     gap: DownloadMenuLayout.menuGap,
+  },
+  menuEmbedded: {
+    borderWidth: 0,
+    padding: 0,
+    width: '100%',
   },
   menuShadow: {
     shadowColor: '#000',
