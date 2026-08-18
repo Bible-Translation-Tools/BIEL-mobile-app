@@ -241,6 +241,7 @@ export const MediaPlayerLayout = {
   playBarGap: 20,
   controlsGap: 36,
   playButtonSize: 48,
+  collapsedPlayIconSize: 40,
   closeHitArea: 60,
 } as const;
 

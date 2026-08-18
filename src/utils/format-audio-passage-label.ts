@@ -1,7 +1,7 @@
 export function formatAudioPassageLabel(
   bookName: string | undefined,
   chapter: number | null | undefined,
-  verse: number | null | undefined,
+  verse?: number | null,
 ): string | undefined {
   if (chapter == null) return undefined;
 
