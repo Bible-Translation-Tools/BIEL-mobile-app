@@ -34,6 +34,7 @@ export {
   listLocalContentBooks,
   listLocalContentBooksForLanguage,
   listScriptureChapterNumbersForBook,
+  sumScriptureChapterByteSizeForBook,
   markAudioBookComplete,
   replaceBookCatalog,
   replaceLanguageCatalog,

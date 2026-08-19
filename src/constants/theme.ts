@@ -131,6 +131,21 @@ export const DownloadMenuLayout = {
   screenPadding: 16,
 } as const;
 
+export const ConfirmDialogLayout = {
+  width: 281,
+  paddingH: 16,
+  paddingV: 20,
+  gap: 20,
+  contentGap: 8,
+  paragraphGap: 16,
+  iconSize: 36,
+  radius: 10,
+  overlayOpacity: 0.5,
+  actionsGap: 8,
+  buttonPadding: 8,
+  buttonRadius: 8,
+} as const;
+
 export const TextSettingsLayout = {
   menuWidth: 262,
   rowGap: 9,

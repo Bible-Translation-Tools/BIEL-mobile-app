@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { memo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import type { DownloadStatus } from '@/types/download';
 
+import { DeleteDownloadDialog } from './delete-download-dialog';
 import { DownloadStatusOption } from './download-status-option';
 
 type DownloadMenuProps = {
@@ -51,21 +52,22 @@ export const DownloadMenu = memo(function DownloadMenu({
   const resolvedScriptureTitle = scriptureTitle ?? t('allScripture');
   const resolvedAudioTitle = audioTitle ?? t('allAudio');
   const emDash = tc('emDash');
-  const confirmDelete = (title: string, onConfirm?: () => void) => {
-    if (!onConfirm) return;
+  const [pendingDelete, setPendingDelete] = useState<(() => void) | null>(null);
 
-    Alert.alert(t('confirmDeleteTitle', { title }), t('confirmDeleteMessage'), [
-      { text: t('confirmDeleteCancel'), style: 'cancel' },
-      { text: t('confirmDeleteAction'), style: 'destructive', onPress: onConfirm },
-    ]);
+  const confirmDelete = (onConfirm?: () => void) => {
+    if (!onConfirm) return;
+    setPendingDelete(() => onConfirm);
   };
+
+  const closeConfirm = () => setPendingDelete(null);
+
   const onScriptureActionPress =
     allowDelete && scriptureStatus === 'downloaded'
-      ? () => confirmDelete(resolvedScriptureTitle, onScripturePress)
+      ? () => confirmDelete(onScripturePress)
       : onScripturePress;
   const onAudioActionPress =
     allowDelete && audioStatus === 'downloaded'
-      ? () => confirmDelete(resolvedAudioTitle, onAudioPress)
+      ? () => confirmDelete(onAudioPress)
       : onAudioPress;
 
   return (
@@ -101,6 +103,14 @@ export const DownloadMenu = memo(function DownloadMenu({
         onActionPress={onAudioActionPress}
         disabled={audioDisabled}
         allowDelete={allowDelete}
+      />
+      <DeleteDownloadDialog
+        visible={pendingDelete != null}
+        onCancel={closeConfirm}
+        onConfirm={() => {
+          pendingDelete?.();
+          closeConfirm();
+        }}
       />
     </View>
   );

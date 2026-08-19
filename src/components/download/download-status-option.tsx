@@ -41,10 +41,12 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
   const isChecking = status === 'checking';
   const isDownloading = status === 'downloading';
   const isDownloaded = status === 'downloaded';
+  const isPartial = status === 'partial';
   const isUnavailable = disabled && !isChecking;
   const isMuted = isUnavailable || isChecking;
-  const showProgress = isDownloading || isDownloaded;
+  const showProgress = isDownloading || isDownloaded || (isPartial && progress > 0);
   const progressWidth = `${Math.min(Math.max(isDownloaded ? 1 : progress, 0), 1) * 100}%` as DimensionValue;
+  const showDelete = allowDelete && (isDownloaded || isPartial);
   const canPress =
     Boolean(onActionPress) &&
     !isChecking &&
@@ -62,6 +64,10 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
         ? allowDelete
           ? t('accessibility.delete', { title })
           : t('accessibility.downloaded', { title })
+        : isPartial
+          ? allowDelete
+            ? t('accessibility.delete', { title })
+            : t('accessibility.download', { title })
         : isUnavailable
           ? t('accessibility.unavailable', { title })
           : t('accessibility.download', { title });
@@ -131,20 +137,18 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
       <View style={styles.actionIcon}>
         {isChecking ? (
           <ActivityIndicator size="small" color={theme.iconTertiary} />
+        ) : showDelete ? (
+          <IconSymbol
+            name={DELETE_ICON_NAME}
+            size={DownloadMenuLayout.deleteIconSize}
+            color={theme.iconDanger}
+          />
         ) : isDownloaded ? (
-          allowDelete ? (
-            <IconSymbol
-              name={DELETE_ICON_NAME}
-              size={DownloadMenuLayout.deleteIconSize}
-              color={theme.iconDanger}
-            />
-          ) : (
-            <IconSymbol
-              name={DOWNLOAD_DONE_ICON_NAME}
-              size={DownloadMenuLayout.iconSize}
-              color={theme.iconSuccess}
-            />
-          )
+          <IconSymbol
+            name={DOWNLOAD_DONE_ICON_NAME}
+            size={DownloadMenuLayout.iconSize}
+            color={theme.iconSuccess}
+          />
         ) : isUnavailable ? null : (
           <IconSymbol
             name={

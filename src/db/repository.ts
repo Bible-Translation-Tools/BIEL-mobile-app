@@ -963,3 +963,18 @@ export async function listScriptureChapterNumbersForBook(
   );
   return rows.map((row) => row.chapter_number);
 }
+
+export async function sumScriptureChapterByteSizeForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<number> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ total: number | null }>(
+    `SELECT SUM(byte_size) AS total
+     FROM scripture_chapters
+     WHERE language_code = ? AND book_slug = ? COLLATE NOCASE`,
+    languageCode,
+    bookSlug,
+  );
+  return row?.total ?? 0;
+}
