@@ -18,8 +18,6 @@ import {
   type ContentTypeIndicator,
 } from '@/types/content-type';
 
-type ChapterContentIndicator = Exclude<ContentTypeIndicator, 'mixed'>;
-
 type ChapterGridProps = {
   chapters: ChapterItem[];
   loading?: boolean;
@@ -36,8 +34,8 @@ function isChapterAvailable(chapter: ChapterItem): boolean {
   return chapter.available !== false;
 }
 
-function getPresentContentIndicators(chapters: ChapterItem[]): ChapterContentIndicator[] {
-  const present = new Set<ChapterContentIndicator>();
+function getPresentContentIndicators(chapters: ChapterItem[]): ContentTypeIndicator[] {
+  const present = new Set<ContentTypeIndicator>();
   for (const chapter of chapters) {
     const indicator = getChapterContentIndicator(chapter);
     if (indicator) present.add(indicator);
@@ -48,7 +46,7 @@ function getPresentContentIndicators(chapters: ChapterItem[]): ChapterContentInd
 function getChapterAccessibilityLabel(
   chapter: ChapterItem,
   available: boolean,
-  indicator: ChapterContentIndicator | null,
+  indicator: ContentTypeIndicator | null,
   t: (key: string, options: { number: number }) => string,
 ): string {
   if (!available) {

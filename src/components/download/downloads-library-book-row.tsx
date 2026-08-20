@@ -2,7 +2,6 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ContentTypeBadge } from '@/components/download/content-type-badge';
 import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
@@ -16,7 +15,7 @@ import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
-import { getBookContentFlags, getContentTypeIndicator } from '@/types/content-type';
+import { getBookContentFlags } from '@/types/content-type';
 import { resolveDownloadStatus } from '@/types/download';
 
 type DownloadsLibraryBookRowProps = {
@@ -64,7 +63,6 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
   const { t } = useTranslation('books');
   const { t: tc } = useTranslation('common');
   const { hasText, hasAudio: bookHasAudio } = getBookContentFlags(book);
-  const indicator = getContentTypeIndicator(book);
   const downloadAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
@@ -207,7 +205,6 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
       <Text style={[styles.bookName, { color: theme.iconPrimary }]} numberOfLines={1}>
         {book.name}
       </Text>
-      <ContentTypeBadge indicator={indicator} />
       <IconSymbol
         name={
           isExpanded

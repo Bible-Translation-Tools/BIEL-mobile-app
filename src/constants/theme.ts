@@ -33,8 +33,6 @@ export const Colors = {
     badgeTextForeground: '#00a63d',
     badgeAudioBackground: '#eff6ff',
     badgeAudioForeground: '#0885fe',
-    badgeMixedBackground: '#fff6ec',
-    badgeMixedForeground: '#f47e2a',
   },
   dark: {
     text: '#eaeaea',
@@ -61,8 +59,6 @@ export const Colors = {
     badgeTextForeground: '#3ddc7a',
     badgeAudioBackground: '#152a45',
     badgeAudioForeground: '#4da8fe',
-    badgeMixedBackground: '#3d2a1a',
-    badgeMixedForeground: '#f47e2a',
   },
 } as const;
 
@@ -195,11 +191,6 @@ export const HomeLayout = {
 export const DownloadsLibraryLayout = {
   filterButtonSize: 48,
   filterIconSize: 28,
-  badgeIconSize: 16,
-  badgePaddingH: 8,
-  badgePaddingV: 4,
-  badgeGap: 4,
-  badgeRadius: 20,
   languageTitleSize: 20,
   languageTitleLineHeight: 24,
   countGap: 20,

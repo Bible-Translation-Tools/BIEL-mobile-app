@@ -1,7 +1,7 @@
 import type { ThemeColor } from '@/constants/theme';
 import type { BookItem, ChapterItem } from '@/types/book';
 
-export type ContentTypeIndicator = 'both' | 'mixed' | 'text' | 'audio';
+export type ContentTypeIndicator = 'both' | 'text' | 'audio';
 
 export type LibraryContentFilter = 'all' | 'scripture' | 'audio' | 'both';
 
@@ -12,10 +12,9 @@ export const CONTENT_TYPE_COLORS: Record<
   both: { background: 'badgeBothBackground', foreground: 'badgeBothForeground' },
   text: { background: 'badgeTextBackground', foreground: 'badgeTextForeground' },
   audio: { background: 'badgeAudioBackground', foreground: 'badgeAudioForeground' },
-  mixed: { background: 'badgeMixedBackground', foreground: 'badgeMixedForeground' },
 };
 
-export const CHAPTER_CONTENT_LEGEND_ORDER: Exclude<ContentTypeIndicator, 'mixed'>[] = [
+export const CHAPTER_CONTENT_LEGEND_ORDER: ContentTypeIndicator[] = [
   'both',
   'text',
   'audio',
@@ -28,16 +27,9 @@ export function getBookContentFlags(book: BookItem): { hasText: boolean; hasAudi
   };
 }
 
-export function getContentTypeIndicator(book: BookItem): ContentTypeIndicator {
-  const { hasText, hasAudio } = getBookContentFlags(book);
-  if (hasText && hasAudio) return 'both';
-  if (hasText) return 'text';
-  return 'audio';
-}
-
 export function getChapterContentIndicator(
   chapter: ChapterItem,
-): Exclude<ContentTypeIndicator, 'mixed'> | null {
+): ContentTypeIndicator | null {
   const hasText = chapter.hasText === true;
   const hasAudio = chapter.hasAudio === true;
   if (hasText && hasAudio) return 'both';
