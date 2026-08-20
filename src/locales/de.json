@@ -45,7 +45,7 @@
     }
   },
   "reading": {
-    "scripture": "Schrift",
+    "scripture": "Text",
     "audio": "Audio",
     "textSettings": "Texteinstellungen",
     "textSize": "Textgröße",
@@ -99,8 +99,8 @@
     "couldNotDownloadAudio": "Audio konnte nicht heruntergeladen werden",
     "couldNotRemoveAudio": "Heruntergeladenes Audio konnte nicht entfernt werden",
     "couldNotDownloadLanguage": "Sprache konnte nicht heruntergeladen werden",
-    "couldNotDownloadScripture": "Schrift konnte nicht heruntergeladen werden",
-    "couldNotRemoveScripture": "Heruntergeladene Schrift konnte nicht entfernt werden",
+    "couldNotDownloadScripture": "Text konnte nicht heruntergeladen werden",
+    "couldNotRemoveScripture": "Heruntergeladener Text konnte nicht entfernt werden",
     "notification": {
       "channelName": "Buch-Downloads",
       "downloadingScripture": "{{name}} wird heruntergeladen",
@@ -128,7 +128,7 @@
     "closeFilter": "Filter schließen",
     "filter": {
       "all": "Alle",
-      "scripture": "Schrift",
+      "scripture": "Text",
       "audio": "Audio",
       "both": "Beides"
     },

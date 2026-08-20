@@ -45,7 +45,7 @@
     }
   },
   "reading": {
-    "scripture": "Scripture",
+    "scripture": "Text",
     "audio": "Audio",
     "textSettings": "Text Settings",
     "textSize": "Text Size",
@@ -99,8 +99,8 @@
     "couldNotDownloadAudio": "Could not download audio",
     "couldNotRemoveAudio": "Could not remove downloaded audio",
     "couldNotDownloadLanguage": "Could not download language",
-    "couldNotDownloadScripture": "Could not download scripture",
-    "couldNotRemoveScripture": "Could not remove downloaded scripture",
+    "couldNotDownloadScripture": "Could not download text",
+    "couldNotRemoveScripture": "Could not remove downloaded text",
     "notification": {
       "channelName": "Book downloads",
       "downloadingScripture": "Downloading {{name}}",
@@ -128,7 +128,7 @@
     "closeFilter": "Close filter",
     "filter": {
       "all": "All",
-      "scripture": "Scripture",
+      "scripture": "Text",
       "audio": "Audio",
       "both": "Both"
     },

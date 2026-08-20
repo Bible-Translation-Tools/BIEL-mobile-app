@@ -45,7 +45,7 @@
     }
   },
   "reading": {
-    "scripture": "शास्त्र",
+    "scripture": "पाठ",
     "audio": "ऑडियो",
     "textSettings": "पाठ सेटिंग",
     "textSize": "पाठ का आकार",
@@ -99,8 +99,8 @@
     "couldNotDownloadAudio": "ऑडियो डाउनलोड नहीं हो सका",
     "couldNotRemoveAudio": "डाउनलोड किया ऑडियो हटाया नहीं जा सका",
     "couldNotDownloadLanguage": "भाषा डाउनलोड नहीं हो सकी",
-    "couldNotDownloadScripture": "शास्त्र डाउनलोड नहीं हो सका",
-    "couldNotRemoveScripture": "डाउनलोड किया शास्त्र हटाया नहीं जा सका",
+    "couldNotDownloadScripture": "पाठ डाउनलोड नहीं हो सका",
+    "couldNotRemoveScripture": "डाउनलोड किया पाठ हटाया नहीं जा सका",
     "notification": {
       "channelName": "पुस्तक डाउनलोड",
       "downloadingScripture": "{{name}} डाउनलोड हो रहा है",
@@ -128,7 +128,7 @@
     "closeFilter": "फ़िल्टर बंद करें",
     "filter": {
       "all": "सभी",
-      "scripture": "शास्त्र",
+      "scripture": "पाठ",
       "audio": "ऑडियो",
       "both": "दोनों"
     },

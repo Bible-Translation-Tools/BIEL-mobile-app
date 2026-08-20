@@ -45,7 +45,7 @@
     }
   },
   "reading": {
-    "scripture": "Kinh văn",
+    "scripture": "Văn bản",
     "audio": "Âm thanh",
     "textSettings": "Cài đặt văn bản",
     "textSize": "Cỡ chữ",
@@ -99,8 +99,8 @@
     "couldNotDownloadAudio": "Không thể tải xuống âm thanh",
     "couldNotRemoveAudio": "Không thể xóa âm thanh đã tải xuống",
     "couldNotDownloadLanguage": "Không thể tải xuống ngôn ngữ",
-    "couldNotDownloadScripture": "Không thể tải xuống kinh văn",
-    "couldNotRemoveScripture": "Không thể xóa kinh văn đã tải xuống",
+    "couldNotDownloadScripture": "Không thể tải xuống văn bản",
+    "couldNotRemoveScripture": "Không thể xóa văn bản đã tải xuống",
     "notification": {
       "channelName": "Bản tải xuống sách",
       "downloadingScripture": "Đang tải xuống {{name}}",
@@ -128,7 +128,7 @@
     "closeFilter": "Đóng bộ lọc",
     "filter": {
       "all": "Tất cả",
-      "scripture": "Kinh văn",
+      "scripture": "Văn bản",
       "audio": "Âm thanh",
       "both": "Cả hai"
     },

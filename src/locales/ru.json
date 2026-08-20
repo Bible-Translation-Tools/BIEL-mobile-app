@@ -45,7 +45,7 @@
     }
   },
   "reading": {
-    "scripture": "Писание",
+    "scripture": "Текст",
     "audio": "Аудио",
     "textSettings": "Настройки текста",
     "textSize": "Размер текста",
@@ -99,8 +99,8 @@
     "couldNotDownloadAudio": "Не удалось загрузить аудио",
     "couldNotRemoveAudio": "Не удалось удалить загруженное аудио",
     "couldNotDownloadLanguage": "Не удалось загрузить язык",
-    "couldNotDownloadScripture": "Не удалось загрузить Писание",
-    "couldNotRemoveScripture": "Не удалось удалить загруженное Писание",
+    "couldNotDownloadScripture": "Не удалось загрузить текст",
+    "couldNotRemoveScripture": "Не удалось удалить загруженный текст",
     "notification": {
       "channelName": "Загрузки книг",
       "downloadingScripture": "Загрузка {{name}}",
@@ -128,7 +128,7 @@
     "closeFilter": "Закрыть фильтр",
     "filter": {
       "all": "Все",
-      "scripture": "Писание",
+      "scripture": "Текст",
       "audio": "Аудио",
       "both": "Оба"
     },

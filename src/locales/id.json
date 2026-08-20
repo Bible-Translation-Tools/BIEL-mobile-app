@@ -45,7 +45,7 @@
     }
   },
   "reading": {
-    "scripture": "Kitab Suci",
+    "scripture": "Teks",
     "audio": "Audio",
     "textSettings": "Pengaturan teks",
     "textSize": "Ukuran teks",
@@ -99,8 +99,8 @@
     "couldNotDownloadAudio": "Tidak dapat mengunduh audio",
     "couldNotRemoveAudio": "Tidak dapat menghapus audio yang diunduh",
     "couldNotDownloadLanguage": "Tidak dapat mengunduh bahasa",
-    "couldNotDownloadScripture": "Tidak dapat mengunduh kitab suci",
-    "couldNotRemoveScripture": "Tidak dapat menghapus kitab suci yang diunduh",
+    "couldNotDownloadScripture": "Tidak dapat mengunduh teks",
+    "couldNotRemoveScripture": "Tidak dapat menghapus teks yang diunduh",
     "notification": {
       "channelName": "Unduhan buku",
       "downloadingScripture": "Mengunduh {{name}}",
@@ -128,7 +128,7 @@
     "closeFilter": "Tutup filter",
     "filter": {
       "all": "Semua",
-      "scripture": "Naskah",
+      "scripture": "Teks",
       "audio": "Audio",
       "both": "Keduanya"
     },
