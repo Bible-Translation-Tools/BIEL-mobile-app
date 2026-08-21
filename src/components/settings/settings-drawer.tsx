@@ -4,6 +4,7 @@ import {
   Dimensions,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -255,7 +256,10 @@ export function SettingsDrawer({
                 onClose={handleClose}
                 onBack={() => setView('menu')}
               />
-              <View style={styles.settingsContent}>
+              <ScrollView
+                style={styles.settingsContent}
+                contentContainerStyle={styles.settingsContentInner}
+                keyboardShouldPersistTaps="handled">
                 {view === 'text-settings' ? (
                   <TextSettingsMenu embedded />
                 ) : view === 'chapter-download' && downloadContext ? (
@@ -270,7 +274,7 @@ export function SettingsDrawer({
                 ) : (
                   <SystemSettingsMenu embedded />
                 )}
-              </View>
+              </ScrollView>
             </>
           )}
         </Animated.View>
@@ -337,6 +341,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   settingsContent: {
+    flex: 1,
+  },
+  settingsContentInner: {
     paddingHorizontal: MenuDrawerLayout.itemPadding,
     paddingBottom: MenuDrawerLayout.itemPadding,
   },

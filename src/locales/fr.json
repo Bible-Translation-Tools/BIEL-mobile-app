@@ -170,6 +170,10 @@
         "title": "Mode sombre",
         "subtitle": "Ignorer les paramètres du système"
       }
+    },
+    "offline": {
+      "title": "Forcer le mode hors ligne",
+      "subtitle": "Simuler une absence d'internet"
     }
   },
   "locale": {

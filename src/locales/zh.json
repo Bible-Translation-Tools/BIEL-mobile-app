@@ -170,6 +170,10 @@
         "title": "深色模式",
         "subtitle": "忽略系统设置"
       }
+    },
+    "offline": {
+      "title": "强制离线模式",
+      "subtitle": "模拟无网络连接"
     }
   },
   "locale": {

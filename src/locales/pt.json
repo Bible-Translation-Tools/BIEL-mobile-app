@@ -170,6 +170,10 @@
         "title": "Modo escuro",
         "subtitle": "Ignorar configurações do sistema"
       }
+    },
+    "offline": {
+      "title": "Forçar modo offline",
+      "subtitle": "Simular falta de internet"
     }
   },
   "locale": {

@@ -170,6 +170,10 @@
         "title": "Dark Mode",
         "subtitle": "Ignore system settings"
       }
+    },
+    "offline": {
+      "title": "Force Offline Mode",
+      "subtitle": "Simulate no internet connection"
     }
   },
   "locale": {

@@ -9,6 +9,7 @@ import {
 import { resolveLanguageAudioBooks } from '@/api/services/offline-audio';
 import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
 import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
+import { useForceOffline } from '@/stores/force-offline-store';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
 
@@ -63,6 +64,7 @@ async function applyDownloadStatus(
 export function useBooks(languageCode: string | undefined) {
   const { t } = useTranslation('books');
   const downloadsLibraryActive = useDownloadsLibraryActive();
+  const forceOffline = useForceOffline();
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +170,7 @@ export function useBooks(languageCode: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [downloadsLibraryActive, languageCode, t]);
+  }, [downloadsLibraryActive, forceOffline, languageCode, t]);
 
   useEffect(() => {
     refetch();
