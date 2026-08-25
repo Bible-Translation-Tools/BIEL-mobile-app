@@ -87,7 +87,7 @@
   "download": {
     "title": "Descargar",
     "closeMenu": "Cerrar menú de descarga",
-    "allScripture": "Todo el texto",
+    "allText": "Todo el texto",
     "allAudio": "Todo el audio",
     "checking": "Comprobando...",
     "downloading": "Descargando...",

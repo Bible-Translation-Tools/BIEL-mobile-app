@@ -11,7 +11,7 @@ import { DeleteDownloadDialog } from './delete-download-dialog';
 import { DownloadStatusOption } from './download-status-option';
 
 type DownloadMenuProps = {
-  scriptureTitle?: string;
+  textTitle?: string;
   scriptureFileSize?: string;
   scriptureStatus?: DownloadStatus;
   scriptureProgress?: number;
@@ -29,7 +29,7 @@ type DownloadMenuProps = {
 };
 
 export const DownloadMenu = memo(function DownloadMenu({
-  scriptureTitle,
+  textTitle,
   scriptureFileSize,
   scriptureStatus = 'pending',
   scriptureProgress = 0,
@@ -49,7 +49,7 @@ export const DownloadMenu = memo(function DownloadMenu({
   const { t } = useTranslation('download');
   const { t: tc } = useTranslation('common');
 
-  const resolvedScriptureTitle = scriptureTitle ?? t('allScripture');
+  const resolvedTextTitle = textTitle ?? t('allText');
   const resolvedAudioTitle = audioTitle ?? t('allAudio');
   const emDash = tc('emDash');
   const [pendingDelete, setPendingDelete] = useState<(() => void) | null>(null);
@@ -86,7 +86,7 @@ export const DownloadMenu = memo(function DownloadMenu({
       ) : null}
       {hideScripture ? null : (
         <DownloadStatusOption
-          title={resolvedScriptureTitle}
+          title={resolvedTextTitle}
           fileSize={scriptureFileSize ?? emDash}
           status={scriptureStatus}
           progress={scriptureProgress}

@@ -103,7 +103,7 @@ export const ChapterDownloadMenu = memo(function ChapterDownloadMenu({
     <DownloadMenu
       embedded={embedded}
       hideScripture={audioOnly}
-      scriptureTitle={t('scripture')}
+      textTitle={t('scripture')}
       scriptureFileSize={scriptureFileSizeLabel ?? tc('emDash')}
       scriptureStatus={scriptureStatus}
       scriptureProgress={scriptureProgress}
