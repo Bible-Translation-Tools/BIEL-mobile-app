@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -19,10 +19,6 @@ import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
 import { IconSymbol, DOWNLOAD_ICON_NAME, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import {
-  setDownloadsLibraryActive,
-  useDownloadsLibraryActive,
-} from '@/stores/downloads-library-store';
 
 type DrawerView = 'menu' | 'system-settings' | 'text-settings' | 'chapter-download';
 
@@ -146,8 +142,9 @@ export function SettingsDrawer({
   const { t } = useTranslation('settings');
   const theme = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const downloadsLibraryActive = useDownloadsLibraryActive();
+  const downloadsLibraryActive = pathname === '/downloads-library';
   const [view, setView] = useState<DrawerView>('menu');
   const drawerWidth = Math.min(
     MenuDrawerLayout.maxWidth,
@@ -166,14 +163,17 @@ export function SettingsDrawer({
   };
 
   const handleDownloadsLibraryPress = () => {
-    const nextActive = !downloadsLibraryActive;
-    setDownloadsLibraryActive(nextActive);
     handleClose();
-    if (router.canDismiss()) {
-      router.dismissTo('/');
-    } else {
-      router.replace('/');
+    if (downloadsLibraryActive) {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/');
+      }
+      return;
     }
+
+    router.push('/downloads-library');
   };
 
   if (!visible) {

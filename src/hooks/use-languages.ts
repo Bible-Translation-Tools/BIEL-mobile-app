@@ -3,21 +3,13 @@ import { useTranslation } from 'react-i18next';
 
 import {
   getLanguageCatalogSnapshot,
-  loadDownloadedLanguagesCatalog,
   loadLanguageCatalog,
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
 } from '@/services/language-catalog';
-import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
 import { useForceOffline } from '@/stores/force-offline-store';
 
-function readInitialState(
-  downloadsLibraryActive: boolean,
-): LanguageCatalogSnapshot & { loading: boolean } {
-  if (downloadsLibraryActive) {
-    return { languages: [], error: null, loading: true };
-  }
-
+function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
   const preloaded = getLanguageCatalogSnapshot();
   if (preloaded) {
     return { ...preloaded, loading: false };
@@ -28,31 +20,22 @@ function readInitialState(
 
 export function useLanguages() {
   const { t } = useTranslation('home');
-  const downloadsLibraryActive = useDownloadsLibraryActive();
   const forceOffline = useForceOffline();
   const prevForceOfflineRef = useRef(forceOffline);
-  const [state, setState] = useState(() => readInitialState(downloadsLibraryActive));
+  const [state, setState] = useState(readInitialState);
 
   const refreshDownloadStatus = useCallback(async () => {
-    if (downloadsLibraryActive) {
-      const next = await loadDownloadedLanguagesCatalog();
-      setState({ ...next, loading: false });
-      return;
-    }
-
     const next = await refreshLanguageCatalogDownloadStatus();
     if (next) {
       setState({ ...next, loading: false });
     }
-  }, [downloadsLibraryActive]);
+  }, []);
 
   const refetch = useCallback(async () => {
     setState((current) => ({ ...current, loading: true, error: null }));
 
     try {
-      const next = downloadsLibraryActive
-        ? await loadDownloadedLanguagesCatalog()
-        : await loadLanguageCatalog({ force: true });
+      const next = await loadLanguageCatalog({ force: true });
       setState({ ...next, loading: false });
     } catch (err) {
       setState({
@@ -61,7 +44,7 @@ export function useLanguages() {
         loading: false,
       });
     }
-  }, [downloadsLibraryActive, t]);
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,13 +53,11 @@ export function useLanguages() {
 
     setState((current) => ({ ...current, loading: true, error: null }));
 
-    const load = downloadsLibraryActive
-      ? loadDownloadedLanguagesCatalog()
-      : forceReload
-        ? loadLanguageCatalog({ force: true })
-        : getLanguageCatalogSnapshot()
-          ? Promise.resolve(getLanguageCatalogSnapshot()!)
-          : loadLanguageCatalog();
+    const load = forceReload
+      ? loadLanguageCatalog({ force: true })
+      : getLanguageCatalogSnapshot()
+        ? Promise.resolve(getLanguageCatalogSnapshot()!)
+        : loadLanguageCatalog();
 
     load
       .then((next) => {
@@ -97,7 +78,7 @@ export function useLanguages() {
     return () => {
       cancelled = true;
     };
-  }, [downloadsLibraryActive, forceOffline, t]);
+  }, [forceOffline, t]);
 
   return {
     languages: state.languages,

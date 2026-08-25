@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DownloadsLibraryView } from '@/components/download/downloads-library-view';
 import { HomeHeader } from '@/components/home/home-header';
 import { HomeToolbar } from '@/components/home/home-toolbar';
 import { LanguageList } from '@/components/home/language-list';
@@ -13,20 +12,9 @@ import { HomeLayout } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
-import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
 import type { LanguageItem } from '@/types/language';
 
 export default function HomeScreen() {
-  const downloadsLibraryActive = useDownloadsLibraryActive();
-
-  if (downloadsLibraryActive) {
-    return <DownloadsLibraryView />;
-  }
-
-  return <CatalogHomeScreen />;
-}
-
-function CatalogHomeScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();

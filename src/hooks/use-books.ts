@@ -4,11 +4,9 @@ import { useTranslation } from 'react-i18next';
 import {
   fetchBooksForLanguage,
   fetchBooksForLanguageOffline,
-  fetchDownloadedBooksForLanguage,
 } from '@/api/services/books';
 import { resolveLanguageAudioBooks } from '@/api/services/offline-audio';
 import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
-import { useDownloadsLibraryActive } from '@/stores/downloads-library-store';
 import { useForceOffline } from '@/stores/force-offline-store';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
@@ -63,7 +61,6 @@ async function applyDownloadStatus(
 
 export function useBooks(languageCode: string | undefined) {
   const { t } = useTranslation('books');
-  const downloadsLibraryActive = useDownloadsLibraryActive();
   const forceOffline = useForceOffline();
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,17 +69,6 @@ export function useBooks(languageCode: string | undefined) {
   const refreshDownloadStatus = useCallback(
     async (change?: BookDownloadStatusChange) => {
       if (!languageCode) return;
-
-      if (downloadsLibraryActive) {
-        try {
-          const items = await fetchDownloadedBooksForLanguage(languageCode);
-          const withStatus = await applyDownloadStatus(items, languageCode);
-          setBooks(withStatus);
-        } catch {
-          // Keep current list if refresh fails.
-        }
-        return;
-      }
 
       if (change) {
         setBooks((current) =>
@@ -108,7 +94,7 @@ export function useBooks(languageCode: string | undefined) {
         mapBooksWithDownloadStatus(current, downloadedSet, audioDownloadedSet, audioAvailableSet),
       );
     },
-    [downloadsLibraryActive, languageCode],
+    [languageCode],
   );
 
   const refetch = useCallback(async () => {
@@ -121,21 +107,6 @@ export function useBooks(languageCode: string | undefined) {
 
     setLoading(true);
     setError(null);
-
-    if (downloadsLibraryActive) {
-      try {
-        const items = await fetchDownloadedBooksForLanguage(languageCode);
-        const withStatus = await applyDownloadStatus(items, languageCode);
-        setBooks(withStatus);
-        setError(null);
-      } catch (err) {
-        setBooks([]);
-        setError(err instanceof Error ? err.message : t('failedToLoadBooks'));
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
 
     try {
       const items = await fetchBooksForLanguage(languageCode);
@@ -166,7 +137,7 @@ export function useBooks(languageCode: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [downloadsLibraryActive, forceOffline, languageCode, t]);
+  }, [forceOffline, languageCode, t]);
 
   useEffect(() => {
     refetch();
