@@ -191,6 +191,10 @@ export const HomeLayout = {
 export const DownloadsLibraryLayout = {
   filterButtonSize: 48,
   filterIconSize: 28,
+  filterOptionIconSize: 20,
+  filterOptionGap: 9,
+  filterMenuWidth: 220,
+  filterMenuEstimatedHeight: 200,
   languageTitleSize: 20,
   languageTitleLineHeight: 24,
   countGap: 20,

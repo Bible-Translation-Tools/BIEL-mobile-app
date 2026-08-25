@@ -126,10 +126,12 @@
     "filterTitle": "Lọc",
     "filterAccessibility": "Lọc bản tải xuống",
     "closeFilter": "Đóng bộ lọc",
+    "reset": "Đặt lại",
+    "resetFilter": "Đặt lại bộ lọc",
     "filter": {
       "all": "Tất cả",
-      "scripture": "Văn bản",
-      "audio": "Âm thanh",
+      "scripture": "Chỉ văn bản",
+      "audio": "Chỉ âm thanh",
       "both": "Cả hai"
     },
     "content": {

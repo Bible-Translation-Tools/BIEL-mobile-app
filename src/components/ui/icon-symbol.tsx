@@ -23,6 +23,7 @@ const MATERIAL_ICON_ALIASES: Record<string, MaterialIconName> = {
   menu: 'menu',
   'filter-list': 'filter-list',
   filter_list: 'filter-list',
+  subject: 'subject',
   'volume-up': 'volume-up',
   volume_up: 'volume-up',
   close: 'close',
@@ -45,6 +46,7 @@ export const SETTINGS_ICON_NAME = 'settings';
 export const MENU_ICON_NAME = 'menu';
 export const TRANSLATE_ICON_NAME = 'translate';
 export const FILTER_LIST_ICON_NAME = 'filter-list';
+export const SUBJECT_ICON_NAME = 'subject';
 export const VOLUME_UP_ICON_NAME = 'volume-up';
 
 const MATERIAL_ICON_NAMES = new Set<string>([
@@ -55,6 +57,7 @@ const MATERIAL_ICON_NAMES = new Set<string>([
   SETTINGS_ICON_NAME,
   TRANSLATE_ICON_NAME,
   FILTER_LIST_ICON_NAME,
+  SUBJECT_ICON_NAME,
   VOLUME_UP_ICON_NAME,
 ]);
 

@@ -126,10 +126,12 @@
     "filterTitle": "Filtrer",
     "filterAccessibility": "Filtrer les téléchargements",
     "closeFilter": "Fermer le filtre",
+    "reset": "Réinitialiser",
+    "resetFilter": "Réinitialiser le filtre",
     "filter": {
       "all": "Tous",
-      "scripture": "Texte",
-      "audio": "Audio",
+      "scripture": "Texte uniquement",
+      "audio": "Audio uniquement",
       "both": "Les deux"
     },
     "content": {

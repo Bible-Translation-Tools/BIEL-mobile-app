@@ -126,10 +126,12 @@
     "filterTitle": "फ़िल्टर",
     "filterAccessibility": "डाउनलोड फ़िल्टर करें",
     "closeFilter": "फ़िल्टर बंद करें",
+    "reset": "रीसेट",
+    "resetFilter": "फ़िल्टर रीसेट करें",
     "filter": {
       "all": "सभी",
-      "scripture": "पाठ",
-      "audio": "ऑडियो",
+      "scripture": "केवल पाठ",
+      "audio": "केवल ऑडियो",
       "both": "दोनों"
     },
     "content": {

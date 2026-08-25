@@ -126,10 +126,12 @@
     "filterTitle": "Filter",
     "filterAccessibility": "Filter unduhan",
     "closeFilter": "Tutup filter",
+    "reset": "Atur ulang",
+    "resetFilter": "Atur ulang filter",
     "filter": {
       "all": "Semua",
-      "scripture": "Teks",
-      "audio": "Audio",
+      "scripture": "Hanya teks",
+      "audio": "Hanya audio",
       "both": "Keduanya"
     },
     "content": {

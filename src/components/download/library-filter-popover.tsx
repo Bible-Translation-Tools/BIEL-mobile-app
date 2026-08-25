@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { LibraryFilterMenu } from '@/components/download/library-filter-menu';
-import { DownloadMenuLayout } from '@/constants/theme';
+import { DownloadMenuLayout, DownloadsLibraryLayout } from '@/constants/theme';
 import type { LibraryContentFilter } from '@/types/content-type';
 
 export type LibraryFilterAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
@@ -23,8 +23,8 @@ type LibraryFilterPopoverProps = {
   onClose: () => void;
 };
 
-const MENU_ESTIMATED_HEIGHT = 260;
-const MENU_WIDTH = 220;
+const MENU_ESTIMATED_HEIGHT = DownloadsLibraryLayout.filterMenuEstimatedHeight;
+const MENU_WIDTH = DownloadsLibraryLayout.filterMenuWidth;
 
 export const LibraryFilterPopover = memo(function LibraryFilterPopover({
   visible,

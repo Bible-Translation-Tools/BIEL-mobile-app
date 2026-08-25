@@ -126,10 +126,12 @@
     "filterTitle": "Фильтр",
     "filterAccessibility": "Фильтровать загрузки",
     "closeFilter": "Закрыть фильтр",
+    "reset": "Сбросить",
+    "resetFilter": "Сбросить фильтр",
     "filter": {
       "all": "Все",
-      "scripture": "Текст",
-      "audio": "Аудио",
+      "scripture": "Только текст",
+      "audio": "Только аудио",
       "both": "Оба"
     },
     "content": {
