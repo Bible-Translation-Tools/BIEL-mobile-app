@@ -5,7 +5,11 @@
     "clearSearch": "清除搜索",
     "goBack": "返回",
     "back": "返回",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "您当前处于离线模式。",
+      "dismiss": "关闭"
+    }
   },
   "home": {
     "title": "浏览圣经",

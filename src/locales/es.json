@@ -5,7 +5,11 @@
     "clearSearch": "Borrar búsqueda",
     "goBack": "Volver",
     "back": "Atrás",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Estás en modo sin conexión.",
+      "dismiss": "Descartar"
+    }
   },
   "home": {
     "title": "Explorar la Biblia",

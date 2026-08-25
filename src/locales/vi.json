@@ -5,7 +5,11 @@
     "clearSearch": "Xóa tìm kiếm",
     "goBack": "Quay lại",
     "back": "Quay lại",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Bạn đang ở chế độ ngoại tuyến.",
+      "dismiss": "Đóng"
+    }
   },
   "home": {
     "title": "Đọc Kinh Thánh",

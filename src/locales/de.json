@@ -5,7 +5,11 @@
     "clearSearch": "Suche löschen",
     "goBack": "Zurück",
     "back": "Zurück",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Sie sind im Offline-Modus.",
+      "dismiss": "Schließen"
+    }
   },
   "home": {
     "title": "Die Bibel durchsuchen",

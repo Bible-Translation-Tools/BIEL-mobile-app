@@ -5,7 +5,11 @@
     "clearSearch": "Clear search",
     "goBack": "Go back",
     "back": "Back",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "You are in offline mode.",
+      "dismiss": "Dismiss"
+    }
   },
   "home": {
     "title": "Browse the Bible",

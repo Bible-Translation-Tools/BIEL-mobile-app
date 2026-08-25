@@ -5,7 +5,11 @@
     "clearSearch": "Effacer la recherche",
     "goBack": "Retour",
     "back": "Retour",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Vous êtes en mode hors ligne.",
+      "dismiss": "Fermer"
+    }
   },
   "home": {
     "title": "Parcourir la Bible",

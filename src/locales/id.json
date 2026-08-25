@@ -5,7 +5,11 @@
     "clearSearch": "Hapus pencarian",
     "goBack": "Kembali",
     "back": "Kembali",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Anda berada dalam mode offline.",
+      "dismiss": "Tutup"
+    }
   },
   "home": {
     "title": "Jelajahi Alkitab",

@@ -5,7 +5,11 @@
     "clearSearch": "खोज साफ़ करें",
     "goBack": "वापस जाएँ",
     "back": "वापस",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "आप ऑफ़लाइन मोड में हैं।",
+      "dismiss": "बंद करें"
+    }
   },
   "home": {
     "title": "बाइबल ब्राउज़ करें",

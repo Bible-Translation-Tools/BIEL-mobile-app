@@ -5,7 +5,11 @@
     "clearSearch": "Очистить поиск",
     "goBack": "Назад",
     "back": "Назад",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Вы находитесь в автономном режиме.",
+      "dismiss": "Закрыть"
+    }
   },
   "home": {
     "title": "Обзор Библии",
