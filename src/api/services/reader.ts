@@ -293,16 +293,11 @@ export function parseChapterHtml(html: string): ScriptureSection[] {
   return [{ heading: headings[0], paragraphs }];
 }
 
-export async function fetchChapterContent(
+async function fetchChapterContentFromNetwork(
   languageCode: string,
   bookSlug: string,
   chapter: number,
 ): Promise<ChapterContent> {
-  const offline = await getOfflineChapterHtml(languageCode, bookSlug, chapter);
-  if (offline) {
-    return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
-  }
-
   const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
     languageCode,
     bookSlug,
@@ -337,4 +332,20 @@ export async function fetchChapterContent(
 
   const html = await response.text();
   return buildChapterContentFromHtml(html, rendering.book_name, rendering.chapter);
+}
+
+export async function fetchChapterContent(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<ChapterContent> {
+  try {
+    return await fetchChapterContentFromNetwork(languageCode, bookSlug, chapter);
+  } catch (err) {
+    const offline = await getOfflineChapterHtml(languageCode, bookSlug, chapter);
+    if (offline) {
+      return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
+    }
+    throw err;
+  }
 }

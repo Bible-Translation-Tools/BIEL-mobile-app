@@ -37,14 +37,6 @@ async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]
 }
 
 async function fetchLanguageCatalogSnapshot(): Promise<LanguageCatalogSnapshot> {
-  let offlineItems: LanguageItem[] = [];
-
-  try {
-    offlineItems = await fetchLanguagesOffline();
-  } catch {
-    offlineItems = [];
-  }
-
   try {
     const items = await fetchLanguages();
     return {
@@ -52,6 +44,13 @@ async function fetchLanguageCatalogSnapshot(): Promise<LanguageCatalogSnapshot> 
       error: null,
     };
   } catch (err) {
+    let offlineItems: LanguageItem[] = [];
+    try {
+      offlineItems = await fetchLanguagesOffline();
+    } catch {
+      offlineItems = [];
+    }
+
     if (offlineItems.length > 0) {
       try {
         return {

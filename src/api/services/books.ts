@@ -145,20 +145,20 @@ export async function fetchDownloadedLibrary(): Promise<DownloadedLibraryLanguag
   });
 }
 
-/** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */
+/** Book slugs for bulk download: network, then cached catalog, then downloaded-only fallback. */
 export async function resolveLanguageBookSlugs(languageCode: string): Promise<string[]> {
-  const catalog = await listBookCatalog(languageCode);
-  if (catalog.length > 0) {
-    return catalog.map((book) => book.slug);
-  }
-
   try {
     const books = await fetchBooksForLanguage(languageCode);
     if (books.length > 0) {
       return books.map((book) => book.slug);
     }
   } catch {
-    // Fall through to downloaded-only list when offline.
+    // Fall through to cached catalog / downloaded-only list when offline.
+  }
+
+  const catalog = await listBookCatalog(languageCode);
+  if (catalog.length > 0) {
+    return catalog.map((book) => book.slug);
   }
 
   const downloaded = await listDownloadedBooksForLanguage(languageCode).catch(() => []);
