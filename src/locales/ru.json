@@ -13,6 +13,9 @@
     "searchAccessibility": "Поиск языков",
     "noLanguagesFound": "Языки не найдены",
     "failedToLoadLanguages": "Не удалось загрузить языки",
+    "offlineTitle": "Вы не в сети",
+    "offlineMessage": "Подключитесь к интернету, чтобы читать Библию на своем языке, или в любое время открывайте загруженные материалы в библиотеке загрузок.",
+    "retryConnecting": "Повторить подключение",
     "accessibility": {
       "openLanguage": "Открыть {{name}}",
       "downloadInProgress": "Идёт загрузка {{name}}",

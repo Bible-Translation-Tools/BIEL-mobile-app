@@ -13,6 +13,9 @@
     "searchAccessibility": "Tìm ngôn ngữ",
     "noLanguagesFound": "Không tìm thấy ngôn ngữ",
     "failedToLoadLanguages": "Không thể tải ngôn ngữ",
+    "offlineTitle": "Bạn đang ngoại tuyến",
+    "offlineMessage": "Kết nối internet để truy cập Kinh Thánh bằng ngôn ngữ của bạn, hoặc truy cập nội dung đã tải xuống bất cứ lúc nào từ Thư viện tải xuống.",
+    "retryConnecting": "Thử kết nối lại",
     "accessibility": {
       "openLanguage": "Mở {{name}}",
       "downloadInProgress": "Đang tải xuống {{name}}",

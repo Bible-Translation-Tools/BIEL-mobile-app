@@ -13,6 +13,9 @@
     "searchAccessibility": "Sprachen suchen",
     "noLanguagesFound": "Keine Sprachen gefunden",
     "failedToLoadLanguages": "Sprachen konnten nicht geladen werden",
+    "offlineTitle": "Sie sind offline",
+    "offlineMessage": "Stellen Sie eine Internetverbindung her, um die Bibel in Ihrer Sprache aufzurufen, oder greifen Sie jederzeit über Ihre Download-Bibliothek auf heruntergeladene Inhalte zu.",
+    "retryConnecting": "Verbindung erneut versuchen",
     "accessibility": {
       "openLanguage": "{{name}} öffnen",
       "downloadInProgress": "Download läuft für {{name}}",

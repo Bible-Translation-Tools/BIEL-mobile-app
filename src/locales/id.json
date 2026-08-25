@@ -13,6 +13,9 @@
     "searchAccessibility": "Cari bahasa",
     "noLanguagesFound": "Tidak ada bahasa ditemukan",
     "failedToLoadLanguages": "Gagal memuat bahasa",
+    "offlineTitle": "Anda sedang offline",
+    "offlineMessage": "Hubungkan ke internet untuk mengakses Alkitab dalam bahasa Anda, atau akses konten yang telah diunduh kapan saja dari Perpustakaan Unduhan.",
+    "retryConnecting": "Coba hubungkan lagi",
     "accessibility": {
       "openLanguage": "Buka {{name}}",
       "downloadInProgress": "Unduhan {{name}} sedang berlangsung",
