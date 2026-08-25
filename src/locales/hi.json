@@ -64,6 +64,8 @@
     "play": "चलाएँ",
     "pause": "रोकें",
     "failedToLoadChapter": "अध्याय लोड नहीं हो सका",
+    "chapterUnavailable": "अध्याय उपलब्ध नहीं",
+    "chapterUnavailableMessage": "यह अध्याय देखने के लिए इंटरनेट से कनेक्ट करें, या डाउनलोड लाइब्रेरी में जाकर डाउनलोड किए गए अध्याय देखें।",
     "tapToRetry": "पुनः प्रयास करने के लिए टैप करें",
     "decreaseTextSize": "पाठ का आकार घटाएँ",
     "increaseTextSize": "पाठ का आकार बढ़ाएँ",

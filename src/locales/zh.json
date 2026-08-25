@@ -64,6 +64,8 @@
     "play": "播放",
     "pause": "暂停",
     "failedToLoadChapter": "无法加载章节",
+    "chapterUnavailable": "章节不可用",
+    "chapterUnavailableMessage": "要查看此章节，请连接互联网，或前往下载库查看已下载的章节。",
     "tapToRetry": "点击重试",
     "decreaseTextSize": "减小字号",
     "increaseTextSize": "增大字号",

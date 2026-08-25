@@ -64,6 +64,8 @@
     "play": "Phát",
     "pause": "Tạm dừng",
     "failedToLoadChapter": "Không thể tải chương",
+    "chapterUnavailable": "Chương không khả dụng",
+    "chapterUnavailableMessage": "Để xem chương này, hãy kết nối internet hoặc vào Thư viện tải xuống để xem các chương đã tải.",
     "tapToRetry": "Chạm để thử lại",
     "decreaseTextSize": "Giảm cỡ chữ",
     "increaseTextSize": "Tăng cỡ chữ",

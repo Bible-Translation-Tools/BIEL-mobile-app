@@ -64,6 +64,8 @@
     "play": "Reproduzir",
     "pause": "Pausar",
     "failedToLoadChapter": "Falha ao carregar capítulo",
+    "chapterUnavailable": "Capítulo indisponível",
+    "chapterUnavailableMessage": "Para ver este capítulo, tente conectar-se à internet ou acesse a Biblioteca de downloads para ver os capítulos baixados.",
     "tapToRetry": "Toque para tentar novamente",
     "decreaseTextSize": "Diminuir tamanho do texto",
     "increaseTextSize": "Aumentar tamanho do texto",

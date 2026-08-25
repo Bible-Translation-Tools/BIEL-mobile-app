@@ -64,6 +64,8 @@
     "play": "Putar",
     "pause": "Jeda",
     "failedToLoadChapter": "Gagal memuat pasal",
+    "chapterUnavailable": "Pasal tidak tersedia",
+    "chapterUnavailableMessage": "Untuk melihat pasal ini, coba sambungkan ke internet atau buka Perpustakaan Unduhan untuk melihat pasal yang sudah diunduh.",
     "tapToRetry": "Ketuk untuk coba lagi",
     "decreaseTextSize": "Perkecil ukuran teks",
     "increaseTextSize": "Perbesar ukuran teks",

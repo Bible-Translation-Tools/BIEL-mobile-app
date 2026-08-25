@@ -1,15 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Pressable,
   StyleSheet,
-  Text,
   View,
   type FlatList as FlatListType,
 } from 'react-native';
@@ -18,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AudioOnlyChapterScreen } from '@/components/reading/audio-only-chapter-screen';
 import { AudioPlayButton } from '@/components/reading/audio-play-button';
 import { ChapterItem } from '@/components/reading/chapter-item';
+import { ChapterUnavailablePlaceholder } from '@/components/reading/chapter-unavailable-placeholder';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
 import { ReadingLayout } from '@/constants/theme';
 import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
@@ -33,7 +31,6 @@ import { normalizeRouteParam } from '@/utils/route-params';
 
 export default function ReadingScreen() {
   const theme = useTheme();
-  const { t } = useTranslation('reading');
   const colorScheme = useColorScheme();
   const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam, openAudio: openAudioParam } =
     useLocalSearchParams<{
@@ -62,6 +59,7 @@ export default function ReadingScreen() {
     loading,
     loadingMore,
     error,
+    failedNextChapter,
     hasMore,
     hasPrevious,
     loadMore,
@@ -70,7 +68,6 @@ export default function ReadingScreen() {
     checkFillViewport,
     initialScrollIndex,
     clearInitialScrollIndex,
-    refetch,
     audioOnlyFallback,
   } = useReaderScroll(
     audioOnly ? undefined : languageCode,
@@ -423,7 +420,9 @@ export default function ReadingScreen() {
 
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
 
-  const ListFooter = loadingMore ? (
+  const ListFooter = failedNextChapter != null ? (
+    <ChapterUnavailablePlaceholder />
+  ) : loadingMore ? (
     <View style={styles.footerLoader}>
       <ActivityIndicator size="small" color={theme.iconPrimary} />
     </View>
@@ -471,12 +470,7 @@ export default function ReadingScreen() {
             <ActivityIndicator size="large" color={theme.iconPrimary} />
           </View>
         ) : error ? (
-          <View style={styles.centered}>
-            <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
-            <Pressable onPress={refetch} accessibilityRole="button">
-              <Text style={[styles.retry, { color: theme.text }]}>{t('tapToRetry')}</Text>
-            </Pressable>
-          </View>
+          <ChapterUnavailablePlaceholder fill />
         ) : chapters.length > 0 ? (
           <FlatList
             ref={listRef}
@@ -564,13 +558,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
     paddingHorizontal: ReadingLayout.padding,
-  },
-  message: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  retry: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

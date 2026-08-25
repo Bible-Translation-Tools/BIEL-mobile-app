@@ -64,6 +64,8 @@
     "play": "Play",
     "pause": "Pause",
     "failedToLoadChapter": "Failed to load chapter",
+    "chapterUnavailable": "Chapter Unavailable",
+    "chapterUnavailableMessage": "To view this chapter, try connecting to the internet or go to Downloads Library to view downloaded chapters.",
     "tapToRetry": "Tap to retry",
     "decreaseTextSize": "Decrease text size",
     "increaseTextSize": "Increase text size",

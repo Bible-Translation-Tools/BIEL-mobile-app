@@ -64,6 +64,8 @@
     "play": "Lecture",
     "pause": "Pause",
     "failedToLoadChapter": "Impossible de charger le chapitre",
+    "chapterUnavailable": "Chapitre indisponible",
+    "chapterUnavailableMessage": "Pour voir ce chapitre, connectez-vous à Internet ou ouvrez la bibliothèque de téléchargements pour consulter les chapitres téléchargés.",
     "tapToRetry": "Appuyer pour réessayer",
     "decreaseTextSize": "Réduire la taille du texte",
     "increaseTextSize": "Augmenter la taille du texte",
