@@ -54,6 +54,8 @@
   "reading": {
     "scripture": "Teks",
     "audio": "Audio",
+    "downloadChapterText": "{{passage}} Teks",
+    "downloadChapterAudio": "{{passage}} Audio",
     "textSettings": "Pengaturan teks",
     "textSize": "Ukuran teks",
     "lineHeight": "Tinggi baris",

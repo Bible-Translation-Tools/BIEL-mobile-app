@@ -45,6 +45,7 @@ export function AudioOnlyChapterScreen({
       <AudioOnlyToolbar
         languageCode={languageCode}
         bookSlug={bookSlug}
+        bookName={displayBookName}
         chapter={activeChapter ?? chapter}
       />
 

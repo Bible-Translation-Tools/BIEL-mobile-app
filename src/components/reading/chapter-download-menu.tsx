@@ -5,10 +5,12 @@ import { Alert } from 'react-native';
 import { DownloadMenu } from '@/components/download/download-menu';
 import { useChapterDownload } from '@/hooks/use-chapter-download';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
+import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 export type ChapterDownloadContext = {
   languageCode: string;
   bookSlug: string;
+  bookName?: string;
   chapter: number;
 };
 
@@ -20,12 +22,14 @@ type ChapterDownloadMenuProps = ChapterDownloadContext & {
 export const ChapterDownloadMenu = memo(function ChapterDownloadMenu({
   languageCode,
   bookSlug,
+  bookName,
   chapter,
   embedded = false,
   audioOnly = false,
 }: ChapterDownloadMenuProps) {
   const { t } = useTranslation('reading');
   const { t: tc } = useTranslation('common');
+  const passage = formatAudioPassageLabel(bookName ?? bookSlug, chapter) ?? bookSlug;
 
   const {
     scriptureFileSizeLabel,
@@ -103,12 +107,12 @@ export const ChapterDownloadMenu = memo(function ChapterDownloadMenu({
     <DownloadMenu
       embedded={embedded}
       hideScripture={audioOnly}
-      textTitle={t('scripture')}
+      textTitle={t('downloadChapterText', { passage })}
       scriptureFileSize={scriptureFileSizeLabel ?? tc('emDash')}
       scriptureStatus={scriptureStatus}
       scriptureProgress={scriptureProgress}
       onScripturePress={handleScripturePress}
-      audioTitle={t('audio')}
+      audioTitle={t('downloadChapterAudio', { passage })}
       audioFileSize={audioFileSizeLabel ?? tc('emDash')}
       audioStatus={audioStatus}
       audioProgress={audioProgress}

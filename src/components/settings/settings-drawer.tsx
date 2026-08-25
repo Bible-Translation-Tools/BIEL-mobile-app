@@ -269,6 +269,7 @@ export function SettingsDrawer({
                     audioOnly={audioOnlyDownload}
                     languageCode={downloadContext.languageCode}
                     bookSlug={downloadContext.bookSlug}
+                    bookName={downloadContext.bookName}
                     chapter={downloadContext.chapter}
                   />
                 ) : (

@@ -54,6 +54,8 @@
   "reading": {
     "scripture": "Texto",
     "audio": "Audio",
+    "downloadChapterText": "{{passage}} Texto",
+    "downloadChapterAudio": "{{passage}} Audio",
     "textSettings": "Ajustes de texto",
     "textSize": "Tamaño de texto",
     "lineHeight": "Interlineado",

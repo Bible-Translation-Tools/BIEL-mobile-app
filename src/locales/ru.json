@@ -54,6 +54,8 @@
   "reading": {
     "scripture": "Текст",
     "audio": "Аудио",
+    "downloadChapterText": "{{passage}} Текст",
+    "downloadChapterAudio": "{{passage}} Аудио",
     "textSettings": "Настройки текста",
     "textSize": "Размер текста",
     "lineHeight": "Межстрочный интервал",

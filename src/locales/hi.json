@@ -54,6 +54,8 @@
   "reading": {
     "scripture": "पाठ",
     "audio": "ऑडियो",
+    "downloadChapterText": "{{passage}} पाठ",
+    "downloadChapterAudio": "{{passage}} ऑडियो",
     "textSettings": "पाठ सेटिंग",
     "textSize": "पाठ का आकार",
     "lineHeight": "पंक्ति की ऊँचाई",

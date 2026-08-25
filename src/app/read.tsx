@@ -459,6 +459,7 @@ export default function ReadingScreen() {
                 ? {
                     languageCode: ietfCode,
                     bookSlug: resolvedBookSlug,
+                    bookName: resolvedBookName,
                     chapter: visibleChapter ?? chapterNumber,
                   }
                 : undefined

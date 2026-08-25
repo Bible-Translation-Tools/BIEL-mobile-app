@@ -54,6 +54,8 @@
   "reading": {
     "scripture": "Văn bản",
     "audio": "Âm thanh",
+    "downloadChapterText": "{{passage}} Văn bản",
+    "downloadChapterAudio": "{{passage}} Âm thanh",
     "textSettings": "Cài đặt văn bản",
     "textSize": "Cỡ chữ",
     "lineHeight": "Chiều cao dòng",

@@ -12,10 +12,11 @@ import { useTheme } from '@/hooks/use-theme';
 type AudioOnlyToolbarProps = {
   languageCode: string;
   bookSlug: string;
+  bookName?: string;
   chapter: number;
 };
 
-export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyToolbarProps) {
+export function AudioOnlyToolbar({ languageCode, bookSlug, bookName, chapter }: AudioOnlyToolbarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -48,7 +49,7 @@ export function AudioOnlyToolbar({ languageCode, bookSlug, chapter }: AudioOnlyT
         <SettingsToolbarButton
           iconSize={28}
           hitSize={28}
-          downloadContext={{ languageCode, bookSlug, chapter }}
+          downloadContext={{ languageCode, bookSlug, bookName, chapter }}
           audioOnlyDownload
         />
       </View>
