@@ -1,6 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { openBrowserAsync, WebBrowserPresentationStyle } from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
@@ -17,8 +16,6 @@ import { useTheme } from '@/hooks/use-theme';
 import { stopPlayback } from '@/services/track-player/chapter-playback';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
 import { normalizeRouteParam } from '@/utils/route-params';
-
-const CONTENT_LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0/deed.en';
 
 export default function BookSelectionScreen() {
   const router = useRouter();
@@ -96,29 +93,6 @@ export default function BookSelectionScreen() {
     [searchQuery, activeTestament],
   );
 
-  const listFooter = useMemo(
-    () => (
-      <View style={styles.licenseFooter}>
-        <Text style={[styles.licenseText, { color: theme.textSecondary }]}>
-          {t('contentLicense')}{' '}
-          <Text
-            accessibilityRole="link"
-            style={[styles.licenseText, styles.licenseLink, { color: theme.tabActive }]}
-            onPress={() => {
-              void openBrowserAsync(CONTENT_LICENSE_URL, {
-                presentationStyle: WebBrowserPresentationStyle.AUTOMATIC,
-              });
-            }}
-          >
-            {t('contentLicenseLearnMore')}
-          </Text>
-          .
-        </Text>
-      </View>
-    ),
-    [t, theme.tabActive, theme.textSecondary],
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
@@ -138,7 +112,6 @@ export default function BookSelectionScreen() {
             onChapterPress={handleChapterPress}
             onDownloadStatusChange={refreshDownloadStatus}
             ListHeaderComponent={listHeader}
-            ListFooterComponent={listFooter}
             contentContainerStyle={styles.listContent}
           />
         ) : (
@@ -176,17 +149,5 @@ const styles = StyleSheet.create({
   missingLanguageText: {
     fontSize: 16,
     textAlign: 'center',
-  },
-  licenseFooter: {
-    marginTop: 'auto',
-    paddingTop: BookLayout.contentGap,
-  },
-  licenseText: {
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: 'center',
-  },
-  licenseLink: {
-    textDecorationLine: 'underline',
   },
 });
