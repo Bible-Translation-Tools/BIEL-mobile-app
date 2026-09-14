@@ -100,7 +100,7 @@ export default function BookSelectionScreen() {
         <BooksToolbar />
         {ietfCode ? (
           <BookList
-            key={listKey}
+            key={`${listKey}-${activeTestament}`}
             books={filteredBooks}
             languageCode={ietfCode}
             audioOnly={!hasText}
