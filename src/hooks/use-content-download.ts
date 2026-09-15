@@ -169,9 +169,12 @@ export function useContentDownload({
       setCanDownload(available);
 
       const downloadedBytes = await getDownloadedBytes().catch(() => null);
+      const fullyDownloaded = getIsDownloaded
+        ? await getIsDownloaded().catch(() => false)
+        : false;
 
       if (getIsDownloaded) {
-        setIsDownloaded(await getIsDownloaded().catch(() => false));
+        setIsDownloaded(fullyDownloaded);
       }
 
       if (!available) {
@@ -192,6 +195,13 @@ export function useContentDownload({
         }
 
         setFileSizeLabel(computeFileSizeLabel(downloadedBytes, totalBytes, partialSizeLabel));
+        if (fullyDownloaded) {
+          setProgress(1);
+        } else if (downloadedBytes != null && downloadedBytes > 0 && totalBytes > 0) {
+          setProgress(Math.min(downloadedBytes / totalBytes, 1));
+        } else {
+          setProgress(0);
+        }
       } catch {
         setFileSizeLabel(
           downloadedBytes != null && downloadedBytes > 0

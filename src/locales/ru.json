@@ -5,7 +5,11 @@
     "clearSearch": "Очистить поиск",
     "goBack": "Назад",
     "back": "Назад",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Вы находитесь в автономном режиме.",
+      "dismiss": "Закрыть"
+    }
   },
   "home": {
     "title": "Обзор Библии",
@@ -13,6 +17,9 @@
     "searchAccessibility": "Поиск языков",
     "noLanguagesFound": "Языки не найдены",
     "failedToLoadLanguages": "Не удалось загрузить языки",
+    "offlineTitle": "Вы не в сети",
+    "offlineMessage": "Подключитесь к интернету, чтобы читать Библию на своем языке, или в любое время открывайте загруженные материалы в библиотеке загрузок.",
+    "retryConnecting": "Повторить подключение",
     "accessibility": {
       "openLanguage": "Открыть {{name}}",
       "downloadInProgress": "Идёт загрузка {{name}}",
@@ -29,19 +36,24 @@
     "noBooksFound": "Книги не найдены",
     "languageNotFound": "Язык не найден",
     "failedToLoadBooks": "Не удалось загрузить книги",
-    "contentLicense": "Контент распространяется по лицензии CC BY-SA 4.0.",
-    "contentLicenseLearnMore": "Подробнее",
     "accessibility": {
       "expand": "Развернуть {{name}}",
       "collapse": "Свернуть {{name}}",
       "downloadInProgress": "Идёт загрузка {{name}}",
       "delete": "Удалить {{name}}",
-      "download": "Загрузить {{name}}"
+      "download": "Загрузить {{name}}",
+      "chapter": "Глава {{number}}",
+      "chapterText": "Глава {{number}}, текст",
+      "chapterAudio": "Глава {{number}}, аудио",
+      "chapterBoth": "Глава {{number}}, текст и аудио",
+      "chapterUnavailable": "Глава {{number}}, не загружена"
     }
   },
   "reading": {
-    "scripture": "Писание",
+    "scripture": "Текст",
     "audio": "Аудио",
+    "downloadChapterText": "{{passage}} Текст",
+    "downloadChapterAudio": "Загрузить аудио главы",
     "textSettings": "Настройки текста",
     "textSize": "Размер текста",
     "lineHeight": "Межстрочный интервал",
@@ -50,6 +62,8 @@
     "play": "Воспроизвести",
     "pause": "Пауза",
     "failedToLoadChapter": "Не удалось загрузить главу",
+    "chapterUnavailable": "Глава недоступна",
+    "chapterUnavailableMessage": "Чтобы просмотреть эту главу, подключитесь к интернету или откройте библиотеку загрузок с уже скачанными главами.",
     "tapToRetry": "Нажмите, чтобы повторить",
     "decreaseTextSize": "Уменьшить размер текста",
     "increaseTextSize": "Увеличить размер текста",
@@ -64,7 +78,6 @@
     "volume": "Громкость",
     "partOfFullBookTitle": "Часть загрузки всей книги",
     "partOfFullBookMessage": "Эта глава доступна офлайн, потому что была загружена вся книга. Удалите её в списке книг.",
-    "downloadChapterAudio": "Загрузить аудио главы",
     "audioPlayer": "Аудиоплеер",
     "closeAudioPlayer": "Закрыть аудиоплеер",
     "openAudioPlayer": "Открыть аудиоплеер",
@@ -75,7 +88,7 @@
   "download": {
     "title": "Загрузка",
     "closeMenu": "Закрыть меню загрузки",
-    "allScripture": "Всё Писание",
+    "allText": "Весь текст",
     "allAudio": "Всё аудио",
     "checking": "Проверка...",
     "downloading": "Загрузка...",
@@ -84,8 +97,9 @@
     "downloadFailedMessage": "Не удалось завершить загрузку",
     "deleteFailedTitle": "Ошибка удаления",
     "deleteFailedMessage": "Не удалось удалить загрузку",
-    "confirmDeleteTitle": "Удалить загруженное {{title}}?",
-    "confirmDeleteMessage": "Вы сможете загрузить это снова позже.",
+    "confirmDeleteTitle": "Удалить загрузку",
+    "confirmDeleteMessage": "Эта загрузка будет удалена безвозвратно. Отменить это действие нельзя.",
+    "confirmDeleteQuestion": "Вы уверены, что хотите удалить?",
     "confirmDeleteCancel": "Отмена",
     "confirmDeleteAction": "Удалить",
     "couldNotDownloadChapter": "Не удалось загрузить главу",
@@ -93,8 +107,8 @@
     "couldNotDownloadAudio": "Не удалось загрузить аудио",
     "couldNotRemoveAudio": "Не удалось удалить загруженное аудио",
     "couldNotDownloadLanguage": "Не удалось загрузить язык",
-    "couldNotDownloadScripture": "Не удалось загрузить Писание",
-    "couldNotRemoveScripture": "Не удалось удалить загруженное Писание",
+    "couldNotDownloadScripture": "Не удалось загрузить текст",
+    "couldNotRemoveScripture": "Не удалось удалить загруженный текст",
     "notification": {
       "channelName": "Загрузки книг",
       "downloadingScripture": "Загрузка {{name}}",
@@ -113,9 +127,46 @@
       "download": "Загрузить {{title}}"
     }
   },
+  "library": {
+    "title": "Библиотека загрузок",
+    "searchPlaceholder": "Искать книгу здесь...",
+    "searchAccessibility": "Искать загруженные книги",
+    "filterTitle": "Фильтр",
+    "filterAccessibility": "Фильтровать загрузки",
+    "closeFilter": "Закрыть фильтр",
+    "reset": "Сбросить",
+    "resetFilter": "Сбросить фильтр",
+    "filter": {
+      "all": "Все",
+      "scripture": "Только текст",
+      "audio": "Только аудио",
+      "both": "Оба"
+    },
+    "content": {
+      "both": "Оба",
+      "text": "Текст",
+      "audio": "Аудио"
+    },
+    "legend": {
+      "both": "Текст и аудио"
+    },
+    "booksDownloaded_one": "{{count}} книга загружена",
+    "booksDownloaded_other": "{{count}} книг загружено",
+    "noDownloads": "Пока нет загрузок",
+    "failedToLoad": "Не удалось загрузить список"
+  },
   "settings": {
     "title": "Системные настройки",
     "close": "Закрыть системные настройки",
+    "menu": {
+      "title": "Меню",
+      "close": "Закрыть меню",
+      "downloadsLibrary": "Библиотека загрузок",
+      "download": "Загрузить",
+      "systemSettings": "Системные настройки",
+      "textSettings": "Настройки текста",
+      "back": "Назад"
+    },
     "theme": {
       "system": {
         "title": "Автоматически",
@@ -129,6 +180,10 @@
         "title": "Тёмный режим",
         "subtitle": "Игнорировать системные настройки"
       }
+    },
+    "offline": {
+      "title": "Принудительный офлайн-режим",
+      "subtitle": "Имитировать отсутствие интернета"
     }
   },
   "locale": {

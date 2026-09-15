@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fetchBooksForLanguage, fetchBooksForLanguageOffline } from '@/api/services/books';
+import {
+  fetchBooksForLanguage,
+  fetchBooksForLanguageOffline,
+} from '@/api/services/books';
 import { resolveLanguageAudioBooks } from '@/api/services/offline-audio';
 import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
+import { useForceOffline } from '@/stores/force-offline-store';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
 
@@ -57,6 +61,7 @@ async function applyDownloadStatus(
 
 export function useBooks(languageCode: string | undefined) {
   const { t } = useTranslation('books');
+  const forceOffline = useForceOffline();
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,40 +108,36 @@ export function useBooks(languageCode: string | undefined) {
     setLoading(true);
     setError(null);
 
-    let offlineItems: BookItem[] = [];
-    try {
-      offlineItems = await fetchBooksForLanguageOffline(languageCode);
-    } catch {
-      offlineItems = [];
-    }
-
-    if (offlineItems.length > 0) {
-      try {
-        const withStatus = await applyDownloadStatus(offlineItems, languageCode);
-        setBooks(withStatus);
-        setError(null);
-      } catch {
-        setBooks(offlineItems);
-        setError(null);
-      }
-    }
-
     try {
       const items = await fetchBooksForLanguage(languageCode);
       const withStatus = await applyDownloadStatus(items, languageCode);
-      if (items.length > 0 || offlineItems.length === 0) {
-        setBooks(withStatus);
-      }
+      setBooks(withStatus);
       setError(null);
     } catch (err) {
-      if (offlineItems.length === 0) {
+      let offlineItems: BookItem[] = [];
+      try {
+        offlineItems = await fetchBooksForLanguageOffline(languageCode);
+      } catch {
+        offlineItems = [];
+      }
+
+      if (offlineItems.length > 0) {
+        try {
+          const withStatus = await applyDownloadStatus(offlineItems, languageCode);
+          setBooks(withStatus);
+          setError(null);
+        } catch {
+          setBooks(offlineItems);
+          setError(null);
+        }
+      } else {
         setBooks([]);
         setError(err instanceof Error ? err.message : t('failedToLoadBooks'));
       }
     } finally {
       setLoading(false);
     }
-  }, [languageCode, t]);
+  }, [forceOffline, languageCode, t]);
 
   useEffect(() => {
     refetch();

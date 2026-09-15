@@ -5,7 +5,11 @@
     "clearSearch": "Xóa tìm kiếm",
     "goBack": "Quay lại",
     "back": "Quay lại",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Bạn đang ở chế độ ngoại tuyến.",
+      "dismiss": "Đóng"
+    }
   },
   "home": {
     "title": "Đọc Kinh Thánh",
@@ -13,6 +17,9 @@
     "searchAccessibility": "Tìm ngôn ngữ",
     "noLanguagesFound": "Không tìm thấy ngôn ngữ",
     "failedToLoadLanguages": "Không thể tải ngôn ngữ",
+    "offlineTitle": "Bạn đang ngoại tuyến",
+    "offlineMessage": "Kết nối internet để truy cập Kinh Thánh bằng ngôn ngữ của bạn, hoặc truy cập nội dung đã tải xuống bất cứ lúc nào từ Thư viện tải xuống.",
+    "retryConnecting": "Thử kết nối lại",
     "accessibility": {
       "openLanguage": "Mở {{name}}",
       "downloadInProgress": "Đang tải xuống {{name}}",
@@ -29,19 +36,24 @@
     "noBooksFound": "Không tìm thấy sách",
     "languageNotFound": "Không tìm thấy ngôn ngữ",
     "failedToLoadBooks": "Không thể tải sách",
-    "contentLicense": "Nội dung được cấp phép theo CC BY-SA 4.0.",
-    "contentLicenseLearnMore": "Tìm hiểu thêm",
     "accessibility": {
       "expand": "Mở rộng {{name}}",
       "collapse": "Thu gọn {{name}}",
       "downloadInProgress": "Đang tải xuống {{name}}",
       "delete": "Xóa {{name}}",
-      "download": "Tải xuống {{name}}"
+      "download": "Tải xuống {{name}}",
+      "chapter": "Chương {{number}}",
+      "chapterText": "Chương {{number}}, văn bản",
+      "chapterAudio": "Chương {{number}}, âm thanh",
+      "chapterBoth": "Chương {{number}}, văn bản và âm thanh",
+      "chapterUnavailable": "Chương {{number}}, chưa tải xuống"
     }
   },
   "reading": {
-    "scripture": "Kinh văn",
+    "scripture": "Văn bản",
     "audio": "Âm thanh",
+    "downloadChapterText": "{{passage}} Văn bản",
+    "downloadChapterAudio": "Tải xuống âm thanh chương",
     "textSettings": "Cài đặt văn bản",
     "textSize": "Cỡ chữ",
     "lineHeight": "Chiều cao dòng",
@@ -50,6 +62,8 @@
     "play": "Phát",
     "pause": "Tạm dừng",
     "failedToLoadChapter": "Không thể tải chương",
+    "chapterUnavailable": "Chương không khả dụng",
+    "chapterUnavailableMessage": "Để xem chương này, hãy kết nối internet hoặc vào Thư viện tải xuống để xem các chương đã tải.",
     "tapToRetry": "Chạm để thử lại",
     "decreaseTextSize": "Giảm cỡ chữ",
     "increaseTextSize": "Tăng cỡ chữ",
@@ -64,7 +78,6 @@
     "volume": "Âm lượng",
     "partOfFullBookTitle": "Một phần của bản tải toàn bộ sách",
     "partOfFullBookMessage": "Chương này có sẵn ngoại tuyến vì toàn bộ sách đã được tải xuống. Hãy xóa trong danh sách sách.",
-    "downloadChapterAudio": "Tải xuống âm thanh chương",
     "audioPlayer": "Trình phát âm thanh",
     "closeAudioPlayer": "Đóng trình phát âm thanh",
     "openAudioPlayer": "Mở trình phát âm thanh",
@@ -75,7 +88,7 @@
   "download": {
     "title": "Tải xuống",
     "closeMenu": "Đóng menu tải xuống",
-    "allScripture": "Toàn bộ Kinh văn",
+    "allText": "Toàn bộ văn bản",
     "allAudio": "Toàn bộ âm thanh",
     "checking": "Đang kiểm tra...",
     "downloading": "Đang tải xuống...",
@@ -84,8 +97,9 @@
     "downloadFailedMessage": "Không thể hoàn tất tải xuống",
     "deleteFailedTitle": "Xóa thất bại",
     "deleteFailedMessage": "Không thể xóa bản tải xuống",
-    "confirmDeleteTitle": "Xóa {{title}} đã tải xuống?",
-    "confirmDeleteMessage": "Bạn có thể tải xuống lại sau.",
+    "confirmDeleteTitle": "Xóa bản tải xuống",
+    "confirmDeleteMessage": "Bản tải xuống này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.",
+    "confirmDeleteQuestion": "Bạn có chắc muốn xóa không?",
     "confirmDeleteCancel": "Hủy",
     "confirmDeleteAction": "Xóa",
     "couldNotDownloadChapter": "Không thể tải xuống chương",
@@ -93,8 +107,8 @@
     "couldNotDownloadAudio": "Không thể tải xuống âm thanh",
     "couldNotRemoveAudio": "Không thể xóa âm thanh đã tải xuống",
     "couldNotDownloadLanguage": "Không thể tải xuống ngôn ngữ",
-    "couldNotDownloadScripture": "Không thể tải xuống kinh văn",
-    "couldNotRemoveScripture": "Không thể xóa kinh văn đã tải xuống",
+    "couldNotDownloadScripture": "Không thể tải xuống văn bản",
+    "couldNotRemoveScripture": "Không thể xóa văn bản đã tải xuống",
     "notification": {
       "channelName": "Bản tải xuống sách",
       "downloadingScripture": "Đang tải xuống {{name}}",
@@ -113,9 +127,46 @@
       "download": "Tải xuống {{title}}"
     }
   },
+  "library": {
+    "title": "Thư viện tải xuống",
+    "searchPlaceholder": "Tìm sách tại đây...",
+    "searchAccessibility": "Tìm sách đã tải xuống",
+    "filterTitle": "Lọc",
+    "filterAccessibility": "Lọc bản tải xuống",
+    "closeFilter": "Đóng bộ lọc",
+    "reset": "Đặt lại",
+    "resetFilter": "Đặt lại bộ lọc",
+    "filter": {
+      "all": "Tất cả",
+      "scripture": "Chỉ văn bản",
+      "audio": "Chỉ âm thanh",
+      "both": "Cả hai"
+    },
+    "content": {
+      "both": "Cả hai",
+      "text": "Văn bản",
+      "audio": "Âm thanh"
+    },
+    "legend": {
+      "both": "Văn bản & Âm thanh"
+    },
+    "booksDownloaded_one": "{{count}} sách đã tải xuống",
+    "booksDownloaded_other": "{{count}} sách đã tải xuống",
+    "noDownloads": "Chưa có bản tải xuống",
+    "failedToLoad": "Không thể tải danh sách tải xuống"
+  },
   "settings": {
     "title": "Cài đặt hệ thống",
     "close": "Đóng cài đặt hệ thống",
+    "menu": {
+      "title": "Menu",
+      "close": "Đóng menu",
+      "downloadsLibrary": "Thư viện tải xuống",
+      "download": "Tải xuống",
+      "systemSettings": "Cài đặt hệ thống",
+      "textSettings": "Cài đặt văn bản",
+      "back": "Quay lại"
+    },
     "theme": {
       "system": {
         "title": "Tự động",
@@ -129,6 +180,10 @@
         "title": "Tối",
         "subtitle": "Bỏ qua cài đặt hệ thống"
       }
+    },
+    "offline": {
+      "title": "Bắt buộc chế độ ngoại tuyến",
+      "subtitle": "Mô phỏng không có internet"
     }
   },
   "locale": {

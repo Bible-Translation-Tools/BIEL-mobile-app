@@ -5,6 +5,7 @@ import {
   resolveBookAudioChapters,
 } from '@/api/services/offline-audio';
 import { getOfflineChapterNumbers } from '@/api/services/offline-text';
+import { getCanonicalChapterCount } from '@/constants/bible-books';
 import type { ChapterItem, ChaptersQueryResult } from '@/types/book';
 
 async function getMergedOfflineChapterNumbers(
@@ -16,6 +17,34 @@ async function getMergedOfflineChapterNumbers(
     getOfflineAudioChapterNumbers(languageCode, bookSlug),
   ]);
   return [...new Set([...scripture, ...audio])].sort((a, b) => a - b);
+}
+
+/** Full book chapter grid for Downloads Library: every chapter, with local text/audio flags. */
+export async function fetchOfflineChaptersForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<ChapterItem[]> {
+  const [scripture, audio] = await Promise.all([
+    getOfflineChapterNumbers(languageCode, bookSlug),
+    getOfflineAudioChapterNumbers(languageCode, bookSlug),
+  ]);
+  const scriptureSet = new Set(scripture);
+  const audioSet = new Set(audio);
+  const localNumbers = new Set([...scripture, ...audio]);
+  const canonicalCount = getCanonicalChapterCount(bookSlug) ?? 0;
+  const maxLocal = localNumbers.size > 0 ? Math.max(...localNumbers) : 0;
+  const total = Math.max(canonicalCount, maxLocal);
+
+  if (total === 0) {
+    return [];
+  }
+
+  return Array.from({ length: total }, (_, index) => {
+    const number = index + 1;
+    const hasText = scriptureSet.has(number);
+    const hasAudio = audioSet.has(number);
+    return { number, available: hasText || hasAudio, hasText, hasAudio };
+  });
 }
 
 export async function fetchAudioChaptersForBook(

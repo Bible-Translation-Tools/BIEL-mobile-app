@@ -1,5 +1,4 @@
-import { memo, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { SETTINGS_ICON_NAME, IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
@@ -7,6 +6,7 @@ import type { ThemePreference } from '@/constants/appearance';
 import { DownloadMenuLayout, SystemSettingsLayout, Typography } from '@/constants/theme';
 import { useAppearance } from '@/contexts/appearance-context';
 import { useTheme } from '@/hooks/use-theme';
+import { setForceOffline, useForceOffline } from '@/stores/force-offline-store';
 
 type ThemeOption = {
   value: ThemePreference;
@@ -40,32 +40,36 @@ const THEME_OPTION_CONFIG: ThemeOption[] = [
   },
 ];
 
-export const SystemSettingsMenu = memo(function SystemSettingsMenu() {
+type SystemSettingsMenuProps = {
+  embedded?: boolean;
+};
+
+export function SystemSettingsMenu({ embedded = false }: SystemSettingsMenuProps) {
   const theme = useTheme();
   const { themePreference, setThemePreference } = useAppearance();
+  const forceOffline = useForceOffline();
   const { t } = useTranslation('settings');
 
-  const themeOptions = useMemo(
-    () =>
-      THEME_OPTION_CONFIG.map((option) => ({
-        ...option,
-        title: t(option.titleKey),
-        subtitle: t(option.subtitleKey),
-      })),
-    [t],
-  );
+  const themeOptions = THEME_OPTION_CONFIG.map((option) => ({
+    ...option,
+    title: t(option.titleKey),
+    subtitle: t(option.subtitleKey),
+  }));
 
   return (
     <View
       style={[
         styles.menu,
-        {
+        !embedded && {
           backgroundColor: theme.backgroundElement,
           borderColor: theme.border,
         },
-        styles.menuShadow,
+        !embedded && styles.menuShadow,
+        embedded && styles.menuEmbedded,
       ]}>
-      <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
+      {!embedded ? (
+        <Text style={[styles.title, { color: theme.textSecondary }]}>{t('title')}</Text>
+      ) : null}
 
       {themeOptions.map((option) => {
         const selected = themePreference === option.value;
@@ -95,9 +99,39 @@ export const SystemSettingsMenu = memo(function SystemSettingsMenu() {
           </Pressable>
         );
       })}
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.option,
+          styles.offlineOption,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: theme.border,
+            opacity: pressed ? 0.85 : 1,
+          },
+        ]}
+        onPress={() => setForceOffline(!forceOffline)}
+        accessibilityRole="switch"
+        accessibilityLabel={t('offline.title')}
+        accessibilityHint={t('offline.subtitle')}
+        accessibilityState={{ checked: forceOffline }}>
+        <View style={styles.optionText}>
+          <Text style={[styles.optionTitle, { color: theme.text }]}>{t('offline.title')}</Text>
+          <Text style={[styles.optionSubtitle, { color: theme.textSecondary }]}>
+            {t('offline.subtitle')}
+          </Text>
+        </View>
+        <Switch
+          value={forceOffline}
+          onValueChange={setForceOffline}
+          trackColor={{ false: theme.borderSecondary, true: theme.tabActive }}
+          thumbColor={theme.backgroundElement}
+          pointerEvents="none"
+        />
+      </Pressable>
     </View>
   );
-});
+}
 
 const styles = StyleSheet.create({
   menu: {
@@ -105,6 +139,11 @@ const styles = StyleSheet.create({
     borderRadius: DownloadMenuLayout.menuRadius,
     borderWidth: 1,
     padding: DownloadMenuLayout.menuPadding,
+    gap: DownloadMenuLayout.menuGap,
+  },
+  menuEmbedded: {
+    borderWidth: 0,
+    padding: 0,
     gap: DownloadMenuLayout.menuGap,
   },
   menuShadow: {
@@ -137,5 +176,8 @@ const styles = StyleSheet.create({
   },
   optionSubtitle: {
     ...Typography.bodyXs,
+  },
+  offlineOption: {
+    marginTop: 24,
   },
 });

@@ -3,8 +3,9 @@ import { Stack } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
+import { OfflineBanner } from '@/components/offline-banner';
 import { SplashScreenView } from '@/components/splash-screen';
 import { resolveAppLocale, type AppLocale } from '@/constants/locale';
 import { ensureOfflineRootExists } from '@/constants/offline-storage';
@@ -33,7 +34,10 @@ function RootNavigation() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <View style={styles.root}>
+        <Stack screenOptions={{ headerShown: false }} />
+        <OfflineBanner />
+      </View>
     </ThemeProvider>
   );
 }
@@ -92,3 +96,9 @@ export default function RootLayout() {
     </I18nextProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});

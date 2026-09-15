@@ -5,7 +5,11 @@
     "clearSearch": "Clear search",
     "goBack": "Go back",
     "back": "Back",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "You are in offline mode.",
+      "dismiss": "Dismiss"
+    }
   },
   "home": {
     "title": "Browse the Bible",
@@ -13,6 +17,9 @@
     "searchAccessibility": "Search languages",
     "noLanguagesFound": "No languages found",
     "failedToLoadLanguages": "Failed to load languages",
+    "offlineTitle": "You Are Offline",
+    "offlineMessage": "Connect to the internet to access the Bible in your language, or access downloaded content anytime from your Downloads Library.",
+    "retryConnecting": "Retry Connecting",
     "accessibility": {
       "openLanguage": "Open {{name}}",
       "downloadInProgress": "Download in progress for {{name}}",
@@ -29,19 +36,24 @@
     "noBooksFound": "No books found",
     "languageNotFound": "Language not found",
     "failedToLoadBooks": "Failed to load books",
-    "contentLicense": "The content is licensed under CC BY-SA 4.0.",
-    "contentLicenseLearnMore": "Learn more",
     "accessibility": {
       "expand": "Expand {{name}}",
       "collapse": "Collapse {{name}}",
       "downloadInProgress": "Download in progress for {{name}}",
       "delete": "Delete {{name}}",
-      "download": "Download {{name}}"
+      "download": "Download {{name}}",
+      "chapter": "Chapter {{number}}",
+      "chapterText": "Chapter {{number}}, text",
+      "chapterAudio": "Chapter {{number}}, audio",
+      "chapterBoth": "Chapter {{number}}, text and audio",
+      "chapterUnavailable": "Chapter {{number}}, not downloaded"
     }
   },
   "reading": {
-    "scripture": "Scripture",
+    "scripture": "Text",
     "audio": "Audio",
+    "downloadChapterText": "{{passage}} Text",
+    "downloadChapterAudio": "Download chapter audio",
     "textSettings": "Text Settings",
     "textSize": "Text Size",
     "lineHeight": "Line Height",
@@ -50,6 +62,8 @@
     "play": "Play",
     "pause": "Pause",
     "failedToLoadChapter": "Failed to load chapter",
+    "chapterUnavailable": "Chapter Unavailable",
+    "chapterUnavailableMessage": "To view this chapter, try connecting to the internet or go to Downloads Library to view downloaded chapters.",
     "tapToRetry": "Tap to retry",
     "decreaseTextSize": "Decrease text size",
     "increaseTextSize": "Increase text size",
@@ -64,7 +78,6 @@
     "volume": "Volume",
     "partOfFullBookTitle": "Part of full book download",
     "partOfFullBookMessage": "This chapter is available offline because the full book was downloaded. Remove it from the book list.",
-    "downloadChapterAudio": "Download chapter audio",
     "audioPlayer": "Audio player",
     "closeAudioPlayer": "Close audio player",
     "openAudioPlayer": "Open audio player",
@@ -75,7 +88,7 @@
   "download": {
     "title": "Download",
     "closeMenu": "Close download menu",
-    "allScripture": "All Scripture",
+    "allText": "All Text",
     "allAudio": "All Audio",
     "checking": "Checking...",
     "downloading": "Downloading...",
@@ -84,8 +97,9 @@
     "downloadFailedMessage": "Could not complete download",
     "deleteFailedTitle": "Delete failed",
     "deleteFailedMessage": "Could not remove download",
-    "confirmDeleteTitle": "Delete downloaded {{title}}?",
-    "confirmDeleteMessage": "You can download it again later.",
+    "confirmDeleteTitle": "Delete Download",
+    "confirmDeleteMessage": "This download will be permanently deleted. This cannot be undone.",
+    "confirmDeleteQuestion": "Are you sure you want to delete?",
     "confirmDeleteCancel": "Cancel",
     "confirmDeleteAction": "Delete",
     "couldNotDownloadChapter": "Could not download chapter",
@@ -93,8 +107,8 @@
     "couldNotDownloadAudio": "Could not download audio",
     "couldNotRemoveAudio": "Could not remove downloaded audio",
     "couldNotDownloadLanguage": "Could not download language",
-    "couldNotDownloadScripture": "Could not download scripture",
-    "couldNotRemoveScripture": "Could not remove downloaded scripture",
+    "couldNotDownloadScripture": "Could not download text",
+    "couldNotRemoveScripture": "Could not remove downloaded text",
     "notification": {
       "channelName": "Book downloads",
       "downloadingScripture": "Downloading {{name}}",
@@ -113,9 +127,46 @@
       "download": "Download {{title}}"
     }
   },
+  "library": {
+    "title": "Downloads Library",
+    "searchPlaceholder": "Search book here...",
+    "searchAccessibility": "Search downloaded books",
+    "filterTitle": "Filter",
+    "filterAccessibility": "Filter downloads",
+    "closeFilter": "Close filter",
+    "reset": "Reset",
+    "resetFilter": "Reset filter",
+    "filter": {
+      "all": "All",
+      "scripture": "Text Only",
+      "audio": "Audio Only",
+      "both": "Both"
+    },
+    "content": {
+      "both": "Both",
+      "text": "Text",
+      "audio": "Audio"
+    },
+    "legend": {
+      "both": "Text & Audio"
+    },
+    "booksDownloaded_one": "{{count}} book downloaded",
+    "booksDownloaded_other": "{{count}} books downloaded",
+    "noDownloads": "No downloads yet",
+    "failedToLoad": "Failed to load downloads"
+  },
   "settings": {
     "title": "System Settings",
     "close": "Close system settings",
+    "menu": {
+      "title": "Menu",
+      "close": "Close menu",
+      "downloadsLibrary": "Downloads Library",
+      "download": "Download",
+      "systemSettings": "System Settings",
+      "textSettings": "Text Settings",
+      "back": "Back"
+    },
     "theme": {
       "system": {
         "title": "Automatic",
@@ -129,6 +180,10 @@
         "title": "Dark Mode",
         "subtitle": "Ignore system settings"
       }
+    },
+    "offline": {
+      "title": "Force Offline Mode",
+      "subtitle": "Simulate no internet connection"
     }
   },
   "locale": {

@@ -1,5 +1,5 @@
 import { fetchLanguages, fetchLanguagesOffline } from '@/api/services/languages';
-import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage } from '@/db';
+import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage, listLanguagesWithDownloads } from '@/db';
 import { i18n } from '@/i18n';
 import type { DownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
@@ -28,34 +28,33 @@ function applyLanguageDownloadStatus(
   });
 }
 
+async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]> {
+  const [downloadedCounts, catalogCounts] = await Promise.all([
+    getDownloadedBookCountsByLanguage(),
+    getBookCatalogCountsByLanguage(),
+  ]);
+  return applyLanguageDownloadStatus(items, downloadedCounts, catalogCounts);
+}
+
 async function fetchLanguageCatalogSnapshot(): Promise<LanguageCatalogSnapshot> {
-  let offlineItems: LanguageItem[] = [];
-
-  try {
-    offlineItems = await fetchLanguagesOffline();
-  } catch {
-    offlineItems = [];
-  }
-
   try {
     const items = await fetchLanguages();
-    const [downloadedCounts, catalogCounts] = await Promise.all([
-      getDownloadedBookCountsByLanguage(),
-      getBookCatalogCountsByLanguage(),
-    ]);
     return {
-      languages: applyLanguageDownloadStatus(items, downloadedCounts, catalogCounts),
+      languages: await withDownloadStatus(items),
       error: null,
     };
   } catch (err) {
+    let offlineItems: LanguageItem[] = [];
+    try {
+      offlineItems = await fetchLanguagesOffline();
+    } catch {
+      offlineItems = [];
+    }
+
     if (offlineItems.length > 0) {
       try {
-        const [downloadedCounts, catalogCounts] = await Promise.all([
-          getDownloadedBookCountsByLanguage(),
-          getBookCatalogCountsByLanguage(),
-        ]);
         return {
-          languages: applyLanguageDownloadStatus(offlineItems, downloadedCounts, catalogCounts),
+          languages: await withDownloadStatus(offlineItems),
           error: null,
         };
       } catch {
@@ -63,6 +62,26 @@ async function fetchLanguageCatalogSnapshot(): Promise<LanguageCatalogSnapshot> 
       }
     }
 
+    return {
+      languages: [],
+      error: err instanceof Error ? err.message : i18n.t('home:failedToLoadLanguages'),
+    };
+  }
+}
+
+/** Languages that have local scripture and/or audio (Downloads Library). */
+export async function loadDownloadedLanguagesCatalog(): Promise<LanguageCatalogSnapshot> {
+  try {
+    const items = await listLanguagesWithDownloads();
+    try {
+      return {
+        languages: await withDownloadStatus(items),
+        error: null,
+      };
+    } catch {
+      return { languages: items, error: null };
+    }
+  } catch (err) {
     return {
       languages: [],
       error: err instanceof Error ? err.message : i18n.t('home:failedToLoadLanguages'),
@@ -104,13 +123,8 @@ export async function refreshLanguageCatalogDownloadStatus(): Promise<LanguageCa
     return snapshot;
   }
 
-  const [downloadedCounts, catalogCounts] = await Promise.all([
-    getDownloadedBookCountsByLanguage(),
-    getBookCatalogCountsByLanguage(),
-  ]);
-
   snapshot = {
-    languages: applyLanguageDownloadStatus(current, downloadedCounts, catalogCounts),
+    languages: await withDownloadStatus(current),
     error: snapshot?.error ?? null,
   };
 

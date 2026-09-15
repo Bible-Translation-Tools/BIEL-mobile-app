@@ -10,9 +10,10 @@ import { useTheme } from '@/hooks/use-theme';
 type HomeHeaderProps = {
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  title?: string;
 };
 
-export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
+export function HomeHeader({ searchQuery, onSearchChange, title }: HomeHeaderProps) {
   const theme = useTheme();
   const searchInputRef = useRef<TextInput>(null);
   const { t } = useTranslation('home');
@@ -22,7 +23,7 @@ export function HomeHeader({ searchQuery, onSearchChange }: HomeHeaderProps) {
     <View style={styles.header}>
       <View style={styles.titleRow}>
         <BookHeaderIcon size={HomeLayout.bookIconSize} />
-        <Text style={[styles.title, { color: theme.text }]}>{t('title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{title ?? t('title')}</Text>
       </View>
 
       <Pressable

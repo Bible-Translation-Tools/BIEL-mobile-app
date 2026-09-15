@@ -1,3 +1,5 @@
+import { assertNetworkAvailable } from '@/api/graphql/client';
+
 export const BIEL_API_ORIGIN = 'https://api.bibleineverylanguage.org';
 
 /** Headers required for read.bibletranslationtools.org (Cloudflare allows BIEL API referer). */
@@ -13,6 +15,8 @@ export const CONTENT_FETCH_HEADERS = {
 } as const;
 
 export async function fetchRenderedContent(url: string, init?: RequestInit): Promise<Response> {
+  assertNetworkAvailable();
+
   return fetch(url, {
     ...init,
     headers: {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -7,6 +7,7 @@ import {
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
 } from '@/services/language-catalog';
+import { useForceOffline } from '@/stores/force-offline-store';
 
 function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
   const preloaded = getLanguageCatalogSnapshot();
@@ -19,6 +20,8 @@ function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
 
 export function useLanguages() {
   const { t } = useTranslation('home');
+  const forceOffline = useForceOffline();
+  const prevForceOfflineRef = useRef(forceOffline);
   const [state, setState] = useState(readInitialState);
 
   const refreshDownloadStatus = useCallback(async () => {
@@ -44,13 +47,19 @@ export function useLanguages() {
   }, [t]);
 
   useEffect(() => {
-    if (getLanguageCatalogSnapshot()) {
-      return;
-    }
-
     let cancelled = false;
+    const forceReload = prevForceOfflineRef.current !== forceOffline;
+    prevForceOfflineRef.current = forceOffline;
 
-    loadLanguageCatalog()
+    setState((current) => ({ ...current, loading: true, error: null }));
+
+    const load = forceReload
+      ? loadLanguageCatalog({ force: true })
+      : getLanguageCatalogSnapshot()
+        ? Promise.resolve(getLanguageCatalogSnapshot()!)
+        : loadLanguageCatalog();
+
+    load
       .then((next) => {
         if (!cancelled) {
           setState({ ...next, loading: false });
@@ -69,7 +78,7 @@ export function useLanguages() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [forceOffline, t]);
 
   return {
     languages: state.languages,

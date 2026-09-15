@@ -35,6 +35,7 @@ import {
   listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
   listScriptureChapterNumbersForBook,
+  sumScriptureChapterByteSizeForBook,
   upsertBookWithChapters,
   upsertScriptureChapter,
 } from '@/db';
@@ -540,7 +541,10 @@ export async function getDownloadedBookByteSize(
   bookSlug: string,
 ): Promise<number | null> {
   const record = await getBookDownloadRecord(languageCode, bookSlug);
-  return record?.byteSize ?? null;
+  if (record) return record.byteSize;
+
+  const chapterBytes = await sumScriptureChapterByteSizeForBook(languageCode, bookSlug);
+  return chapterBytes > 0 ? chapterBytes : null;
 }
 
 export async function getLanguageDownloadedByteSize(languageCode: string): Promise<number> {

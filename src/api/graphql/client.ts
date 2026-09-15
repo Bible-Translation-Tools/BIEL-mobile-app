@@ -1,15 +1,26 @@
+import { isForceOffline } from '@/stores/force-offline-store';
+
 const GRAPHQL_ENDPOINT = 'https://api.bibleineverylanguage.org/v1/graphql';
 const USER_AGENT = 'Mozilla/5.0'; // required by the API
+const NETWORK_UNAVAILABLE_MESSAGE = 'Network request failed';
 
 type GraphQLResponse<T> = {
   data?: T;
   errors?: { message: string }[];
 };
 
+export function assertNetworkAvailable() {
+  if (isForceOffline()) {
+    throw new Error(NETWORK_UNAVAILABLE_MESSAGE);
+  }
+}
+
 export async function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
+  assertNetworkAvailable();
+
   const response = await fetch(GRAPHQL_ENDPOINT, {
     method: 'POST',
     headers: {

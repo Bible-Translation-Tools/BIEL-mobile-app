@@ -5,7 +5,11 @@
     "clearSearch": "Suche löschen",
     "goBack": "Zurück",
     "back": "Zurück",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Sie sind im Offline-Modus.",
+      "dismiss": "Schließen"
+    }
   },
   "home": {
     "title": "Die Bibel durchsuchen",
@@ -13,6 +17,9 @@
     "searchAccessibility": "Sprachen suchen",
     "noLanguagesFound": "Keine Sprachen gefunden",
     "failedToLoadLanguages": "Sprachen konnten nicht geladen werden",
+    "offlineTitle": "Sie sind offline",
+    "offlineMessage": "Stellen Sie eine Internetverbindung her, um die Bibel in Ihrer Sprache aufzurufen, oder greifen Sie jederzeit über Ihre Download-Bibliothek auf heruntergeladene Inhalte zu.",
+    "retryConnecting": "Verbindung erneut versuchen",
     "accessibility": {
       "openLanguage": "{{name}} öffnen",
       "downloadInProgress": "Download läuft für {{name}}",
@@ -29,19 +36,24 @@
     "noBooksFound": "Keine Bücher gefunden",
     "languageNotFound": "Sprache nicht gefunden",
     "failedToLoadBooks": "Bücher konnten nicht geladen werden",
-    "contentLicense": "Der Inhalt ist unter CC BY-SA 4.0 lizenziert.",
-    "contentLicenseLearnMore": "Mehr erfahren",
     "accessibility": {
       "expand": "{{name}} erweitern",
       "collapse": "{{name}} einklappen",
       "downloadInProgress": "Download läuft für {{name}}",
       "delete": "{{name}} löschen",
-      "download": "{{name}} herunterladen"
+      "download": "{{name}} herunterladen",
+      "chapter": "Kapitel {{number}}",
+      "chapterText": "Kapitel {{number}}, Text",
+      "chapterAudio": "Kapitel {{number}}, Audio",
+      "chapterBoth": "Kapitel {{number}}, Text und Audio",
+      "chapterUnavailable": "Kapitel {{number}}, nicht heruntergeladen"
     }
   },
   "reading": {
-    "scripture": "Schrift",
+    "scripture": "Text",
     "audio": "Audio",
+    "downloadChapterText": "{{passage}} Text",
+    "downloadChapterAudio": "Kapitel-Audio herunterladen",
     "textSettings": "Texteinstellungen",
     "textSize": "Textgröße",
     "lineHeight": "Zeilenhöhe",
@@ -50,6 +62,8 @@
     "play": "Wiedergabe",
     "pause": "Pause",
     "failedToLoadChapter": "Kapitel konnte nicht geladen werden",
+    "chapterUnavailable": "Kapitel nicht verfügbar",
+    "chapterUnavailableMessage": "Um dieses Kapitel zu sehen, stelle eine Internetverbindung her oder öffne die Download-Bibliothek für heruntergeladene Kapitel.",
     "tapToRetry": "Tippen, um es erneut zu versuchen",
     "decreaseTextSize": "Textgröße verringern",
     "increaseTextSize": "Textgröße vergrößern",
@@ -64,7 +78,6 @@
     "volume": "Lautstärke",
     "partOfFullBookTitle": "Teil des vollständigen Buch-Downloads",
     "partOfFullBookMessage": "Dieses Kapitel ist offline verfügbar, weil das gesamte Buch heruntergeladen wurde. Entfernen Sie es in der Buchliste.",
-    "downloadChapterAudio": "Kapitel-Audio herunterladen",
     "audioPlayer": "Audioplayer",
     "closeAudioPlayer": "Audioplayer schließen",
     "openAudioPlayer": "Audioplayer öffnen",
@@ -75,7 +88,7 @@
   "download": {
     "title": "Download",
     "closeMenu": "Download-Menü schließen",
-    "allScripture": "Gesamte Schrift",
+    "allText": "Gesamter Text",
     "allAudio": "Gesamtes Audio",
     "checking": "Wird geprüft...",
     "downloading": "Wird heruntergeladen...",
@@ -84,8 +97,9 @@
     "downloadFailedMessage": "Download konnte nicht abgeschlossen werden",
     "deleteFailedTitle": "Löschen fehlgeschlagen",
     "deleteFailedMessage": "Download konnte nicht entfernt werden",
-    "confirmDeleteTitle": "Heruntergeladenes {{title}} löschen?",
-    "confirmDeleteMessage": "Sie können es später erneut herunterladen.",
+    "confirmDeleteTitle": "Download löschen",
+    "confirmDeleteMessage": "Dieser Download wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "confirmDeleteQuestion": "Möchten Sie wirklich löschen?",
     "confirmDeleteCancel": "Abbrechen",
     "confirmDeleteAction": "Löschen",
     "couldNotDownloadChapter": "Kapitel konnte nicht heruntergeladen werden",
@@ -93,8 +107,8 @@
     "couldNotDownloadAudio": "Audio konnte nicht heruntergeladen werden",
     "couldNotRemoveAudio": "Heruntergeladenes Audio konnte nicht entfernt werden",
     "couldNotDownloadLanguage": "Sprache konnte nicht heruntergeladen werden",
-    "couldNotDownloadScripture": "Schrift konnte nicht heruntergeladen werden",
-    "couldNotRemoveScripture": "Heruntergeladene Schrift konnte nicht entfernt werden",
+    "couldNotDownloadScripture": "Text konnte nicht heruntergeladen werden",
+    "couldNotRemoveScripture": "Heruntergeladener Text konnte nicht entfernt werden",
     "notification": {
       "channelName": "Buch-Downloads",
       "downloadingScripture": "{{name}} wird heruntergeladen",
@@ -113,9 +127,46 @@
       "download": "{{title}} herunterladen"
     }
   },
+  "library": {
+    "title": "Download-Bibliothek",
+    "searchPlaceholder": "Buch hier suchen...",
+    "searchAccessibility": "Heruntergeladene Bücher suchen",
+    "filterTitle": "Filter",
+    "filterAccessibility": "Downloads filtern",
+    "closeFilter": "Filter schließen",
+    "reset": "Zurücksetzen",
+    "resetFilter": "Filter zurücksetzen",
+    "filter": {
+      "all": "Alle",
+      "scripture": "Nur Text",
+      "audio": "Nur Audio",
+      "both": "Beides"
+    },
+    "content": {
+      "both": "Beides",
+      "text": "Text",
+      "audio": "Audio"
+    },
+    "legend": {
+      "both": "Text & Audio"
+    },
+    "booksDownloaded_one": "{{count}} Buch heruntergeladen",
+    "booksDownloaded_other": "{{count}} Bücher heruntergeladen",
+    "noDownloads": "Noch keine Downloads",
+    "failedToLoad": "Downloads konnten nicht geladen werden"
+  },
   "settings": {
     "title": "Systemeinstellungen",
     "close": "Systemeinstellungen schließen",
+    "menu": {
+      "title": "Menü",
+      "close": "Menü schließen",
+      "downloadsLibrary": "Download-Bibliothek",
+      "download": "Herunterladen",
+      "systemSettings": "Systemeinstellungen",
+      "textSettings": "Texteinstellungen",
+      "back": "Zurück"
+    },
     "theme": {
       "system": {
         "title": "Automatisch",
@@ -129,6 +180,10 @@
         "title": "Dunkler Modus",
         "subtitle": "Systemeinstellungen ignorieren"
       }
+    },
+    "offline": {
+      "title": "Offline-Modus erzwingen",
+      "subtitle": "Keine Internetverbindung simulieren"
     }
   },
   "locale": {

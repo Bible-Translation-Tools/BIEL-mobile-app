@@ -27,6 +27,14 @@ export const Colors = {
     iconTertiary: '#8b8b8b',
     iconSuccess: '#22ac52',
     iconDanger: '#d32f2f',
+    warningBackground: '#fdf3cc',
+    warningForeground: '#b89b27',
+    badgeBothBackground: '#fbf5ff',
+    badgeBothForeground: '#a02af4',
+    badgeTextBackground: '#eefdf3',
+    badgeTextForeground: '#00a63d',
+    badgeAudioBackground: '#eff6ff',
+    badgeAudioForeground: '#0885fe',
   },
   dark: {
     text: '#eaeaea',
@@ -47,6 +55,14 @@ export const Colors = {
     iconTertiary: '#767676',
     iconSuccess: '#22ac52',
     iconDanger: '#ef5350',
+    warningBackground: '#4a401d',
+    warningForeground: '#f1d361',
+    badgeBothBackground: '#3b2450',
+    badgeBothForeground: '#d9b3ff',
+    badgeTextBackground: '#143325',
+    badgeTextForeground: '#3ddc7a',
+    badgeAudioBackground: '#152a45',
+    badgeAudioForeground: '#4da8fe',
   },
 } as const;
 
@@ -115,6 +131,21 @@ export const DownloadMenuLayout = {
   screenPadding: 16,
 } as const;
 
+export const ConfirmDialogLayout = {
+  width: 281,
+  paddingH: 16,
+  paddingV: 20,
+  gap: 20,
+  contentGap: 8,
+  paragraphGap: 16,
+  iconSize: 36,
+  radius: 10,
+  overlayOpacity: 0.5,
+  actionsGap: 8,
+  buttonPadding: 8,
+  buttonRadius: 8,
+} as const;
+
 export const TextSettingsLayout = {
   menuWidth: 262,
   rowGap: 9,
@@ -133,6 +164,21 @@ export const SystemSettingsLayout = {
   themeIconSize: 24,
 } as const;
 
+export const MenuDrawerLayout = {
+  widthRatio: 312 / 412,
+  maxWidth: 312,
+  headerHeight: 64,
+  headerPadding: 16,
+  itemPadding: 16,
+  itemSectionGap: 11,
+  itemRowGap: 9,
+  downloadsIconSize: 28,
+  settingsIconSize: 24,
+  textSettingsIconSize: 28,
+  closeIconSize: 24,
+  overlayOpacity: 0.2,
+} as const;
+
 export const HomeLayout = {
   padding: 16,
   contentGap: 20,
@@ -146,6 +192,19 @@ export const HomeLayout = {
   bookIconSize: 38,
 } as const;
 
+export const DownloadsLibraryLayout = {
+  filterButtonSize: 48,
+  filterIconSize: 28,
+  filterOptionIconSize: 20,
+  filterOptionGap: 9,
+  filterMenuWidth: 220,
+  filterMenuEstimatedHeight: 200,
+  languageTitleSize: 20,
+  languageTitleLineHeight: 24,
+  countGap: 20,
+  accordionGap: 20,
+} as const;
+
 export const BookLayout = {
   ...HomeLayout,
   bookDownloadButtonSize: 60,
@@ -155,6 +214,12 @@ export const BookLayout = {
   chapterCellRadius: 4,
   chapterCellPadding: 10,
   chapterCellMinHeight: 48,
+  chapterLegendGap: 16,
+  chapterLegendItemGap: 8,
+  chapterLegendSwatchGap: 4,
+  chapterLegendSwatchSize: 12,
+  chapterLegendSwatchRadius: 2,
+  chapterLegendSwatchBorderWidth: 0.5,
 } as const;
 
 export const ReadingLayout = {
@@ -190,6 +255,7 @@ export const MediaPlayerLayout = {
   playBarGap: 20,
   controlsGap: 36,
   playButtonSize: 48,
+  collapsedPlayIconSize: 40,
   closeHitArea: 60,
 } as const;
 

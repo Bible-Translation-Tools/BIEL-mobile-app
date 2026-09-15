@@ -5,6 +5,7 @@ import {
   downloadBookScripture,
   getBookScriptureFileSizeBytes,
   getDownloadedBookByteSize,
+  isBookDownloaded,
 } from '@/api/services/offline-text';
 import { useContentDownload } from '@/hooks/use-content-download';
 
@@ -41,10 +42,12 @@ export function useBookDownload({
     deleteFailedMessage: t('couldNotRemoveScripture'),
     onComplete,
     onDeleteComplete,
+    partialSizeLabel: true,
     download: (options) => downloadBookScripture(languageCode, bookSlug, options),
     deleteContent: () => deleteBookScripture(languageCode, bookSlug),
     getDownloadedBytes: () => getDownloadedBookByteSize(languageCode, bookSlug),
     getTotalBytes: () => getBookScriptureFileSizeBytes(languageCode, bookSlug),
+    getIsDownloaded: () => isBookDownloaded(languageCode, bookSlug),
   });
 
   return {

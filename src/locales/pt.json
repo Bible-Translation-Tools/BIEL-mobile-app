@@ -5,7 +5,11 @@
     "clearSearch": "Limpar pesquisa",
     "goBack": "Voltar",
     "back": "Voltar",
-    "emDash": "—"
+    "emDash": "—",
+    "offlineBanner": {
+      "message": "Você está no modo offline.",
+      "dismiss": "Dispensar"
+    }
   },
   "home": {
     "title": "Explorar a Bíblia",
@@ -13,6 +17,9 @@
     "searchAccessibility": "Pesquisar idiomas",
     "noLanguagesFound": "Nenhum idioma encontrado",
     "failedToLoadLanguages": "Falha ao carregar idiomas",
+    "offlineTitle": "Você está offline",
+    "offlineMessage": "Conecte-se à internet para acessar a Bíblia no seu idioma ou acesse o conteúdo baixado a qualquer momento na sua Biblioteca de Downloads.",
+    "retryConnecting": "Tentar conectar novamente",
     "accessibility": {
       "openLanguage": "Abrir {{name}}",
       "downloadInProgress": "Download em andamento de {{name}}",
@@ -29,19 +36,24 @@
     "noBooksFound": "Nenhum livro encontrado",
     "languageNotFound": "Idioma não encontrado",
     "failedToLoadBooks": "Falha ao carregar livros",
-    "contentLicense": "O conteúdo está licenciado sob CC BY-SA 4.0.",
-    "contentLicenseLearnMore": "Saiba mais",
     "accessibility": {
       "expand": "Expandir {{name}}",
       "collapse": "Recolher {{name}}",
       "downloadInProgress": "Download em andamento de {{name}}",
       "delete": "Excluir {{name}}",
-      "download": "Baixar {{name}}"
+      "download": "Baixar {{name}}",
+      "chapter": "Capítulo {{number}}",
+      "chapterText": "Capítulo {{number}}, texto",
+      "chapterAudio": "Capítulo {{number}}, áudio",
+      "chapterBoth": "Capítulo {{number}}, texto e áudio",
+      "chapterUnavailable": "Capítulo {{number}}, não baixado"
     }
   },
   "reading": {
-    "scripture": "Escritura",
+    "scripture": "Texto",
     "audio": "Áudio",
+    "downloadChapterText": "{{passage}} Texto",
+    "downloadChapterAudio": "Baixar áudio do capítulo",
     "textSettings": "Configurações de texto",
     "textSize": "Tamanho do texto",
     "lineHeight": "Altura da linha",
@@ -50,6 +62,8 @@
     "play": "Reproduzir",
     "pause": "Pausar",
     "failedToLoadChapter": "Falha ao carregar capítulo",
+    "chapterUnavailable": "Capítulo indisponível",
+    "chapterUnavailableMessage": "Para ver este capítulo, tente conectar-se à internet ou acesse a Biblioteca de downloads para ver os capítulos baixados.",
     "tapToRetry": "Toque para tentar novamente",
     "decreaseTextSize": "Diminuir tamanho do texto",
     "increaseTextSize": "Aumentar tamanho do texto",
@@ -64,7 +78,6 @@
     "volume": "Volume",
     "partOfFullBookTitle": "Parte do download do livro completo",
     "partOfFullBookMessage": "Este capítulo está disponível offline porque o livro completo foi baixado. Remova-o na lista de livros.",
-    "downloadChapterAudio": "Baixar áudio do capítulo",
     "audioPlayer": "Reprodutor de áudio",
     "closeAudioPlayer": "Fechar reprodutor de áudio",
     "openAudioPlayer": "Abrir reprodutor de áudio",
@@ -75,7 +88,7 @@
   "download": {
     "title": "Download",
     "closeMenu": "Fechar menu de download",
-    "allScripture": "Toda a Escritura",
+    "allText": "Todo o texto",
     "allAudio": "Todo o áudio",
     "checking": "Verificando...",
     "downloading": "Baixando...",
@@ -84,8 +97,9 @@
     "downloadFailedMessage": "Não foi possível concluir o download",
     "deleteFailedTitle": "Falha ao excluir",
     "deleteFailedMessage": "Não foi possível remover o download",
-    "confirmDeleteTitle": "Excluir {{title}} baixado?",
-    "confirmDeleteMessage": "Você pode baixá-lo novamente mais tarde.",
+    "confirmDeleteTitle": "Excluir download",
+    "confirmDeleteMessage": "Este download será excluído permanentemente. Isso não pode ser desfeito.",
+    "confirmDeleteQuestion": "Tem certeza de que deseja excluir?",
     "confirmDeleteCancel": "Cancelar",
     "confirmDeleteAction": "Excluir",
     "couldNotDownloadChapter": "Não foi possível baixar o capítulo",
@@ -93,8 +107,8 @@
     "couldNotDownloadAudio": "Não foi possível baixar o áudio",
     "couldNotRemoveAudio": "Não foi possível remover o áudio baixado",
     "couldNotDownloadLanguage": "Não foi possível baixar o idioma",
-    "couldNotDownloadScripture": "Não foi possível baixar a escritura",
-    "couldNotRemoveScripture": "Não foi possível remover a escritura baixada",
+    "couldNotDownloadScripture": "Não foi possível baixar o texto",
+    "couldNotRemoveScripture": "Não foi possível remover o texto baixado",
     "notification": {
       "channelName": "Downloads de livros",
       "downloadingScripture": "Baixando {{name}}",
@@ -113,9 +127,46 @@
       "download": "Baixar {{title}}"
     }
   },
+  "library": {
+    "title": "Biblioteca de downloads",
+    "searchPlaceholder": "Pesquisar livro aqui...",
+    "searchAccessibility": "Pesquisar livros baixados",
+    "filterTitle": "Filtrar",
+    "filterAccessibility": "Filtrar downloads",
+    "closeFilter": "Fechar filtro",
+    "reset": "Redefinir",
+    "resetFilter": "Redefinir filtro",
+    "filter": {
+      "all": "Todos",
+      "scripture": "Somente texto",
+      "audio": "Somente áudio",
+      "both": "Ambos"
+    },
+    "content": {
+      "both": "Ambos",
+      "text": "Texto",
+      "audio": "Áudio"
+    },
+    "legend": {
+      "both": "Texto e áudio"
+    },
+    "booksDownloaded_one": "{{count}} livro baixado",
+    "booksDownloaded_other": "{{count}} livros baixados",
+    "noDownloads": "Nenhum download ainda",
+    "failedToLoad": "Falha ao carregar os downloads"
+  },
   "settings": {
     "title": "Configurações do sistema",
     "close": "Fechar configurações do sistema",
+    "menu": {
+      "title": "Menu",
+      "close": "Fechar menu",
+      "downloadsLibrary": "Biblioteca de downloads",
+      "download": "Baixar",
+      "systemSettings": "Configurações do sistema",
+      "textSettings": "Configurações de texto",
+      "back": "Voltar"
+    },
     "theme": {
       "system": {
         "title": "Automático",
@@ -129,6 +180,10 @@
         "title": "Modo escuro",
         "subtitle": "Ignorar configurações do sistema"
       }
+    },
+    "offline": {
+      "title": "Forçar modo offline",
+      "subtitle": "Simular falta de internet"
     }
   },
   "locale": {

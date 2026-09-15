@@ -329,6 +329,114 @@ export async function listDownloadedBookSlugs(languageCode: string): Promise<str
   return rows.map((row) => row.book_slug);
 }
 
+export type LocalContentBookRecord = {
+  languageCode: string;
+  bookSlug: string;
+  bookName: string;
+  hasText: boolean;
+  hasAudio: boolean;
+};
+
+const LOCAL_CONTENT_BOOKS_SQL = `SELECT
+         language_code,
+         book_slug,
+         MAX(book_name) AS book_name,
+         MAX(has_text) AS has_text,
+         MAX(has_audio) AS has_audio
+       FROM (
+         SELECT language_code, book_slug, book_name, 1 AS has_text, 0 AS has_audio
+         FROM books
+         UNION ALL
+         SELECT language_code, book_slug, book_name, 1 AS has_text, 0 AS has_audio
+         FROM scripture_chapters
+         UNION ALL
+         SELECT language_code, book_slug, book_name, 0 AS has_text, 1 AS has_audio
+         FROM audio_books
+       )
+       GROUP BY language_code, book_slug
+       ORDER BY language_code ASC, book_slug ASC`;
+
+function mapLocalContentBookRows(
+  rows: {
+    language_code: string;
+    book_slug: string;
+    book_name: string;
+    has_text: number;
+    has_audio: number;
+  }[],
+): LocalContentBookRecord[] {
+  return rows.map((row) => ({
+    languageCode: row.language_code,
+    bookSlug: row.book_slug,
+    bookName: row.book_name,
+    hasText: row.has_text === 1,
+    hasAudio: row.has_audio === 1,
+  }));
+}
+
+/** Books with any local scripture (whole/chapter) or audio, across all languages. */
+export async function listLocalContentBooks(): Promise<LocalContentBookRecord[]> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{
+      language_code: string;
+      book_slug: string;
+      book_name: string;
+      has_text: number;
+      has_audio: number;
+    }>(LOCAL_CONTENT_BOOKS_SQL);
+
+    return mapLocalContentBookRows(rows);
+  } catch {
+    return [];
+  }
+}
+
+/** Books with any local scripture (whole/chapter) or audio for a language. */
+export async function listLocalContentBooksForLanguage(
+  languageCode: string,
+): Promise<LocalContentBookRecord[]> {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{
+      language_code: string;
+      book_slug: string;
+      book_name: string;
+      has_text: number;
+      has_audio: number;
+    }>(
+      `SELECT
+         language_code,
+         book_slug,
+         MAX(book_name) AS book_name,
+         MAX(has_text) AS has_text,
+         MAX(has_audio) AS has_audio
+       FROM (
+         SELECT language_code, book_slug, book_name, 1 AS has_text, 0 AS has_audio
+         FROM books
+         WHERE language_code = ?
+         UNION ALL
+         SELECT language_code, book_slug, book_name, 1 AS has_text, 0 AS has_audio
+         FROM scripture_chapters
+         WHERE language_code = ?
+         UNION ALL
+         SELECT language_code, book_slug, book_name, 0 AS has_text, 1 AS has_audio
+         FROM audio_books
+         WHERE language_code = ?
+       )
+       GROUP BY language_code, book_slug
+       ORDER BY book_slug ASC`,
+      languageCode,
+      languageCode,
+      languageCode,
+    );
+
+    return mapLocalContentBookRows(rows);
+  } catch {
+    return [];
+  }
+}
+
 export async function getDownloadedBookCountsByLanguage(): Promise<Record<string, number>> {
   try {
     const db = await getDb();
@@ -854,4 +962,19 @@ export async function listScriptureChapterNumbersForBook(
     bookSlug,
   );
   return rows.map((row) => row.chapter_number);
+}
+
+export async function sumScriptureChapterByteSizeForBook(
+  languageCode: string,
+  bookSlug: string,
+): Promise<number> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ total: number | null }>(
+    `SELECT SUM(byte_size) AS total
+     FROM scripture_chapters
+     WHERE language_code = ? AND book_slug = ? COLLATE NOCASE`,
+    languageCode,
+    bookSlug,
+  );
+  return row?.total ?? 0;
 }

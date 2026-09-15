@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MediaPlayerPanel } from '@/components/reading/media-player-panel';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ReadingLayout } from '@/constants/theme';
+import { MediaPlayerLayout, Typography } from '@/constants/theme';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
@@ -321,6 +321,21 @@ export function AudioPlayButton({
     setSeekTarget(null);
   };
 
+  const openPanel = () => {
+    const chapterToPlay = getCurrentChapter?.();
+    if (chapterToPlay != null) requestChapterLoad(chapterToPlay);
+    setActiveChapter(chapterToPlay);
+    setShouldAutoPlayOnOpen(true);
+    setIsPanelOpen(true);
+    onCurrentChapterChange?.(chapterToPlay ?? null);
+  };
+
+  const collapsedPassage = formatAudioPassageLabel(
+    passageBookName,
+    getCurrentChapter?.(),
+    undefined,
+  );
+
   if (isPanelOpen) {
     return (
       <MediaPlayerPanel
@@ -342,29 +357,30 @@ export function AudioPlayButton({
 
   return (
     <View
-      style={[styles.wrapper, { bottom: ReadingLayout.playButtonBottom + insets.bottom }]}
-      pointerEvents="box-none">
+      style={[
+        styles.collapsedPanel,
+        {
+          backgroundColor: theme.backgroundElement,
+          borderColor: theme.border,
+          paddingBottom: MediaPlayerLayout.paddingV + insets.bottom,
+        },
+      ]}
+      onLayout={(event) => onPanelHeightChange?.(event.nativeEvent.layout.height)}
+      accessibilityRole="toolbar"
+      accessibilityLabel={t('audioPlayer')}>
+      <Text
+        style={[styles.collapsedPassage, { color: theme.textHeading }]}
+        numberOfLines={1}>
+        {collapsedPassage}
+      </Text>
       <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          {
-            backgroundColor: theme.backgroundElement,
-            opacity: pressed ? 0.9 : 1,
-          },
-        ]}
-        onPress={() => {
-          const chapterToPlay = getCurrentChapter?.();
-          if (chapterToPlay != null) requestChapterLoad(chapterToPlay);
-          setActiveChapter(chapterToPlay);
-          setShouldAutoPlayOnOpen(true);
-          setIsPanelOpen(true);
-          onCurrentChapterChange?.(chapterToPlay ?? null);
-        }}
+        style={({ pressed }) => [styles.collapsedPlayButton, { opacity: pressed ? 0.7 : 1 }]}
+        onPress={openPanel}
         accessibilityRole="button"
-        accessibilityLabel={t('openAudioPlayer')}>
+        accessibilityLabel={t('play')}>
         <IconSymbol
-          name={{ ios: 'speaker.wave.2.fill', android: 'volume-up' }}
-          size={28}
+          name={{ ios: 'play.fill', android: 'play-arrow' }}
+          size={MediaPlayerLayout.collapsedPlayIconSize}
           color={theme.iconPrimary}
         />
       </Pressable>
@@ -373,22 +389,33 @@ export function AudioPlayButton({
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  collapsedPanel: {
     position: 'absolute',
     left: 0,
     right: 0,
+    bottom: -1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopLeftRadius: MediaPlayerLayout.topRadius,
+    borderTopRightRadius: MediaPlayerLayout.topRadius,
+    paddingHorizontal: MediaPlayerLayout.paddingH,
+    paddingTop: MediaPlayerLayout.paddingV,
   },
-  button: {
-    width: ReadingLayout.playButtonSize,
-    height: ReadingLayout.playButtonSize,
-    borderRadius: ReadingLayout.playButtonSize / 2,
+  collapsedPassage: {
+    ...Typography.headingH6,
+    fontWeight: '500',
+    lineHeight: 32,
+    flex: 1,
+    minWidth: 0,
+  },
+  collapsedPlayButton: {
+    width: MediaPlayerLayout.collapsedPlayIconSize,
+    height: MediaPlayerLayout.collapsedPlayIconSize,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 0.5,
-    elevation: 2,
+    flexShrink: 0,
   },
 });

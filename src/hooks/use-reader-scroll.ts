@@ -33,6 +33,7 @@ export function useReaderScroll(
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [failedNextChapter, setFailedNextChapter] = useState<number | null>(null);
   const [audioOnlyFallback, setAudioOnlyFallback] = useState(false);
   const [initialScrollIndex, setInitialScrollIndex] = useState<number | null>(null);
 
@@ -53,14 +54,12 @@ export function useReaderScroll(
       const ref = direction === 'next' ? prefetchNextRef : prefetchPrevRef;
       if (ref.current?.chapter === chapter) return;
 
-      const promise = fetchChapterContent(languageCode, bookSlug, chapter).catch((err) => {
-        if (ref.current?.chapter === chapter) {
-          ref.current = null;
-        }
-        throw err;
-      });
-
+      const promise = fetchChapterContent(languageCode, bookSlug, chapter);
       ref.current = { chapter, promise };
+      // Attach a handler immediately so a failed prefetch is not an unhandled
+      // rejection (Expo shows those as a bottom toast). loadMore/loadPrevious
+      // still await the same promise and handle the error.
+      void promise.catch(() => {});
     },
     [languageCode, bookSlug],
   );
@@ -70,6 +69,7 @@ export function useReaderScroll(
 
     setLoading(true);
     setError(null);
+    setFailedNextChapter(null);
     setAudioOnlyFallback(false);
     setChapters([]);
     setAvailableChapters([]);
@@ -156,8 +156,10 @@ export function useReaderScroll(
   const hasMore = useMemo(() => {
     const lastChapter = chapters[chapters.length - 1]?.chapter;
     if (lastChapter == null) return false;
-    return getNextChapterNumber(availableChapters, lastChapter) != null;
-  }, [chapters, availableChapters]);
+    const next = getNextChapterNumber(availableChapters, lastChapter);
+    if (next == null) return false;
+    return failedNextChapter !== next;
+  }, [chapters, availableChapters, failedNextChapter]);
 
   const hasPrevious = useMemo(() => {
     const firstChapter = chapters[0]?.chapter;
@@ -196,7 +198,7 @@ export function useReaderScroll(
         prefetchChapter(chapterAfterNext, 'next');
       }
     } catch {
-      // Keep reading the chapters already loaded if the next one fails.
+      setFailedNextChapter(nextChapter);
     } finally {
       loadingMoreRef.current = false;
       setLoadingMore(false);
@@ -275,6 +277,7 @@ export function useReaderScroll(
     loadingMore,
     loadingPrevious,
     error,
+    failedNextChapter,
     audioOnlyFallback,
     hasMore,
     hasPrevious,

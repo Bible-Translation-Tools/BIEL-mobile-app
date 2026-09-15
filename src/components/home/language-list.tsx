@@ -18,6 +18,7 @@ import { useTheme } from '@/hooks/use-theme';
 import type { LanguageItem } from '@/types/language';
 
 import { LanguageCardRow } from './language-card-row';
+import { OfflineScreen } from './offline-screen';
 
 /** Row height (70px download card) + gap between rows */
 const ROW_HEIGHT = HomeLayout.downloadButtonSize;
@@ -46,7 +47,6 @@ type LanguageListEmptyProps = {
 function LanguageListEmpty({ loading, refreshing, error, onRetry }: LanguageListEmptyProps) {
   const theme = useTheme();
   const { t } = useTranslation('home');
-  const { t: tc } = useTranslation('common');
 
   if (loading && !refreshing) {
     return (
@@ -57,16 +57,7 @@ function LanguageListEmpty({ loading, refreshing, error, onRetry }: LanguageList
   }
 
   if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={[styles.message, { color: theme.textSecondary }]}>{error}</Text>
-        {onRetry ? (
-          <Text style={[styles.retry, { color: theme.text }]} onPress={onRetry}>
-            {tc('retry')}
-          </Text>
-        ) : null}
-      </View>
-    );
+    return <OfflineScreen onRetry={onRetry} />;
   }
 
   return (
@@ -175,9 +166,5 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 16,
     textAlign: 'center',
-  },
-  retry: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

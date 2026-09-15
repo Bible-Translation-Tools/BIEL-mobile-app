@@ -170,6 +170,7 @@ export function BookList({
 
   return (
     <FlatList
+      key={isEmpty ? 'empty' : 'filled'}
       style={styles.list}
       data={books}
       renderItem={renderItem}
@@ -198,11 +199,7 @@ export function BookList({
         ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
-      contentContainerStyle={[
-        styles.content,
-        isEmpty && styles.contentEmpty,
-        contentContainerStyle,
-      ]}
+      contentContainerStyle={[styles.content, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       initialNumToRender={12}
@@ -226,11 +223,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: BookLayout.padding,
     paddingBottom: 40,
   },
-  contentEmpty: {
-    flex: 1,
-  },
   emptyFill: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
   },
   separator: {
