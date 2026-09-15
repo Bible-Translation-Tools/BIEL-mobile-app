@@ -21,7 +21,8 @@ flowchart TB
 
   subgraph data [Data access]
     Api["API services<br/>languages · books · scripture · audio"]
-    GraphQL["GraphQL client"]
+    Catalog["Catalog API<br/>interface"]
+    GraphQL["GraphQL adapter"]
     Db["SQLite repository"]
   end
 
@@ -31,7 +32,7 @@ flowchart TB
   end
 
   subgraph remote [Remote]
-    API[GraphQL API]
+    API[Remote API]
     CDN[Content CDN]
   end
 
@@ -41,7 +42,8 @@ flowchart TB
   Hooks --> Services
   Hooks --> Api
   Services --> Api
-  Api --> GraphQL
+  Api --> Catalog
+  Catalog --> GraphQL
   Api --> Db
   GraphQL --> API
   Api --> CDN
@@ -59,7 +61,8 @@ flowchart TB
 | **Stores / contexts** | Session and preference state shared across screens | `src/stores/`, `src/contexts/` |
 | **Services** | Cross-cutting runners (catalog cache, download jobs, audio player) | `src/services/` |
 | **API services** | Domain operations: fetch, download, delete, resolve offline/online | `src/api/services/` |
-| **GraphQL** | Remote catalog and content URL queries | `src/api/graphql/` |
+| **Catalog API** | Transport-agnostic remote catalog / content-URL lookups | `src/api/catalog/` |
+| **GraphQL** | Current Catalog API adapter (client + queries) | `src/api/graphql/` |
 | **DB** | Local metadata and indexes | `src/db/` |
 | **Files** | Scripture HTML/JSON and audio MP3/CUE on disk | via `src/constants/offline-storage.ts` |
 
@@ -113,12 +116,12 @@ sequenceDiagram
 
   User->>Home: Open app / pick language
   Home->>Api: Load language catalog
-  Api->>Remote: GraphQL languages
+  Api->>Remote: Catalog languages
   Remote-->>Home: Language list
 
   User->>Books: Open language
   Books->>Api: Load books for language
-  Api->>Remote: GraphQL books
+  Api->>Remote: Catalog books
   Remote-->>Books: Book list
 
   User->>Hook: Download book scripture
@@ -135,7 +138,7 @@ sequenceDiagram
   Read-->>User: Display chapter
 ```
 
-1. **Home** loads the language catalog through hooks → API services → GraphQL.
+1. **Home** loads the language catalog through hooks → API services → Catalog API.
 2. **Books** loads that language’s book list the same way.
 3. **Download** runs through download hooks and API services; the payload lands on disk and metadata in SQLite.
 4. **Read** asks API services for the chapter; local storage is used when the book is already downloaded.

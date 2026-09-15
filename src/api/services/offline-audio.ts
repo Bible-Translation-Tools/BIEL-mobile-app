@@ -1,11 +1,6 @@
 import { File } from 'expo-file-system';
 
-import { graphqlRequest } from '@/api/graphql/client';
-import {
-  BOOK_AUDIO_FILES_QUERY,
-  CHAPTER_AUDIO_FILE_QUERY,
-  LANGUAGE_AUDIO_FILES_QUERY,
-} from '@/api/graphql/queries';
+import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
 
@@ -153,9 +148,7 @@ async function fetchLanguageAudioFiles(languageCode: string): Promise<BookAudioF
     return inflight;
   }
 
-  const request = graphqlRequest<BookAudioFilesQueryResult>(LANGUAGE_AUDIO_FILES_QUERY, {
-    languageCode,
-  }).finally(() => {
+  const request = catalogApi.getLanguageAudioFiles(languageCode).finally(() => {
     languageAudioFilesInflight.delete(key);
   });
   languageAudioFilesInflight.set(key, request);
@@ -272,10 +265,7 @@ export async function resolveBookAudioChapters(
   languageCode: string,
   bookSlug: string,
 ): Promise<AudioBookManifest> {
-  const data = await graphqlRequest<BookAudioFilesQueryResult>(BOOK_AUDIO_FILES_QUERY, {
-    languageCode,
-    bookSlug,
-  });
+  const data = await catalogApi.getBookAudioFiles(languageCode, bookSlug);
 
   const canonicalSlug = normalizeBookSlug(bookSlug);
   const { bookName, chapters } = parseBookAudioManifest(data, canonicalSlug);
@@ -837,18 +827,8 @@ export async function getChapterAudioTotalBytes(
 
   try {
     const [mp3Data, cueData] = await Promise.all([
-      graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-        languageCode,
-        bookSlug,
-        chapter,
-        fileType: 'mp3',
-      }),
-      graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-        languageCode,
-        bookSlug,
-        chapter,
-        fileType: 'cue',
-      }),
+      catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'mp3'),
+      catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'cue'),
     ]);
 
     const mp3 = resolveChapterAudioFromQuery(mp3Data);
@@ -882,18 +862,8 @@ export async function downloadChapterAudio(
   await ensureOfflineRootExists();
 
   const [mp3Data, cueData] = await Promise.all([
-    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-      languageCode,
-      bookSlug,
-      chapter,
-      fileType: 'mp3',
-    }),
-    graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-      languageCode,
-      bookSlug,
-      chapter,
-      fileType: 'cue',
-    }),
+    catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'mp3'),
+    catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'cue'),
   ]);
 
   const mp3 = resolveChapterAudioFromQuery(mp3Data);

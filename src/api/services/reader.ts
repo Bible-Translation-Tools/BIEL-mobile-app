@@ -1,11 +1,9 @@
-import { graphqlRequest } from '@/api/graphql/client';
-import { CHAPTER_CONTENT_QUERY } from '@/api/graphql/queries';
+import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { getOfflineChapterHtml } from '@/api/services/offline-text';
 import { pickRendering } from '@/api/services/resource-selection';
 import type {
   ChapterContent,
-  ChapterContentQueryResult,
   ScriptureFootnote,
   ScriptureInlinePart,
   ScriptureLine,
@@ -298,11 +296,7 @@ async function fetchChapterContentFromNetwork(
   bookSlug: string,
   chapter: number,
 ): Promise<ChapterContent> {
-  const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
-    languageCode,
-    bookSlug,
-    chapter,
-  });
+  const data = await catalogApi.getChapterContent(languageCode, bookSlug, chapter);
 
   const rendering = pickRendering(data.scriptural_rendering_metadata, {
     bookSlug,
