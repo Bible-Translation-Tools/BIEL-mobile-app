@@ -1,12 +1,11 @@
-import { graphqlRequest } from '@/api/graphql/client';
-import { CHAPTERS_FOR_BOOK_QUERY } from '@/api/graphql/queries';
+import { catalogApi } from '@/api/catalog';
 import {
   getOfflineAudioChapterNumbers,
   resolveBookAudioChapters,
 } from '@/api/services/offline-audio';
 import { getOfflineChapterNumbers } from '@/api/services/offline-text';
 import { getCanonicalChapterCount } from '@/constants/bible-books';
-import type { ChapterItem, ChaptersQueryResult } from '@/types/book';
+import type { ChapterItem } from '@/types/book';
 
 async function getMergedOfflineChapterNumbers(
   languageCode: string,
@@ -71,10 +70,7 @@ export async function fetchChaptersForBook(
   bookSlug: string,
 ): Promise<ChapterItem[]> {
   try {
-    const data = await graphqlRequest<ChaptersQueryResult>(CHAPTERS_FOR_BOOK_QUERY, {
-      languageCode,
-      bookSlug,
-    });
+    const data = await catalogApi.getChaptersForBook(languageCode, bookSlug);
 
     const chapterNumbers = new Set<number>();
     for (const item of data.scriptural_rendering_metadata) {
