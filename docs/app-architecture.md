@@ -63,7 +63,7 @@ Extract a pure module when a rule is copied, or when you want a test with no moc
 
 A file either does I/O or it does not — never both. Stay in the same folders. Sibling `*-mapping.ts` / `*-parse.ts` with no `graphqlRequest`, `@/db`, files, or TrackPlayer.
 
-Already pure (leave them): `resource-selection.ts`, `whole-book-parser.ts`, `audio-timing-utils.ts`.
+Already pure (leave them): `resource-selection.ts`, `whole-book-parser.ts`, `audio-timing/cue-parser.ts`.
 
 Worth splitting:
 

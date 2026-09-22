@@ -1,11 +1,15 @@
+import { getVerseTimingParser, timingFileFormatFromSource } from '@/api/audio-timing';
+import type { TimingFileFormat } from '@/api/audio-timing';
 import { catalogApi } from '@/api/catalog';
-import { parseCueVerseTimings } from '@/api/services/audio-timing-utils';
+import { fetchRenderedContent } from '@/api/services/content-fetch';
 import {
   getOfflineChapterAudioUri,
   getOfflineChapterCueText,
 } from '@/api/services/offline-audio';
-import { fetchRenderedContent } from '@/api/services/content-fetch';
 import type { VerseTiming } from '@/types/audio';
+
+/** Timing format used for locally stored chapter cue files. */
+const OFFLINE_TIMING_FORMAT: TimingFileFormat = 'cue';
 
 export async function fetchChapterAudioUrl(
   languageCode: string,
@@ -59,7 +63,7 @@ export async function fetchChapterVerseTimings(
 ): Promise<VerseTiming[]> {
   const localCue = await getOfflineChapterCueText(languageCode, bookSlug, chapter);
   if (localCue) {
-    return parseCueVerseTimings(localCue);
+    return getVerseTimingParser(OFFLINE_TIMING_FORMAT).parse(localCue);
   }
 
   const url = await fetchChapterTimingUrl(languageCode, bookSlug, chapter);
@@ -72,7 +76,8 @@ export async function fetchChapterVerseTimings(
     }
 
     const text = await response.text();
-    return parseCueVerseTimings(text);
+    const format = timingFileFormatFromSource(url);
+    return getVerseTimingParser(format).parse(text);
   } catch {
     return [];
   }
