@@ -16,6 +16,7 @@ export type BookDownloadRecord = {
   sourceUrl: string;
   localPath: string;
   byteSize: number;
+  contentHash: string | null;
   downloadedAt: number;
 };
 
@@ -28,6 +29,7 @@ export type UpsertBookParams = {
   sourceUrl: string;
   localPath: string;
   byteSize: number;
+  contentHash?: string | null;
   chapterNumbers: number[];
   languageEnglishName?: string | null;
   languageNationalName?: string | null;
@@ -59,6 +61,19 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
 export async function initDatabase(): Promise<void> {
   const db = await getDb();
   await db.execAsync(SCHEMA_STATEMENTS.join('\n'));
+  await ensureColumn(db, 'books', 'content_hash', 'TEXT');
+  await ensureColumn(db, 'scripture_chapters', 'content_hash', 'TEXT');
+}
+
+async function ensureColumn(
+  db: SQLite.SQLiteDatabase,
+  table: string,
+  column: string,
+  definition: string,
+): Promise<void> {
+  const rows = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+  if (rows.some((row) => row.name === column)) return;
+  await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
 export async function getBookDownloadRecord(
@@ -76,10 +91,11 @@ export async function getBookDownloadRecord(
     source_url: string;
     local_path: string;
     byte_size: number;
+    content_hash: string | null;
     downloaded_at: number;
   }>(
     `SELECT id, language_code, book_slug, book_name, resource_type, content_name,
-            source_url, local_path, byte_size, downloaded_at
+            source_url, local_path, byte_size, content_hash, downloaded_at
      FROM books
      WHERE language_code = ? AND book_slug = ? COLLATE NOCASE`,
     languageCode,
@@ -98,6 +114,7 @@ export async function getBookDownloadRecord(
     sourceUrl: row.source_url,
     localPath: row.local_path,
     byteSize: row.byte_size,
+    contentHash: row.content_hash,
     downloadedAt: row.downloaded_at,
   };
 }
@@ -117,10 +134,11 @@ export async function listDownloadedBooksForLanguage(
     source_url: string;
     local_path: string;
     byte_size: number;
+    content_hash: string | null;
     downloaded_at: number;
   }>(
     `SELECT id, language_code, book_slug, book_name, resource_type, content_name,
-            source_url, local_path, byte_size, downloaded_at
+            source_url, local_path, byte_size, content_hash, downloaded_at
      FROM books
      WHERE language_code = ?
      ORDER BY book_slug ASC`,
@@ -137,6 +155,7 @@ export async function listDownloadedBooksForLanguage(
       sourceUrl: row.source_url,
       localPath: row.local_path,
       byteSize: row.byte_size,
+      contentHash: row.content_hash,
       downloadedAt: row.downloaded_at,
     }));
   } catch {
@@ -505,8 +524,8 @@ export async function upsertBookWithChapters(params: UpsertBookParams): Promise<
     const insertResult = await db.runAsync(
       `INSERT INTO books (
          language_code, book_slug, book_name, resource_type, content_name,
-         source_url, local_path, byte_size, downloaded_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         source_url, local_path, byte_size, content_hash, downloaded_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       params.languageCode,
       params.bookSlug,
       params.bookName,
@@ -515,6 +534,7 @@ export async function upsertBookWithChapters(params: UpsertBookParams): Promise<
       params.sourceUrl,
       params.localPath,
       params.byteSize,
+      params.contentHash ?? null,
       now,
     );
 
@@ -827,6 +847,7 @@ export type ScriptureChapterRecord = {
   sourceUrl: string;
   localPath: string;
   byteSize: number;
+  contentHash: string | null;
   downloadedAt: number;
 };
 
@@ -840,6 +861,7 @@ export type UpsertScriptureChapterParams = {
   sourceUrl: string;
   localPath: string;
   byteSize: number;
+  contentHash?: string | null;
 };
 
 export async function getScriptureChapterRecord(
@@ -858,10 +880,11 @@ export async function getScriptureChapterRecord(
     source_url: string;
     local_path: string;
     byte_size: number;
+    content_hash: string | null;
     downloaded_at: number;
   }>(
     `SELECT language_code, book_slug, chapter_number, book_name, resource_type, content_name,
-            source_url, local_path, byte_size, downloaded_at
+            source_url, local_path, byte_size, content_hash, downloaded_at
      FROM scripture_chapters
      WHERE language_code = ? AND book_slug = ? COLLATE NOCASE AND chapter_number = ?`,
     languageCode,
@@ -881,6 +904,7 @@ export async function getScriptureChapterRecord(
     sourceUrl: row.source_url,
     localPath: row.local_path,
     byteSize: row.byte_size,
+    contentHash: row.content_hash,
     downloadedAt: row.downloaded_at,
   };
 }
@@ -900,8 +924,8 @@ export async function upsertScriptureChapter(params: UpsertScriptureChapterParam
   await db.runAsync(
     `INSERT INTO scripture_chapters (
        language_code, book_slug, chapter_number, book_name, resource_type, content_name,
-       source_url, local_path, byte_size, downloaded_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       source_url, local_path, byte_size, content_hash, downloaded_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(language_code, book_slug, chapter_number) DO UPDATE SET
        book_name = excluded.book_name,
        resource_type = excluded.resource_type,
@@ -909,6 +933,7 @@ export async function upsertScriptureChapter(params: UpsertScriptureChapterParam
        source_url = excluded.source_url,
        local_path = excluded.local_path,
        byte_size = excluded.byte_size,
+       content_hash = excluded.content_hash,
        downloaded_at = excluded.downloaded_at`,
     params.languageCode,
     params.bookSlug,
@@ -919,6 +944,7 @@ export async function upsertScriptureChapter(params: UpsertScriptureChapterParam
     params.sourceUrl,
     params.localPath,
     params.byteSize,
+    params.contentHash ?? null,
     now,
   );
 }

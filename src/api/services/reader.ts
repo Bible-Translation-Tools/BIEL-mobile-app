@@ -47,13 +47,10 @@ export async function fetchChapterContent(
   bookSlug: string,
   chapter: number,
 ): Promise<ChapterContent> {
-  try {
-    return await fetchChapterContentFromNetwork(languageCode, bookSlug, chapter);
-  } catch (err) {
-    const offline = await getOfflineChapterHtml(languageCode, bookSlug, chapter);
-    if (offline) {
-      return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
-    }
-    throw err;
+  const offline = await getOfflineChapterHtml(languageCode, bookSlug, chapter);
+  if (offline) {
+    return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
   }
+
+  return fetchChapterContentFromNetwork(languageCode, bookSlug, chapter);
 }

@@ -84,6 +84,7 @@ export async function resolveBookContent(
     bookName: rendering.book_name,
     bookSlug: rendering.book_slug,
     url: rendering.rendered_content.url,
+    hash: rendering.rendered_content.hash ?? null,
     resourceType: rendering.rendered_content.content.resource_type,
     contentName: rendering.rendered_content.content.name,
     fileSizeBytes: rendering.rendered_content.file_size_bytes,
@@ -346,6 +347,7 @@ export async function downloadChapterScripture(
     sourceUrl: rendering.rendered_content.url,
     localPath: htmlFile.uri,
     byteSize,
+    contentHash: rendering.rendered_content.hash ?? null,
   });
 
   options?.onProgress?.(1);
@@ -466,6 +468,7 @@ export async function downloadBookScripture(
       sourceUrl: resolved.url,
       localPath: bookJsonFile.uri,
       byteSize,
+      contentHash: resolved.hash,
       chapterNumbers,
     });
 

@@ -36,31 +36,51 @@ async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]
   return applyLanguageDownloadStatus(items, downloadedCounts, catalogCounts);
 }
 
-async function fetchLanguageCatalogSnapshot(): Promise<LanguageCatalogSnapshot> {
+async function snapshotFromLocal(localItems: LanguageItem[]): Promise<LanguageCatalogSnapshot | null> {
+  if (localItems.length === 0) return null;
   try {
-    const items = await fetchLanguages();
     return {
-      languages: await withDownloadStatus(items),
+      languages: await withDownloadStatus(localItems),
       error: null,
     };
-  } catch (err) {
-    let offlineItems: LanguageItem[] = [];
-    try {
-      offlineItems = await fetchLanguagesOffline();
-    } catch {
-      offlineItems = [];
-    }
+  } catch {
+    return { languages: localItems, error: null };
+  }
+}
 
-    if (offlineItems.length > 0) {
-      try {
-        return {
-          languages: await withDownloadStatus(offlineItems),
-          error: null,
-        };
-      } catch {
-        return { languages: offlineItems, error: null };
-      }
+async function snapshotFromNetwork(): Promise<LanguageCatalogSnapshot> {
+  const items = await fetchLanguages();
+  return {
+    languages: await withDownloadStatus(items),
+    error: null,
+  };
+}
+
+async function fetchLanguageCatalogSnapshot(forceNetwork: boolean): Promise<LanguageCatalogSnapshot> {
+  let localItems: LanguageItem[] = [];
+  try {
+    localItems = await fetchLanguagesOffline();
+  } catch {
+    localItems = [];
+  }
+
+  if (!forceNetwork) {
+    const cached = await snapshotFromLocal(localItems);
+    if (cached) {
+      void snapshotFromNetwork()
+        .then((result) => {
+          snapshot = result;
+        })
+        .catch(() => {});
+      return cached;
     }
+  }
+
+  try {
+    return await snapshotFromNetwork();
+  } catch (err) {
+    const cached = await snapshotFromLocal(localItems);
+    if (cached) return cached;
 
     return {
       languages: [],
@@ -105,7 +125,7 @@ export function loadLanguageCatalog(options?: { force?: boolean }): Promise<Lang
     return loadPromise;
   }
 
-  loadPromise = fetchLanguageCatalogSnapshot()
+  loadPromise = fetchLanguageCatalogSnapshot(Boolean(options?.force))
     .then((result) => {
       snapshot = result;
       return result;
