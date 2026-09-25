@@ -1,12 +1,15 @@
-import { graphqlRequest } from '@/api/graphql/client';
-import { CHAPTER_AUDIO_FILE_QUERY } from '@/api/graphql/queries';
-import { parseCueVerseTimings } from '@/api/services/audio-timing-utils';
+import { getVerseTimingParser, timingFileFormatFromSource } from '@/api/audio-timing';
+import type { TimingFileFormat } from '@/api/audio-timing';
+import { catalogApi } from '@/api/catalog';
+import { fetchRenderedContent } from '@/api/services/content-fetch';
 import {
   getOfflineChapterAudioUri,
   getOfflineChapterCueText,
 } from '@/api/services/offline-audio';
-import { fetchRenderedContent } from '@/api/services/content-fetch';
-import type { ChapterAudioQueryResult, VerseTiming } from '@/types/audio';
+import type { VerseTiming } from '@/types/audio';
+
+/** Timing format used for locally stored chapter cue files. */
+const OFFLINE_TIMING_FORMAT: TimingFileFormat = 'cue';
 
 export async function fetchChapterAudioUrl(
   languageCode: string,
@@ -17,12 +20,7 @@ export async function fetchChapterAudioUrl(
   if (localUri) return localUri;
 
   try {
-    const data = await graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-      languageCode,
-      bookSlug,
-      chapter,
-      fileType: 'mp3',
-    });
+    const data = await catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'mp3');
 
     for (const content of data.content) {
       for (const rendered of content.rendered_contents) {
@@ -44,12 +42,7 @@ export async function fetchChapterTimingUrl(
   chapter: number,
 ): Promise<string | null> {
   try {
-    const data = await graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-      languageCode,
-      bookSlug,
-      chapter,
-      fileType: 'cue',
-    });
+    const data = await catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'cue');
 
     for (const content of data.content) {
       for (const rendered of content.rendered_contents) {
@@ -70,7 +63,7 @@ export async function fetchChapterVerseTimings(
 ): Promise<VerseTiming[]> {
   const localCue = await getOfflineChapterCueText(languageCode, bookSlug, chapter);
   if (localCue) {
-    return parseCueVerseTimings(localCue);
+    return getVerseTimingParser(OFFLINE_TIMING_FORMAT).parse(localCue);
   }
 
   const url = await fetchChapterTimingUrl(languageCode, bookSlug, chapter);
@@ -83,7 +76,8 @@ export async function fetchChapterVerseTimings(
     }
 
     const text = await response.text();
-    return parseCueVerseTimings(text);
+    const format = timingFileFormatFromSource(url);
+    return getVerseTimingParser(format).parse(text);
   } catch {
     return [];
   }

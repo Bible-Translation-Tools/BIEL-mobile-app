@@ -1,4 +1,4 @@
-import { assertNetworkAvailable } from '@/api/graphql/client';
+import { assertNetworkAvailable } from '@/api/network';
 
 export const BIEL_API_ORIGIN = 'https://api.bibleineverylanguage.org';
 

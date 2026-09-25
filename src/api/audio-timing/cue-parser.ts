@@ -1,3 +1,4 @@
+import type { VerseTimingParser } from '@/api/audio-timing/types';
 import { AudioCueMetadataSerializer } from '@/data/audio-cue-metadata';
 import type { VerseTiming } from '@/types/audio';
 
@@ -29,6 +30,13 @@ export function parseCueVerseTimings(cueText: string): VerseTiming[] {
   return [...merged.entries()]
     .map(([verse, time]) => ({ verse, time }))
     .sort((a, b) => a.verse - b.verse);
+}
+
+/** CUE-backed implementation of {@link VerseTimingParser}. */
+export function createCueVerseTimingParser(): VerseTimingParser {
+  return {
+    parse: parseCueVerseTimings,
+  };
 }
 
 /** Extracts JSON markers from CUE's comment (REM) section. */

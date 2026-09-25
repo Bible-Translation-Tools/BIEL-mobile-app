@@ -1,6 +1,5 @@
+import { catalogApi } from '@/api/catalog';
 import { BOOK_SLUG_ORDER, isOldTestament } from '@/constants/bible-books';
-import { graphqlRequest } from '@/api/graphql/client';
-import { BOOKS_FOR_LANGUAGE_QUERY } from '@/api/graphql/queries';
 import {
   listBookCatalog,
   listDownloadedBooksForLanguage,
@@ -9,7 +8,7 @@ import {
   listLocalContentBooksForLanguage,
   replaceBookCatalog,
 } from '@/db';
-import type { ApiBookMetadata, BookItem, BooksQueryResult } from '@/types/book';
+import type { ApiBookMetadata, BookItem } from '@/types/book';
 import type { LanguageItem } from '@/types/language';
 
 function mapApiBookToItem(book: ApiBookMetadata): BookItem | null {
@@ -36,9 +35,7 @@ function sortBooks(books: BookItem[]): BookItem[] {
 }
 
 export async function fetchBooksForLanguage(languageCode: string): Promise<BookItem[]> {
-  const data = await graphqlRequest<BooksQueryResult>(BOOKS_FOR_LANGUAGE_QUERY, {
-    languageCode,
-  });
+  const data = await catalogApi.getBooksForLanguage(languageCode);
 
   const books = data.scriptural_rendering_metadata
     .map(mapApiBookToItem)
@@ -145,20 +142,20 @@ export async function fetchDownloadedLibrary(): Promise<DownloadedLibraryLanguag
   });
 }
 
-/** Book slugs for bulk download: network, then cached catalog, then downloaded-only fallback. */
+/** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */
 export async function resolveLanguageBookSlugs(languageCode: string): Promise<string[]> {
+  const catalog = await listBookCatalog(languageCode);
+  if (catalog.length > 0) {
+    return catalog.map((book) => book.slug);
+  }
+
   try {
     const books = await fetchBooksForLanguage(languageCode);
     if (books.length > 0) {
       return books.map((book) => book.slug);
     }
   } catch {
-    // Fall through to cached catalog / downloaded-only list when offline.
-  }
-
-  const catalog = await listBookCatalog(languageCode);
-  if (catalog.length > 0) {
-    return catalog.map((book) => book.slug);
+    // Fall through to downloaded-only list when offline.
   }
 
   const downloaded = await listDownloadedBooksForLanguage(languageCode).catch(() => []);
