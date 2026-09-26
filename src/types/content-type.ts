@@ -1,18 +1,8 @@
-import type { ThemeColor } from '@/constants/theme';
 import type { BookItem, ChapterItem } from '@/types/book';
 
 export type ContentTypeIndicator = 'both' | 'text' | 'audio';
 
 export type LibraryContentFilter = 'all' | 'scripture' | 'audio' | 'both';
-
-export const CONTENT_TYPE_COLORS: Record<
-  ContentTypeIndicator,
-  { background: ThemeColor; foreground: ThemeColor }
-> = {
-  both: { background: 'badgeBothBackground', foreground: 'badgeBothForeground' },
-  text: { background: 'badgeTextBackground', foreground: 'badgeTextForeground' },
-  audio: { background: 'badgeAudioBackground', foreground: 'badgeAudioForeground' },
-};
 
 export const CHAPTER_CONTENT_LEGEND_ORDER: ContentTypeIndicator[] = [
   'both',

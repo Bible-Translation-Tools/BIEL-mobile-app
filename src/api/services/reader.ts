@@ -1,8 +1,8 @@
 import { catalogApi } from '@/api/catalog';
-import { buildChapterContentFromHtml } from '@/api/services/chapter-html-parser';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { getOfflineChapterHtml } from '@/api/services/offline-text';
-import { pickRendering } from '@/api/services/resource-selection';
+import { buildChapterContentFromHtml } from '@/domain/chapter-html-parser';
+import { pickRendering } from '@/domain/resource-selection';
 import type { ChapterContent } from '@/types/reading';
 
 async function fetchChapterContentFromNetwork(
@@ -10,9 +10,9 @@ async function fetchChapterContentFromNetwork(
   bookSlug: string,
   chapter: number,
 ): Promise<ChapterContent> {
-  const data = await catalogApi.getChapterContent(languageCode, bookSlug, chapter);
+  const renderings = await catalogApi.getChapterRenderings(languageCode, bookSlug, chapter);
 
-  const rendering = pickRendering(data.scriptural_rendering_metadata, {
+  const rendering = pickRendering(renderings, {
     bookSlug,
     requireChapter: true,
   });
@@ -20,7 +20,7 @@ async function fetchChapterContentFromNetwork(
     throw new Error('Chapter not found');
   }
 
-  const apiUrl = rendering.rendered_content.url;
+  const apiUrl = rendering.url;
   if (!apiUrl) {
     throw new Error('Chapter rendered URL is missing');
   }
@@ -39,7 +39,7 @@ async function fetchChapterContentFromNetwork(
   }
 
   const html = await response.text();
-  return buildChapterContentFromHtml(html, rendering.book_name, rendering.chapter);
+  return buildChapterContentFromHtml(html, rendering.bookName, rendering.chapter);
 }
 
 export async function fetchChapterContent(

@@ -24,16 +24,23 @@ import {
   mergeAudioChapter,
   upsertAudioBookWithChapters,
 } from '@/db';
-import type {
-  AudioBookManifest,
-  BookAudioFilesQueryResult, ChapterAudioQueryResult, ResolvedChapterAudio
-} from '@/types/audio';
+import {
+  DOWNLOAD_CANCELLED,
+  DOWNLOAD_COMPLETED,
+  isManifestFullyDownloaded,
+  mergeChapterRecords,
+  sumChapterBytes,
+  sumManifestBytes,
+  type DownloadOutcome,
+} from '@/domain/downloads';
+import type { AudioBookManifest, ResolvedChapterAudio } from '@/types/audio';
+import type { AudioFile } from '@/types/catalog';
 
 const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = 3;
 export type DownloadProgressCallback = (progress: number) => void;
 
-/** Dedupes overlapping LANGUAGE_AUDIO_FILES_QUERY requests per language code. */
-const languageAudioFilesInflight = new Map<string, Promise<BookAudioFilesQueryResult>>();
+/** Dedupes overlapping language audio catalog requests per language code. */
+const languageAudioFilesInflight = new Map<string, Promise<AudioFile[]>>();
 
 function abortError(): Error {
   const error = new Error('Download aborted');
@@ -41,12 +48,8 @@ function abortError(): Error {
   return error;
 }
 
-function isContentsUrl(url: string | null | undefined): boolean {
-  return Boolean(url && url.includes('CONTENTS'));
-}
-
 function parseBookAudioManifest(
-  data: BookAudioFilesQueryResult,
+  files: AudioFile[],
   bookSlug: string,
 ): Pick<AudioBookManifest, 'bookName' | 'chapters'> {
   const byChapter = new Map<
@@ -55,33 +58,25 @@ function parseBookAudioManifest(
   >();
   let bookName = bookSlug;
 
-  for (const content of data.content) {
-    for (const rendered of content.rendered_contents) {
-      if (!isContentsUrl(rendered.url)) continue;
+  for (const file of files) {
+    const chapter = file.chapter;
+    if (chapter == null) continue;
 
-      const meta = rendered.scriptural_rendering_metadata;
-      if (!meta) continue;
-
-      const chapter = meta.chapter;
-      if (chapter == null) continue;
-
-      if (meta.book_name) {
-        bookName = meta.book_name;
-      }
-
-      const entry = byChapter.get(chapter) ?? {};
-      const fileType = rendered.file_type?.toLowerCase();
-
-      if (fileType === 'mp3') {
-        entry.mp3Url = rendered.url;
-        entry.mp3ByteSize = rendered.file_size_bytes ?? 0;
-      } else if (fileType === 'cue') {
-        entry.cueUrl = rendered.url;
-        entry.cueByteSize = rendered.file_size_bytes ?? 0;
-      }
-
-      byChapter.set(chapter, entry);
+    if (file.bookName) {
+      bookName = file.bookName;
     }
+
+    const entry = byChapter.get(chapter) ?? {};
+
+    if (file.fileType === 'mp3') {
+      entry.mp3Url = file.url;
+      entry.mp3ByteSize = file.fileSizeBytes ?? 0;
+    } else if (file.fileType === 'cue') {
+      entry.cueUrl = file.url;
+      entry.cueByteSize = file.fileSizeBytes ?? 0;
+    }
+
+    byChapter.set(chapter, entry);
   }
 
   const chapters: ResolvedChapterAudio[] = [...byChapter.entries()]
@@ -102,46 +97,28 @@ function parseBookAudioManifest(
   return { bookName, chapters };
 }
 
-function sumManifestBytes(manifest: Pick<AudioBookManifest, 'chapters'>): number {
-  return manifest.chapters.reduce(
-    (sum, chapter) => sum + chapter.mp3ByteSize + (chapter.cueByteSize ?? 0),
-    0,
-  );
-}
+function parseLanguageAudioManifests(files: AudioFile[]): Map<string, AudioBookManifest> {
+  const filesByBook = new Map<string, AudioFile[]>();
 
-function parseLanguageAudioManifests(
-  data: BookAudioFilesQueryResult,
-): Map<string, AudioBookManifest> {
-  const renderedByBook = new Map<
-    string,
-    BookAudioFilesQueryResult['content'][number]['rendered_contents']
-  >();
+  for (const file of files) {
+    if (!file.bookSlug) continue;
 
-  for (const content of data.content) {
-    for (const rendered of content.rendered_contents) {
-      const meta = rendered.scriptural_rendering_metadata;
-      if (!meta?.book_slug) continue;
-
-      const slug = normalizeBookSlug(meta.book_slug);
-      const renderedContents = renderedByBook.get(slug) ?? [];
-      renderedContents.push(rendered);
-      renderedByBook.set(slug, renderedContents);
-    }
+    const slug = normalizeBookSlug(file.bookSlug);
+    const bookFiles = filesByBook.get(slug) ?? [];
+    bookFiles.push(file);
+    filesByBook.set(slug, bookFiles);
   }
 
   const manifests = new Map<string, AudioBookManifest>();
-  for (const [bookSlug, renderedContents] of renderedByBook) {
-    const { bookName, chapters } = parseBookAudioManifest(
-      { content: [{ rendered_contents: renderedContents }] },
-      bookSlug,
-    );
+  for (const [bookSlug, bookFiles] of filesByBook) {
+    const { bookName, chapters } = parseBookAudioManifest(bookFiles, bookSlug);
     manifests.set(bookSlug, { bookSlug, bookName, chapters });
   }
 
   return manifests;
 }
 
-async function fetchLanguageAudioFiles(languageCode: string): Promise<BookAudioFilesQueryResult> {
+async function fetchLanguageAudioFiles(languageCode: string): Promise<AudioFile[]> {
   const key = languageCode.toUpperCase();
   const inflight = languageAudioFilesInflight.get(key);
   if (inflight) {
@@ -159,21 +136,6 @@ async function getLanguageAudioManifests(
   languageCode: string,
 ): Promise<Map<string, AudioBookManifest>> {
   return parseLanguageAudioManifests(await fetchLanguageAudioFiles(languageCode));
-}
-
-function sumChapterBytes(chapters: AudioChapterRecord[]): number {
-  return chapters.reduce((sum, chapter) => sum + chapter.mp3ByteSize + chapter.cueByteSize, 0);
-}
-
-function mergeChapterRecords(
-  existing: AudioChapterRecord[],
-  saved: AudioChapterRecord[],
-): AudioChapterRecord[] {
-  const mergedByNumber = new Map(existing.map((chapter) => [chapter.chapterNumber, chapter]));
-  for (const chapter of saved) {
-    mergedByNumber.set(chapter.chapterNumber, chapter);
-  }
-  return [...mergedByNumber.values()].sort((a, b) => a.chapterNumber - b.chapterNumber);
 }
 
 function isChapterMp3Available(
@@ -199,14 +161,18 @@ function isBookFullyDownloadedLocally(
   bookSlug: string,
   chapterRecords: AudioChapterRecord[],
 ): boolean {
-  if (manifest.chapters.length === 0) {
-    return false;
-  }
-
-  return manifest.chapters.every((chapter) => {
-    const existing = chapterRecords.find((record) => record.chapterNumber === chapter.chapter);
-    return isChapterMp3Available(languageCode, bookSlug, chapter.chapter, existing);
-  });
+  const available = new Set(
+    manifest.chapters
+      .map((chapter) => chapter.chapter)
+      .filter((chapter) => {
+        const existing = chapterRecords.find((record) => record.chapterNumber === chapter);
+        return isChapterMp3Available(languageCode, bookSlug, chapter, existing);
+      }),
+  );
+  return isManifestFullyDownloaded(
+    manifest.chapters.map((chapter) => chapter.chapter),
+    available,
+  );
 }
 
 function listMissingAudioChapters(
@@ -265,10 +231,10 @@ export async function resolveBookAudioChapters(
   languageCode: string,
   bookSlug: string,
 ): Promise<AudioBookManifest> {
-  const data = await catalogApi.getBookAudioFiles(languageCode, bookSlug);
+  const files = await catalogApi.getBookAudioFiles(languageCode, bookSlug);
 
   const canonicalSlug = normalizeBookSlug(bookSlug);
-  const { bookName, chapters } = parseBookAudioManifest(data, canonicalSlug);
+  const { bookName, chapters } = parseBookAudioManifest(files, canonicalSlug);
 
   return {
     bookSlug: canonicalSlug,
@@ -292,7 +258,7 @@ export async function getBookAudioTotalBytes(
   bookSlug: string,
 ): Promise<number> {
   const manifest = await resolveBookAudioChapters(languageCode, bookSlug);
-  return sumManifestBytes(manifest);
+  return sumManifestBytes(manifest.chapters);
 }
 
 export async function getDownloadedBookAudioByteSize(
@@ -327,33 +293,46 @@ export async function getOfflineAudioChapterNumbers(
   return [...numbers].sort((a, b) => a - b);
 }
 
+/** Local-only: reads the database and disk, never the network. */
 export async function isBookAudioDownloaded(
   languageCode: string,
   bookSlug: string,
 ): Promise<boolean> {
   const canonicalSlug = normalizeBookSlug(bookSlug);
+  const record = await getAudioBookRecord(languageCode, canonicalSlug);
+  if (!record?.isComplete) return false;
 
-  try {
-    const [manifest, existingChapters] = await Promise.all([
-      resolveBookAudioChapters(languageCode, canonicalSlug),
-      listAudioChaptersForBook(languageCode, canonicalSlug),
-    ]);
-    if (manifest.chapters.length === 0) return false;
+  const chapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
+  return (
+    chapters.length > 0 &&
+    chapters.every((chapter) =>
+      isChapterMp3Available(languageCode, canonicalSlug, chapter.chapterNumber, chapter),
+    )
+  );
+}
 
-    const isComplete = isBookFullyDownloadedLocally(
-      manifest,
-      languageCode,
-      canonicalSlug,
-      existingChapters,
-    );
-    if (isComplete) {
-      await markAudioBookComplete(languageCode, canonicalSlug);
-    }
-    return isComplete;
-  } catch {
-    const record = await getAudioBookRecord(languageCode, canonicalSlug);
-    return record?.isComplete === true;
+/** Compares local files with the server manifest and marks the book complete when they match. */
+export async function syncBookAudioCompletion(
+  languageCode: string,
+  bookSlug: string,
+  manifest?: Pick<AudioBookManifest, 'chapters'>,
+): Promise<boolean> {
+  const canonicalSlug = normalizeBookSlug(bookSlug);
+  const [resolvedManifest, existingChapters] = await Promise.all([
+    manifest ?? resolveBookAudioChapters(languageCode, canonicalSlug),
+    listAudioChaptersForBook(languageCode, canonicalSlug),
+  ]);
+
+  const isComplete = isBookFullyDownloadedLocally(
+    resolvedManifest,
+    languageCode,
+    canonicalSlug,
+    existingChapters,
+  );
+  if (isComplete) {
+    await markAudioBookComplete(languageCode, canonicalSlug);
   }
+  return isComplete;
 }
 
 export async function getOfflineChapterAudioUri(
@@ -524,7 +503,7 @@ export async function downloadBookAudio(
     onProgress?: DownloadProgressCallback;
     signal?: AbortSignal;
   },
-): Promise<void> {
+): Promise<DownloadOutcome> {
   await ensureOfflineRootExists();
 
   const manifest = await resolveBookAudioChapters(languageCode, bookSlug);
@@ -533,7 +512,7 @@ export async function downloadBookAudio(
   }
 
   if (options?.signal?.aborted) {
-    return;
+    return DOWNLOAD_CANCELLED;
   }
 
   const canonicalSlug = manifest.bookSlug;
@@ -571,7 +550,7 @@ export async function downloadBookAudio(
     }
 
     options?.onProgress?.(1);
-    return;
+    return DOWNLOAD_COMPLETED;
   }
 
   const totalChapters = pendingChapters.length;
@@ -624,7 +603,7 @@ export async function downloadBookAudio(
       const merged = mergeChapterRecords(existingChapters, savedChapters);
       await persistChapters(merged, false);
     }
-    return;
+    return DOWNLOAD_CANCELLED;
   }
 
   const merged = mergeChapterRecords(existingChapters, savedChapters);
@@ -650,6 +629,7 @@ export async function downloadBookAudio(
   }
 
   options?.onProgress?.(1);
+  return DOWNLOAD_COMPLETED;
 }
 
 export async function deleteBookAudio(languageCode: string, bookSlug: string): Promise<void> {
@@ -695,7 +675,7 @@ export async function getLanguageAudioTotalBytes(languageCode: string): Promise<
   let total = 0;
 
   for (const [bookSlug, manifest] of manifests) {
-    const remoteBytes = sumManifestBytes(manifest);
+    const remoteBytes = sumManifestBytes(manifest.chapters);
     const storedBytes = downloadedBytesBySlug.get(bookSlug);
 
     if (storedBytes != null) {
@@ -718,7 +698,7 @@ export async function downloadLanguageAudio(
     onProgress?: DownloadProgressCallback;
     signal?: AbortSignal;
   },
-): Promise<void> {
+): Promise<DownloadOutcome> {
   const books = await resolveLanguageAudioBooks(languageCode);
   if (books.length === 0) {
     throw new Error('No audio available to download for this language');
@@ -727,7 +707,7 @@ export async function downloadLanguageAudio(
   const pendingBooks: Pick<AudioBookManifest, 'bookSlug' | 'bookName'>[] = [];
   for (const book of books) {
     if (options?.signal?.aborted) {
-      break;
+      return DOWNLOAD_CANCELLED;
     }
     if (!(await isBookAudioDownloaded(languageCode, book.bookSlug))) {
       pendingBooks.push(book);
@@ -736,7 +716,7 @@ export async function downloadLanguageAudio(
 
   if (pendingBooks.length === 0) {
     options?.onProgress?.(1);
-    return;
+    return DOWNLOAD_COMPLETED;
   }
 
   const failedBooks: { bookName: string; message: string }[] = [];
@@ -768,7 +748,7 @@ export async function downloadLanguageAudio(
   }
 
   if (options?.signal?.aborted) {
-    return;
+    return DOWNLOAD_CANCELLED;
   }
 
   if (failedBooks.length > 0) {
@@ -776,6 +756,7 @@ export async function downloadLanguageAudio(
   }
 
   options?.onProgress?.(1);
+  return DOWNLOAD_COMPLETED;
 }
 
 export async function deleteLanguageAudio(languageCode: string): Promise<void> {
@@ -785,8 +766,8 @@ export async function deleteLanguageAudio(languageCode: string): Promise<void> {
   }
 }
 
-function resolveChapterAudioFromQuery(
-  data: ChapterAudioQueryResult,
+function resolveChapterAudioFiles(
+  files: AudioFile[],
 ): { mp3Url?: string; mp3ByteSize?: number; cueUrl?: string; cueByteSize?: number } {
   const entry: {
     mp3Url?: string;
@@ -795,18 +776,13 @@ function resolveChapterAudioFromQuery(
     cueByteSize?: number;
   } = {};
 
-  for (const content of data.content) {
-    for (const rendered of content.rendered_contents) {
-      if (!isContentsUrl(rendered.url)) continue;
-
-      const fileType = rendered.file_type?.toLowerCase();
-      if (fileType === 'mp3') {
-        entry.mp3Url = rendered.url;
-        entry.mp3ByteSize = rendered.file_size_bytes ?? 0;
-      } else if (fileType === 'cue') {
-        entry.cueUrl = rendered.url;
-        entry.cueByteSize = rendered.file_size_bytes ?? 0;
-      }
+  for (const file of files) {
+    if (file.fileType === 'mp3') {
+      entry.mp3Url = file.url;
+      entry.mp3ByteSize = file.fileSizeBytes ?? 0;
+    } else if (file.fileType === 'cue') {
+      entry.cueUrl = file.url;
+      entry.cueByteSize = file.fileSizeBytes ?? 0;
     }
   }
 
@@ -827,12 +803,12 @@ export async function getChapterAudioTotalBytes(
 
   try {
     const [mp3Data, cueData] = await Promise.all([
-      catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'mp3'),
-      catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'cue'),
+      catalogApi.getChapterAudioFiles(languageCode, bookSlug, chapter, 'mp3'),
+      catalogApi.getChapterAudioFiles(languageCode, bookSlug, chapter, 'cue'),
     ]);
 
-    const mp3 = resolveChapterAudioFromQuery(mp3Data);
-    const cue = resolveChapterAudioFromQuery(cueData);
+    const mp3 = resolveChapterAudioFiles(mp3Data);
+    const cue = resolveChapterAudioFiles(cueData);
     return (mp3.mp3ByteSize ?? 0) + (cue.cueByteSize ?? 0);
   } catch {
     return 0;
@@ -858,16 +834,16 @@ export async function downloadChapterAudio(
     onProgress?: DownloadProgressCallback;
     signal?: AbortSignal;
   },
-): Promise<void> {
+): Promise<DownloadOutcome> {
   await ensureOfflineRootExists();
 
   const [mp3Data, cueData] = await Promise.all([
-    catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'mp3'),
-    catalogApi.getChapterAudioFile(languageCode, bookSlug, chapter, 'cue'),
+    catalogApi.getChapterAudioFiles(languageCode, bookSlug, chapter, 'mp3'),
+    catalogApi.getChapterAudioFiles(languageCode, bookSlug, chapter, 'cue'),
   ]);
 
-  const mp3 = resolveChapterAudioFromQuery(mp3Data);
-  const cue = resolveChapterAudioFromQuery(cueData);
+  const mp3 = resolveChapterAudioFiles(mp3Data);
+  const cue = resolveChapterAudioFiles(cueData);
 
   if (!mp3.mp3Url) {
     throw new Error('No audio available for this chapter');
@@ -915,7 +891,12 @@ export async function downloadChapterAudio(
     cueByteSize,
   });
 
+  if (manifest.chapters.length > 0) {
+    await syncBookAudioCompletion(languageCode, canonicalSlug, manifest);
+  }
+
   options?.onProgress?.(1);
+  return DOWNLOAD_COMPLETED;
 }
 
 export async function deleteChapterAudio(

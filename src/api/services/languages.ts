@@ -1,6 +1,7 @@
 import { catalogApi } from '@/api/catalog';
 import { listLanguageCatalog, listLanguagesWithDownloads, replaceLanguageCatalog } from '@/db';
-import type { ApiLanguage, LanguageItem } from '@/types/language';
+import type { CatalogLanguage } from '@/types/catalog';
+import type { LanguageItem } from '@/types/language';
 
 /** Resource types that represent readable scripture / text content */
 const TEXT_RESOURCE_TYPES = new Set([
@@ -17,15 +18,13 @@ const TEXT_RESOURCE_TYPES = new Set([
   'uhb',
 ]);
 
-export function mapApiLanguageToItem(language: ApiLanguage, hasAudio = false): LanguageItem {
-  const resourceTypes = new Set(
-    language.contents.map((c) => c.resource_type).filter((t): t is string => Boolean(t)),
-  );
+function mapCatalogLanguageToItem(language: CatalogLanguage, hasAudio = false): LanguageItem {
+  const resourceTypes = new Set(language.resourceTypes);
 
   return {
-    code: language.ietf_code,
-    name: language.english_name,
-    nationalName: language.national_name || language.english_name,
+    code: language.code,
+    name: language.englishName,
+    nationalName: language.nationalName || language.englishName,
     hasText: [...TEXT_RESOURCE_TYPES].some((type) => resourceTypes.has(type)),
     hasAudio,
     downloadStatus: 'pending',
@@ -33,22 +32,19 @@ export function mapApiLanguageToItem(language: ApiLanguage, hasAudio = false): L
 }
 
 async function fetchLanguageCodesWithChapterAudio(): Promise<Set<string>> {
-  const data = await catalogApi.getLanguagesWithChapterAudio();
+  const codes = await catalogApi.getLanguageCodesWithChapterAudio();
 
-  return new Set(data.language.map((language) => language.ietf_code.toUpperCase()));
+  return new Set(codes.map((code) => code.toUpperCase()));
 }
 
 export async function fetchLanguages(): Promise<LanguageItem[]> {
-  const [data, audioLanguageCodes] = await Promise.all([
+  const [catalogLanguages, audioLanguageCodes] = await Promise.all([
     catalogApi.getLanguages(),
     fetchLanguageCodesWithChapterAudio().catch(() => new Set<string>()),
   ]);
 
-  const languages = data.language.map((language) =>
-    mapApiLanguageToItem(
-      language,
-      audioLanguageCodes.has(language.ietf_code.toUpperCase()),
-    ),
+  const languages = catalogLanguages.map((language) =>
+    mapCatalogLanguageToItem(language, audioLanguageCodes.has(language.code.toUpperCase())),
   );
   try {
     await replaceLanguageCatalog(languages);

@@ -2,24 +2,27 @@ import { catalogApi } from '@/api/catalog';
 import { BOOK_SLUG_ORDER, isOldTestament } from '@/constants/bible-books';
 import {
   listBookCatalog,
+  listDownloadedAudioBookSlugs,
+  listDownloadedBookSlugs,
   listDownloadedBooksForLanguage,
   listLanguagesWithDownloads,
   listLocalContentBooks,
   listLocalContentBooksForLanguage,
   replaceBookCatalog,
 } from '@/db';
-import type { ApiBookMetadata, BookItem } from '@/types/book';
+import type { BookItem } from '@/types/book';
+import type { CatalogBook } from '@/types/catalog';
 import type { LanguageItem } from '@/types/language';
 
-function mapApiBookToItem(book: ApiBookMetadata): BookItem | null {
-  const slug = book.book_slug?.trim();
+function mapCatalogBookToItem(book: CatalogBook): BookItem | null {
+  const slug = book.bookSlug?.trim();
   if (!slug || !BOOK_SLUG_ORDER.has(slug as never)) {
     return null;
   }
 
   return {
     id: slug,
-    name: book.book_name,
+    name: book.bookName,
     slug,
     testament: isOldTestament(slug) ? 'old' : 'new',
     downloadStatus: 'pending',
@@ -35,10 +38,10 @@ function sortBooks(books: BookItem[]): BookItem[] {
 }
 
 export async function fetchBooksForLanguage(languageCode: string): Promise<BookItem[]> {
-  const data = await catalogApi.getBooksForLanguage(languageCode);
+  const catalogBooks = await catalogApi.getBooksForLanguage(languageCode);
 
-  const books = data.scriptural_rendering_metadata
-    .map(mapApiBookToItem)
+  const books = catalogBooks
+    .map(mapCatalogBookToItem)
     .filter((book): book is BookItem => book !== null);
 
   const sorted = sortBooks(books);
@@ -140,6 +143,17 @@ export async function fetchDownloadedLibrary(): Promise<DownloadedLibraryLanguag
     if (!books || books.length === 0) return [];
     return [{ language, books: sortBooks(books) }];
   });
+}
+
+/** Slugs of books with downloaded scripture and audio. Local DB only; failures yield empty lists. */
+export async function listDownloadedBookSlugsByKind(
+  languageCode: string,
+): Promise<{ scripture: string[]; audio: string[] }> {
+  const [scripture, audio] = await Promise.all([
+    listDownloadedBookSlugs(languageCode).catch(() => []),
+    listDownloadedAudioBookSlugs(languageCode).catch(() => []),
+  ]);
+  return { scripture, audio };
 }
 
 /** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */

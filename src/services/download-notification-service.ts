@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { i18n } from '@/i18n';
-import { listActiveDownloadTasks } from '@/stores/download-progress-store';
+import { listActiveDownloadTasks } from '@/services/download-progress';
 import type { DownloadProgressTask } from '@/types/download-progress';
 
 const DOWNLOAD_CHANNEL_ID = 'book-downloads';

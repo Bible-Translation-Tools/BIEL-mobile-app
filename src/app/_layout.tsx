@@ -73,6 +73,8 @@ export default function RootLayout() {
         ]);
         await ensureOfflineRootExists();
         await loadLanguageCatalog();
+      } catch (err) {
+        console.error('[layout] app startup failed', err);
       } finally {
         hideNativeSplash();
         setAppReady(true);

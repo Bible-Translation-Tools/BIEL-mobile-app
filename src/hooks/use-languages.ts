@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   getLanguageCatalogSnapshot,
+  LANGUAGE_CATALOG_LOAD_FAILED,
   loadLanguageCatalog,
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
@@ -83,7 +84,7 @@ export function useLanguages() {
   return {
     languages: state.languages,
     loading: state.loading,
-    error: state.error,
+    error: state.error === LANGUAGE_CATALOG_LOAD_FAILED ? t('failedToLoadLanguages') : state.error,
     refetch,
     refreshDownloadStatus,
   };

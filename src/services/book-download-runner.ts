@@ -1,4 +1,3 @@
-import type { ContentDownloadHandlers } from '@/hooks/use-content-download';
 import {
   showDownloadFinishedNotification,
   syncDownloadNotification,
@@ -8,11 +7,13 @@ import {
   removeDownloadTask,
   updateDownloadTaskProgress,
   upsertDownloadTask,
-} from '@/stores/download-progress-store';
+} from '@/services/download-progress';
 import {
   buildDownloadTaskId,
+  type DownloadJob,
   type GlobalDownloadSync,
 } from '@/types/download-progress';
+import { isAbortError } from '@/utils/run-with-concurrency';
 
 type ActiveJob = {
   sync: GlobalDownloadSync;
@@ -20,10 +21,6 @@ type ActiveJob = {
 };
 
 const activeJobs = new Map<string, ActiveJob>();
-
-function isAbortError(err: unknown): boolean {
-  return err instanceof Error && err.name === 'AbortError';
-}
 
 function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
@@ -36,7 +33,7 @@ export function cancelGlobalBookDownload(sync: GlobalDownloadSync): void {
 
 export async function runGlobalBookDownload(params: {
   sync: GlobalDownloadSync;
-  download: ContentDownloadHandlers['download'];
+  download: DownloadJob;
   errorFallback: string;
   onSuccess?: () => void;
   onError?: (message: string) => void;
@@ -52,8 +49,22 @@ export async function runGlobalBookDownload(params: {
   upsertDownloadTask(params.sync, { status: 'downloading', progress: 0 });
   await syncDownloadNotification();
 
+  const fail = async (message: string) => {
+    const task = upsertDownloadTask(params.sync, {
+      status: 'failed',
+      errorMessage: message,
+    });
+    await showDownloadFinishedNotification(task, false);
+    params.onError?.(message);
+  };
+
+  const cancel = async () => {
+    removeDownloadTask(id);
+    await syncDownloadNotification();
+  };
+
   try {
-    await params.download({
+    const outcome = await params.download({
       signal: controller.signal,
       onProgress: (progress) => {
         updateDownloadTaskProgress(id, progress);
@@ -61,23 +72,24 @@ export async function runGlobalBookDownload(params: {
       },
     });
 
+    if (outcome.status === 'cancelled') {
+      await cancel();
+      return;
+    }
+    if (outcome.status === 'partial') {
+      await fail(params.errorFallback);
+      return;
+    }
+
     const task = upsertDownloadTask(params.sync, { status: 'completed', progress: 1 });
     await showDownloadFinishedNotification(task, true);
     params.onSuccess?.();
   } catch (err) {
     if (isAbortError(err)) {
-      removeDownloadTask(id);
-      await syncDownloadNotification();
+      await cancel();
       return;
     }
-
-    const message = toErrorMessage(err, params.errorFallback);
-    const task = upsertDownloadTask(params.sync, {
-      status: 'failed',
-      errorMessage: message,
-    });
-    await showDownloadFinishedNotification(task, false);
-    params.onError?.(message);
+    await fail(toErrorMessage(err, params.errorFallback));
   } finally {
     activeJobs.delete(id);
     setTimeout(() => {

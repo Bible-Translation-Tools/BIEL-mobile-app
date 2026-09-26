@@ -8,6 +8,7 @@ import {
 } from '@/components/download/download-menu-popover';
 import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
+import { isFullyDownloaded as isFullyDownloadedRule } from '@/domain/downloads';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
@@ -130,9 +131,12 @@ export const BookCardRow = memo(function BookCardRow({
   useDownloadErrorAlert(audioError, clearAudioError);
 
   const bookHasAudio = book.hasAudio === true;
-  const isFullyDownloaded = audioOnly
-    ? isAudioDownloadedInList
-    : isScriptureDownloaded && (!bookHasAudio || isAudioDownloadedInList);
+  const isFullyDownloaded = isFullyDownloadedRule({
+    hasText: !audioOnly,
+    textDownloaded: isScriptureDownloaded,
+    hasAudio: audioOnly || bookHasAudio,
+    audioDownloaded: isAudioDownloadedInList,
+  });
 
   const openDownloadMenu = useCallback(() => {
     Keyboard.dismiss();

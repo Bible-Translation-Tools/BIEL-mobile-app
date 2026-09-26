@@ -1,6 +1,5 @@
-import type { VerseTimingParser } from '@/api/audio-timing/types';
 import { AudioCueMetadataSerializer } from '@/data/audio-cue-metadata';
-import type { VerseTiming } from '@/types/audio';
+import type { VerseTiming, VerseTimingParser } from '@/types/audio';
 
 const DEFAULT_SAMPLE_RATE = 44100;
 

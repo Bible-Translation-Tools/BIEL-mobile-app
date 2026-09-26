@@ -1,25 +1,3 @@
-export type ApiBookContentRendering = {
-  book_name: string;
-  book_slug: string;
-  rendered_content: {
-    url: string;
-    hash: string | null;
-    file_size_bytes: number;
-    content: {
-      name: string;
-      resource_type: string;
-    };
-  };
-};
-
-export type BookContentQueryResult = {
-  scriptural_rendering_metadata: ApiBookContentRendering[];
-};
-
-export type LanguageScriptureFilesQueryResult = {
-  scriptural_rendering_metadata: ApiBookContentRendering[];
-};
-
 export type ResolvedBookContent = {
   bookName: string;
   bookSlug: string;

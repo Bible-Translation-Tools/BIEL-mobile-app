@@ -70,14 +70,7 @@ export async function fetchChaptersForBook(
   bookSlug: string,
 ): Promise<ChapterItem[]> {
   try {
-    const data = await catalogApi.getChaptersForBook(languageCode, bookSlug);
-
-    const chapterNumbers = new Set<number>();
-    for (const item of data.scriptural_rendering_metadata) {
-      if (item.chapter != null) {
-        chapterNumbers.add(item.chapter);
-      }
-    }
+    const chapterNumbers = new Set(await catalogApi.getChapterNumbersForBook(languageCode, bookSlug));
 
     return [...chapterNumbers]
       .sort((a, b) => a - b)

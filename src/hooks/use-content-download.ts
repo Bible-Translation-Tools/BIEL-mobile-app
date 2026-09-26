@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const PROGRESS_MIN_DELTA = 0.05;
-const PROGRESS_MIN_INTERVAL_MS = 200;
-
-import { formatByteSize } from '@/api/services/whole-book-parser';
+import { formatByteSize } from '@/domain/whole-book-parser';
 import {
     cancelGlobalBookDownload,
     runGlobalBookDownload,
 } from '@/services/book-download-runner';
-import {
-    removeDownloadTask,
-    useDownloadProgress,
-} from '@/stores/download-progress-store';
+import { removeDownloadTask } from '@/services/download-progress';
+import { useDownloadProgress } from '@/stores/download-progress-store';
 import {
     buildDownloadTaskId,
+    type DownloadJob,
     type GlobalDownloadSync,
 } from '@/types/download-progress';
+import { isAbortError } from '@/utils/run-with-concurrency';
 import { scheduleIdleTask } from '@/utils/yield-to-ui';
+
+const PROGRESS_MIN_DELTA = 0.05;
+const PROGRESS_MIN_INTERVAL_MS = 200;
 
 export type ContentDownloadError = {
   title: string;
@@ -25,10 +25,7 @@ export type ContentDownloadError = {
 };
 
 export type ContentDownloadHandlers = {
-  download: (options: {
-    signal: AbortSignal;
-    onProgress: (progress: number) => void;
-  }) => Promise<void>;
+  download: DownloadJob;
   deleteContent: () => Promise<void>;
   getDownloadedBytes: () => Promise<number | null>;
   getTotalBytes: () => Promise<number>;
@@ -71,10 +68,6 @@ function computeFileSizeLabel(
 
 function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
-}
-
-function isAbortError(err: unknown): boolean {
-  return err instanceof Error && err.name === 'AbortError';
 }
 
 export function useContentDownload({
@@ -285,10 +278,26 @@ export function useContentDownload({
     progressSampleRef.current = { value: -1, at: 0 };
 
     try {
-      await download({
+      const outcome = await download({
         signal: controller.signal,
         onProgress: reportProgress,
       });
+      if (outcome.status === 'cancelled') {
+        if (enabled) {
+          await refresh();
+        }
+        return;
+      }
+      if (outcome.status === 'partial') {
+        setError({
+          title: resolvedDownloadFailedTitle,
+          message: resolvedDownloadFailedMessage,
+        });
+        if (enabled) {
+          await refresh();
+        }
+        return;
+      }
       if (enabled) {
         await refresh();
       } else if (getIsDownloaded) {

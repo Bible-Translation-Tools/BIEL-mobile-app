@@ -1,11 +1,14 @@
 import { fetchLanguages, fetchLanguagesOffline } from '@/api/services/languages';
 import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage, listLanguagesWithDownloads } from '@/db';
-import { i18n } from '@/i18n';
 import type { DownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
 
+/** Error code for a failure without its own message. The UI translates it. */
+export const LANGUAGE_CATALOG_LOAD_FAILED = 'language_catalog_load_failed';
+
 export type LanguageCatalogSnapshot = {
   languages: LanguageItem[];
+  /** An error message, or {@link LANGUAGE_CATALOG_LOAD_FAILED}. */
   error: string | null;
 };
 
@@ -84,7 +87,7 @@ async function fetchLanguageCatalogSnapshot(forceNetwork: boolean): Promise<Lang
 
     return {
       languages: [],
-      error: err instanceof Error ? err.message : i18n.t('home:failedToLoadLanguages'),
+      error: err instanceof Error ? err.message : LANGUAGE_CATALOG_LOAD_FAILED,
     };
   }
 }
@@ -104,7 +107,7 @@ export async function loadDownloadedLanguagesCatalog(): Promise<LanguageCatalogS
   } catch (err) {
     return {
       languages: [],
-      error: err instanceof Error ? err.message : i18n.t('home:failedToLoadLanguages'),
+      error: err instanceof Error ? err.message : LANGUAGE_CATALOG_LOAD_FAILED,
     };
   }
 }

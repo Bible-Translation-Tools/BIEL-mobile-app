@@ -1,3 +1,10 @@
+import type { DownloadOutcome } from '@/domain/downloads';
+
+export type DownloadJob = (options: {
+  signal: AbortSignal;
+  onProgress: (progress: number) => void;
+}) => Promise<DownloadOutcome>;
+
 export type BookDownloadKind = 'book-scripture' | 'book-audio';
 export type LanguageDownloadKind = 'language-scripture' | 'language-audio';
 export type DownloadKind = BookDownloadKind | LanguageDownloadKind;

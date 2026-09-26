@@ -2,14 +2,9 @@ import TrackPlayer, { State } from 'react-native-track-player';
 
 import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/api/services/audio';
 import { fetchAudioChaptersForBook } from '@/api/services/chapters';
+import { findNextVerseTiming, findPreviousVerseTiming } from '@/domain/verse-navigation';
 
-import type { VerseTiming } from '@/types/audio';
 import type { ChapterPlaybackSession, ChapterPlaybackSnapshot } from './types';
-
-/** Seconds back into the current verse before "previous" restarts it instead of stepping back. */
-export const PREVIOUS_VERSE_RESTART_THRESHOLD = 3;
-/** Small tolerance so we don't get stuck on the current marker when tapping "next". */
-export const VERSE_BOUNDARY_EPSILON = 0.1;
 
 const defaultSnapshot: ChapterPlaybackSnapshot = {
   isFetching: false,
@@ -197,24 +192,6 @@ export async function ensureChapterNumbers(): Promise<void> {
   session.chapterNumbers = chapters.map((item) => item.number).sort((a, b) => a - b);
 }
 
-export function resolveCurrentVerse(
-  verseTimings: VerseTiming[],
-  playbackPosition: number,
-): number | null {
-  if (verseTimings.length === 0) return null;
-
-  let activeVerse: number | null = null;
-  for (let i = 0; i < verseTimings.length; i += 1) {
-    if (verseTimings[i].time <= playbackPosition + VERSE_BOUNDARY_EPSILON) {
-      activeVerse = verseTimings[i].verse;
-    } else {
-      break;
-    }
-  }
-
-  return activeVerse;
-}
-
 export async function updateNowPlayingVerse(chapter: number, verse: number | null): Promise<void> {
   if (!session) return;
   await TrackPlayer.updateNowPlayingMetadata({
@@ -373,62 +350,23 @@ export async function seekToLastVerse(duration: number): Promise<void> {
 }
 
 export async function seekToNextVerse(): Promise<boolean> {
-  if (snapshot.verseTimings.length === 0) return false;
-  const now = currentTime;
-  const next = snapshot.verseTimings.find((item) => item.time > now + VERSE_BOUNDARY_EPSILON);
+  const next = findNextVerseTiming(snapshot.verseTimings, currentTime);
   if (!next) return false;
   await TrackPlayer.seekTo(next.time);
   return true;
 }
 
+export function canSeekToNextVerseInChapter(): boolean {
+  return findNextVerseTiming(snapshot.verseTimings, currentTime) != null;
+}
+
 export function canSeekToPreviousVerseInChapter(): boolean {
-  if (snapshot.verseTimings.length === 0) return false;
-  const playbackPosition = currentTime;
-
-  let currentIdx = -1;
-  for (let i = snapshot.verseTimings.length - 1; i >= 0; i -= 1) {
-    if (snapshot.verseTimings[i].time <= playbackPosition + VERSE_BOUNDARY_EPSILON) {
-      currentIdx = i;
-      break;
-    }
-  }
-
-  if (currentIdx <= 0) {
-    const firstVerseTime = snapshot.verseTimings[0]?.time ?? 0;
-    const offsetIntoVerse = playbackPosition - firstVerseTime;
-    return offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD;
-  }
-
-  return true;
+  return findPreviousVerseTiming(snapshot.verseTimings, currentTime) != null;
 }
 
 export async function seekToPreviousVerse(): Promise<boolean> {
-  if (snapshot.verseTimings.length === 0) return false;
-  const playbackPosition = currentTime;
-
-  let currentIdx = -1;
-  for (let i = snapshot.verseTimings.length - 1; i >= 0; i -= 1) {
-    if (snapshot.verseTimings[i].time <= playbackPosition + VERSE_BOUNDARY_EPSILON) {
-      currentIdx = i;
-      break;
-    }
-  }
-
-  if (currentIdx <= 0) {
-    const firstVerseTime = snapshot.verseTimings[0]?.time ?? 0;
-    const offsetIntoVerse = playbackPosition - firstVerseTime;
-    if (offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD) {
-      await TrackPlayer.seekTo(firstVerseTime);
-      return true;
-    }
-    return false;
-  }
-
-  const offsetIntoVerse = playbackPosition - snapshot.verseTimings[currentIdx].time;
-  const target =
-    offsetIntoVerse > PREVIOUS_VERSE_RESTART_THRESHOLD
-      ? snapshot.verseTimings[currentIdx]
-      : snapshot.verseTimings[currentIdx - 1];
+  const target = findPreviousVerseTiming(snapshot.verseTimings, currentTime);
+  if (!target) return false;
   await TrackPlayer.seekTo(target.time);
   return true;
 }

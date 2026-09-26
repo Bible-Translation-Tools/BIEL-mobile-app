@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildChapterContentFromHtml } from '@/api/services/chapter-html-parser';
+import { buildChapterContentFromHtml } from '@/domain/chapter-html-parser';
 
+import { allVerses, verseText } from './chapter-helpers';
 import { loadChapterHtml } from './test-utils';
-import { allVerses, verseText } from './reader-helpers';
 
 const enPsa1 = { bookName: 'Psalms', chapter: 1, html: loadChapterHtml('en-psa-1') };
 const frPsa1 = { bookName: 'Psaumes', chapter: 1, html: loadChapterHtml('fr-psa-1') };

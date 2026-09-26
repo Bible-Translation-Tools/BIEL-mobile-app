@@ -3,12 +3,12 @@ import { File } from 'expo-file-system';
 import { catalogApi } from '@/api/catalog';
 import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { pickRendering } from '@/api/services/resource-selection';
+import { pickRendering } from '@/domain/resource-selection';
 import {
   extractChapterNumbersFromWholeBookJson,
   offlineBookChapterHtmlMap,
   parseWholeBookJson,
-} from '@/api/services/whole-book-parser';
+} from '@/domain/whole-book-parser';
 import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
 import { yieldToUi } from '@/utils/yield-to-ui';
 
@@ -34,12 +34,13 @@ import {
   upsertBookWithChapters,
   upsertScriptureChapter,
 } from '@/db';
-import type {
-  ApiBookContentRendering,
-  LanguageScriptureFilesQueryResult,
-  OfflineBook,
-  ResolvedBookContent,
-} from '@/types/offline';
+import {
+  DOWNLOAD_CANCELLED,
+  DOWNLOAD_COMPLETED,
+  type DownloadOutcome,
+} from '@/domain/downloads';
+import type { ScriptureRendering } from '@/types/catalog';
+import type { OfflineBook, ResolvedBookContent } from '@/types/offline';
 
 const SCRIPTURE_BOOK_DOWNLOAD_CONCURRENCY = 10;
 
@@ -49,8 +50,8 @@ function abortError(): Error {
   return error;
 }
 
-/** Dedupes overlapping LANGUAGE_SCRIPTURE_FILES_QUERY requests per language code. */
-const languageScriptureFilesInflight = new Map<string, Promise<LanguageScriptureFilesQueryResult>>();
+/** Dedupes overlapping language scripture catalog requests per language code. */
+const languageScriptureFilesInflight = new Map<string, Promise<ScriptureRendering[]>>();
 
 let wholeBookCache: Map<string, OfflineBook> = new Map();
 
@@ -73,21 +74,21 @@ export async function resolveBookContent(
   languageCode: string,
   bookSlug: string,
 ): Promise<ResolvedBookContent> {
-  const data = await catalogApi.getBookContent(languageCode, bookSlug);
+  const renderings = await catalogApi.getBookRenderings(languageCode, bookSlug);
 
-  const rendering = pickRendering(data.scriptural_rendering_metadata, { bookSlug });
-  if (!rendering?.rendered_content.url) {
+  const rendering = pickRendering(renderings, { bookSlug });
+  if (!rendering?.url) {
     throw new Error('Book content not found');
   }
 
   return {
-    bookName: rendering.book_name,
-    bookSlug: rendering.book_slug,
-    url: rendering.rendered_content.url,
-    hash: rendering.rendered_content.hash ?? null,
-    resourceType: rendering.rendered_content.content.resource_type,
-    contentName: rendering.rendered_content.content.name,
-    fileSizeBytes: rendering.rendered_content.file_size_bytes,
+    bookName: rendering.bookName,
+    bookSlug: rendering.bookSlug ?? bookSlug,
+    url: rendering.url,
+    hash: rendering.hash,
+    resourceType: rendering.resourceType,
+    contentName: rendering.contentName,
+    fileSizeBytes: rendering.fileSizeBytes ?? 0,
   };
 }
 
@@ -99,16 +100,14 @@ export async function getBookScriptureFileSizeBytes(
   return resolved.fileSizeBytes;
 }
 
-async function fetchLanguageScriptureFiles(
-  languageCode: string,
-): Promise<LanguageScriptureFilesQueryResult> {
+async function fetchLanguageScriptureFiles(languageCode: string): Promise<ScriptureRendering[]> {
   const key = languageCode.toUpperCase();
   const inflight = languageScriptureFilesInflight.get(key);
   if (inflight) {
     return inflight;
   }
 
-  const request = catalogApi.getLanguageScriptureFiles(languageCode).finally(() => {
+  const request = catalogApi.getLanguageScriptureRenderings(languageCode).finally(() => {
     languageScriptureFilesInflight.delete(key);
   });
   languageScriptureFilesInflight.set(key, request);
@@ -116,12 +115,13 @@ async function fetchLanguageScriptureFiles(
 }
 
 function groupScriptureRenderingsByBookSlug(
-  renderings: ApiBookContentRendering[],
-): Map<string, ApiBookContentRendering[]> {
-  const bySlug = new Map<string, ApiBookContentRendering[]>();
+  renderings: ScriptureRendering[],
+): Map<string, ScriptureRendering[]> {
+  const bySlug = new Map<string, ScriptureRendering[]>();
 
   for (const rendering of renderings) {
-    const slug = normalizeBookSlug(rendering.book_slug);
+    if (!rendering.bookSlug) continue;
+    const slug = normalizeBookSlug(rendering.bookSlug);
     const grouped = bySlug.get(slug) ?? [];
     grouped.push(rendering);
     bySlug.set(slug, grouped);
@@ -131,16 +131,14 @@ function groupScriptureRenderingsByBookSlug(
 }
 
 function parseLanguageScriptureBytesBySlug(
-  data: LanguageScriptureFilesQueryResult,
+  renderings: ScriptureRendering[],
 ): Map<string, number> {
   const bytesBySlug = new Map<string, number>();
 
-  for (const [bookSlug, renderings] of groupScriptureRenderingsByBookSlug(
-    data.scriptural_rendering_metadata,
-  )) {
-    const rendering = pickRendering(renderings, { bookSlug });
-    if (rendering?.rendered_content.file_size_bytes != null) {
-      bytesBySlug.set(bookSlug, rendering.rendered_content.file_size_bytes);
+  for (const [bookSlug, bookRenderings] of groupScriptureRenderingsByBookSlug(renderings)) {
+    const rendering = pickRendering(bookRenderings, { bookSlug });
+    if (rendering?.fileSizeBytes != null) {
+      bytesBySlug.set(bookSlug, rendering.fileSizeBytes);
     }
   }
 
@@ -253,14 +251,14 @@ export async function getChapterScriptureFileSizeBytes(
   const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
   if (record) return record.byteSize;
 
-  const data = await catalogApi.getChapterContent(languageCode, bookSlug, chapter);
+  const renderings = await catalogApi.getChapterRenderings(languageCode, bookSlug, chapter);
 
-  const rendering = pickRendering(data.scriptural_rendering_metadata, {
+  const rendering = pickRendering(renderings, {
     bookSlug,
     requireChapter: true,
   });
 
-  return rendering?.rendered_content.file_size_bytes ?? 0;
+  return rendering?.fileSizeBytes ?? 0;
 }
 
 export async function getDownloadedChapterScriptureByteSize(
@@ -286,17 +284,17 @@ export async function downloadChapterScripture(
     onProgress?: DownloadProgressCallback;
     signal?: AbortSignal;
   },
-): Promise<void> {
+): Promise<DownloadOutcome> {
   await ensureOfflineRootExists();
 
-  const data = await catalogApi.getChapterContent(languageCode, bookSlug, chapter);
+  const renderings = await catalogApi.getChapterRenderings(languageCode, bookSlug, chapter);
 
-  const rendering = pickRendering(data.scriptural_rendering_metadata, {
+  const rendering = pickRendering(renderings, {
     bookSlug,
     requireChapter: true,
   });
 
-  if (!rendering?.chapter || !rendering.rendered_content.url) {
+  if (!rendering?.chapter || !rendering.url) {
     throw new Error('Chapter content not found');
   }
 
@@ -306,7 +304,7 @@ export async function downloadChapterScripture(
 
   options?.onProgress?.(0.1);
 
-  const response = await fetchRenderedContent(rendering.rendered_content.url, {
+  const response = await fetchRenderedContent(rendering.url, {
     signal: options?.signal,
   });
 
@@ -341,16 +339,17 @@ export async function downloadChapterScripture(
     languageCode,
     bookSlug: canonicalSlug,
     chapterNumber: chapter,
-    bookName: rendering.book_name,
-    resourceType: rendering.rendered_content.content.resource_type,
-    contentName: rendering.rendered_content.content.name,
-    sourceUrl: rendering.rendered_content.url,
+    bookName: rendering.bookName,
+    resourceType: rendering.resourceType,
+    contentName: rendering.contentName,
+    sourceUrl: rendering.url,
     localPath: htmlFile.uri,
     byteSize,
-    contentHash: rendering.rendered_content.hash ?? null,
+    contentHash: rendering.hash,
   });
 
   options?.onProgress?.(1);
+  return DOWNLOAD_COMPLETED;
 }
 
 export async function hasStandaloneChapterScripture(
@@ -386,7 +385,7 @@ export async function downloadBookScripture(
     onProgress?: DownloadProgressCallback;
     signal?: AbortSignal;
   },
-): Promise<void> {
+): Promise<DownloadOutcome> {
   await ensureOfflineRootExists();
 
   const canonicalSlug = normalizeBookSlug(bookSlug);
@@ -457,7 +456,7 @@ export async function downloadBookScripture(
 
     await yieldToUi();
 
-    const byteSize = jsonText.length;
+    const byteSize = new TextEncoder().encode(jsonText).length;
 
     await upsertBookWithChapters({
       languageCode,
@@ -474,12 +473,13 @@ export async function downloadBookScripture(
 
     completed = true;
     options?.onProgress?.(1);
+    return DOWNLOAD_COMPLETED;
   } catch (err) {
     if (isAbortError(err)) {
       if (!completed) {
         removeBookScriptureDirectory(languageCode, canonicalSlug);
       }
-      return;
+      return DOWNLOAD_CANCELLED;
     }
     throw err;
   }
@@ -574,7 +574,7 @@ export async function downloadLanguageScripture(
     onProgress?: DownloadProgressCallback;
     signal?: AbortSignal;
   },
-): Promise<void> {
+): Promise<DownloadOutcome> {
   const slugs = await resolveLanguageBookSlugs(languageCode);
   if (slugs.length === 0) {
     throw new Error('No books available to download for this language');
@@ -583,7 +583,7 @@ export async function downloadLanguageScripture(
   const pendingSlugs: string[] = [];
   for (const bookSlug of slugs) {
     if (options?.signal?.aborted) {
-      break;
+      return DOWNLOAD_CANCELLED;
     }
     if (!(await isBookDownloaded(languageCode, bookSlug))) {
       pendingSlugs.push(bookSlug);
@@ -592,8 +592,10 @@ export async function downloadLanguageScripture(
 
   if (pendingSlugs.length === 0) {
     options?.onProgress?.(1);
-    return;
+    return DOWNLOAD_COMPLETED;
   }
+
+  const failedBookSlugs: string[] = [];
 
   const progressByBook = new Array<number>(pendingSlugs.length).fill(0);
   const reportOverallProgress = () => {
@@ -622,13 +624,22 @@ export async function downloadLanguageScripture(
         if (isAbortError(err)) {
           return;
         }
+        console.warn('[offline-text] book download failed', { languageCode, bookSlug, err });
+        failedBookSlugs.push(bookSlug);
         progressByBook[index] = 1;
         reportOverallProgress();
       }
     },
   );
 
+  if (options?.signal?.aborted) {
+    return DOWNLOAD_CANCELLED;
+  }
+
   options?.onProgress?.(1);
+  return failedBookSlugs.length > 0
+    ? { status: 'partial', failedBookSlugs }
+    : DOWNLOAD_COMPLETED;
 }
 
 export async function deleteLanguageScripture(languageCode: string): Promise<void> {

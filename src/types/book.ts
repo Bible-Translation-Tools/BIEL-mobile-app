@@ -21,20 +21,3 @@ export type BookItem = {
   audioDownloadStatus: DownloadStatus;
   hasAudio: boolean;
 };
-
-export type ApiBookMetadata = {
-  book_name: string;
-  book_slug: string;
-};
-
-export type BooksQueryResult = {
-  scriptural_rendering_metadata: ApiBookMetadata[];
-};
-
-export type ApiChapterMetadata = {
-  chapter: number | null;
-};
-
-export type ChaptersQueryResult = {
-  scriptural_rendering_metadata: ApiChapterMetadata[];
-};
