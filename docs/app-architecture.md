@@ -44,6 +44,8 @@ Pure functions with tests that need no mocks:
 | `verse-navigation.ts` | current / next / previous verse from timings |
 | `resource-selection.ts` | `pickRendering` (which rendering to use for a book/chapter) |
 | `chapter-html-parser.ts`, `whole-book-parser.ts`, `cue-parser.ts` | content parsing |
+| `audio-cue-metadata.ts` | `parseAudioCueMetadata` (JSON verse markers embedded in timing files) |
+| `verse-timing.ts` | `getVerseTimingParser` (which parser to use for a timing file format) |
 
 Move a rule here when it is copied in two places or when you want to test it without mocks. Do not move a single GraphQL call behind a repository.
 

@@ -1,8 +1,6 @@
 import { createCueVerseTimingParser } from '@/domain/cue-parser';
 import type { TimingFileFormat, VerseTimingParser } from '@/types/audio';
 
-export type { TimingFileFormat, VerseTimingParser } from '@/types/audio';
-
 const parsers: Record<TimingFileFormat, VerseTimingParser> = {
   cue: createCueVerseTimingParser(),
 };

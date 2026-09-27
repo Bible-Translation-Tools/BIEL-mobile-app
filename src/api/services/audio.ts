@@ -1,12 +1,11 @@
-import { getVerseTimingParser } from '@/api/audio-timing';
-import type { TimingFileFormat } from '@/api/audio-timing';
 import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import {
   getOfflineChapterAudioUri,
   getOfflineChapterCueText,
 } from '@/api/services/offline-audio';
-import type { VerseTiming } from '@/types/audio';
+import { getVerseTimingParser } from '@/domain/verse-timing';
+import type { TimingFileFormat, VerseTiming } from '@/types/audio';
 
 /** Timing format of both downloaded and remote chapter timing files. */
 const TIMING_FORMAT: TimingFileFormat = 'cue';

@@ -14,7 +14,7 @@ module.exports = defineConfig([
     languageOptions: { globals: { __dirname: "readonly", require: "readonly", process: "readonly" } },
   },
   {
-    // Pure rules: may import @/types and @/data only.
+    // Pure rules: may import @/types only.
     files: ["src/domain/**"],
     rules: {
       "no-restricted-imports": ["error", {

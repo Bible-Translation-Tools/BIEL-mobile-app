@@ -12,29 +12,27 @@ export type AudioCueMetadata = {
   markers: Record<string, number>;
 };
 
-export class AudioCueMetadataSerializer {
-  static deserialize(json: string): AudioCueMetadata | null {
-    try {
-      const parsed = JSON.parse(json) as unknown;
-      if (!isRecord(parsed)) return null;
-      const markers = parseMarkers(parsed.markers);
-      if (!markers) return null;
-      return {
-        anthology: asOptionalString(parsed.anthology),
-        language: asOptionalString(parsed.language),
-        version: asOptionalString(parsed.version),
-        slug: asOptionalString(parsed.slug),
-        book_number: asOptionalString(parsed.book_number),
-        mode: asOptionalString(parsed.mode),
-        chapter: asOptionalString(parsed.chapter),
-        startv: asOptionalString(parsed.startv),
-        endv: asOptionalString(parsed.endv),
-        contributor: asOptionalString(parsed.contributor),
-        markers,
-      };
-    } catch {
-      return null;
-    }
+export function parseAudioCueMetadata(json: string): AudioCueMetadata | null {
+  try {
+    const parsed = JSON.parse(json) as unknown;
+    if (!isRecord(parsed)) return null;
+    const markers = parseMarkers(parsed.markers);
+    if (!markers) return null;
+    return {
+      anthology: asOptionalString(parsed.anthology),
+      language: asOptionalString(parsed.language),
+      version: asOptionalString(parsed.version),
+      slug: asOptionalString(parsed.slug),
+      book_number: asOptionalString(parsed.book_number),
+      mode: asOptionalString(parsed.mode),
+      chapter: asOptionalString(parsed.chapter),
+      startv: asOptionalString(parsed.startv),
+      endv: asOptionalString(parsed.endv),
+      contributor: asOptionalString(parsed.contributor),
+      markers,
+    };
+  } catch {
+    return null;
   }
 }
 

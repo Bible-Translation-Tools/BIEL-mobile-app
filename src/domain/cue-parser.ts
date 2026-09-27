@@ -1,4 +1,4 @@
-import { AudioCueMetadataSerializer } from '@/data/audio-cue-metadata';
+import { parseAudioCueMetadata } from '@/domain/audio-cue-metadata';
 import type { VerseTiming, VerseTimingParser } from '@/types/audio';
 
 const DEFAULT_SAMPLE_RATE = 44100;
@@ -42,7 +42,7 @@ export function createCueVerseTimingParser(): VerseTimingParser {
 function extractJsonMarkerSamples(cueText: string): Record<string, number> | null {
   const match = cueText.match(/^\s*REM\s+COMMENT\s+(\{.*\})\s*$/m);
   if (!match) return null;
-  return AudioCueMetadataSerializer.deserialize(match[1])?.markers ?? null;
+  return parseAudioCueMetadata(match[1])?.markers ?? null;
 }
 
 function extractCueTrackTimes(cueText: string): { track: number; time: number }[] {
