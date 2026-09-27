@@ -1,8 +1,8 @@
-import {
-  buildDownloadTaskId,
-  type DownloadProgressTask,
-  type DownloadTaskStatus,
-  type GlobalDownloadSync,
+import { buildDownloadTaskId } from '@/domain/downloads';
+import type {
+  DownloadProgressTask,
+  DownloadTaskStatus,
+  GlobalDownloadSync,
 } from '@/types/download-progress';
 
 const listeners = new Set<() => void>();

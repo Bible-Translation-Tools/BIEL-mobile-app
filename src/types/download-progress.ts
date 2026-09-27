@@ -1,4 +1,4 @@
-import type { DownloadOutcome } from '@/domain/downloads';
+import type { DownloadOutcome } from '@/types/download';
 
 export type DownloadJob = (options: {
   signal: AbortSignal;
@@ -37,13 +37,3 @@ export type DownloadProgressTask = {
   errorMessage?: string;
   updatedAt: number;
 };
-
-export function buildDownloadTaskId(sync: GlobalDownloadSync): string {
-  if ('bookSlug' in sync) {
-    return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.kind}`;
-  }
-  return `${sync.languageCode}:__language__:${sync.kind}`;
-}
-
-/** @deprecated Use buildDownloadTaskId */
-export const buildBookDownloadTaskId = buildDownloadTaskId;

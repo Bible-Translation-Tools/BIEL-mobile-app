@@ -1,12 +1,38 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildDownloadTaskId,
   isFullyDownloaded,
   isManifestFullyDownloaded,
   mergeChapterRecords,
+  resolveDownloadStatus,
   sumChapterBytes,
   sumManifestBytes,
 } from '@/domain/downloads';
+
+describe('resolveDownloadStatus', () => {
+  it('prefers checking, then downloading, then downloaded, then partial', () => {
+    expect(resolveDownloadStatus(true, true, true, true)).toBe('checking');
+    expect(resolveDownloadStatus(true, true, false, true)).toBe('downloading');
+    expect(resolveDownloadStatus(false, true, false, true)).toBe('downloaded');
+    expect(resolveDownloadStatus(false, false, false, true)).toBe('partial');
+    expect(resolveDownloadStatus(false, false)).toBe('pending');
+  });
+});
+
+describe('buildDownloadTaskId', () => {
+  it('upper-cases the book slug so book tasks match regardless of casing', () => {
+    expect(
+      buildDownloadTaskId({ languageCode: 'en', bookSlug: 'gen', bookName: 'Genesis', kind: 'book-audio' }),
+    ).toBe('en:GEN:book-audio');
+  });
+
+  it('gives language tasks their own id space', () => {
+    expect(
+      buildDownloadTaskId({ languageCode: 'en', languageName: 'English', kind: 'language-scripture' }),
+    ).toBe('en:__language__:language-scripture');
+  });
+});
 
 describe('isFullyDownloaded', () => {
   it('requires every content type that exists', () => {

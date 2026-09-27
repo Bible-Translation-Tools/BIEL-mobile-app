@@ -16,7 +16,7 @@ src/
   api/           GraphQL adapter + content I/O (fetch, download, persist)
   services/      device / app-session (player, notifications, caches, download registry)
   db/            SQLite
-  types/         shared types (our shapes, not server shapes)
+  types/         shared type declarations only (our shapes, not server shapes)
   utils/         leftover helpers
 ```
 
@@ -40,7 +40,8 @@ Pure functions with tests that need no mocks:
 
 | File | Rules |
 |------|-------|
-| `downloads.ts` | `DownloadOutcome`, "is fully downloaded", byte sums, chapter record merge |
+| `downloads.ts` | outcome constants, download status, task IDs, "is fully downloaded", byte sums, chapter record merge |
+| `content-type.ts` | text/audio flags, chapter indicator, library filter |
 | `verse-navigation.ts` | current / next / previous verse from timings |
 | `resource-selection.ts` | `pickRendering` (which rendering to use for a book/chapter) |
 | `chapter-html-parser.ts`, `whole-book-parser.ts`, `cue-parser.ts` | content parsing |

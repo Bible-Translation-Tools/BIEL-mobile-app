@@ -1,3 +1,4 @@
+import { buildDownloadTaskId } from '@/domain/downloads';
 import {
   showDownloadFinishedNotification,
   syncDownloadNotification,
@@ -8,11 +9,7 @@ import {
   updateDownloadTaskProgress,
   upsertDownloadTask,
 } from '@/services/download-progress';
-import {
-  buildDownloadTaskId,
-  type DownloadJob,
-  type GlobalDownloadSync,
-} from '@/types/download-progress';
+import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
 import { isAbortError } from '@/utils/run-with-concurrency';
 
 type ActiveJob = {

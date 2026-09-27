@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { buildDownloadTaskId } from '@/domain/downloads';
 import { formatByteSize } from '@/domain/whole-book-parser';
 import {
     cancelGlobalBookDownload,
@@ -8,11 +9,7 @@ import {
 } from '@/services/book-download-runner';
 import { removeDownloadTask } from '@/services/download-progress';
 import { useDownloadProgress } from '@/stores/download-progress-store';
-import {
-    buildDownloadTaskId,
-    type DownloadJob,
-    type GlobalDownloadSync,
-} from '@/types/download-progress';
+import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
 import { isAbortError } from '@/utils/run-with-concurrency';
 import { scheduleIdleTask } from '@/utils/yield-to-ui';
 

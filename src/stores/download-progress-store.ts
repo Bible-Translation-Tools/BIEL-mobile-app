@@ -1,15 +1,12 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
+import { buildDownloadTaskId } from '@/domain/downloads';
 import {
   getDownloadTask,
   getDownloadTaskList,
   subscribeDownloadTasks,
 } from '@/services/download-progress';
-import {
-  buildDownloadTaskId,
-  type DownloadProgressTask,
-  type GlobalDownloadSync,
-} from '@/types/download-progress';
+import type { DownloadProgressTask, GlobalDownloadSync } from '@/types/download-progress';
 
 const EMPTY_TASKS: DownloadProgressTask[] = [];
 

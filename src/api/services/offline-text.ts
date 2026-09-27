@@ -34,12 +34,9 @@ import {
   upsertBookWithChapters,
   upsertScriptureChapter,
 } from '@/db';
-import {
-  DOWNLOAD_CANCELLED,
-  DOWNLOAD_COMPLETED,
-  type DownloadOutcome,
-} from '@/domain/downloads';
+import { DOWNLOAD_CANCELLED, DOWNLOAD_COMPLETED } from '@/domain/downloads';
 import type { ScriptureRendering } from '@/types/catalog';
+import type { DownloadOutcome } from '@/types/download';
 import type { OfflineBook, ResolvedBookContent } from '@/types/offline';
 
 const SCRIPTURE_BOOK_DOWNLOAD_CONCURRENCY = 10;

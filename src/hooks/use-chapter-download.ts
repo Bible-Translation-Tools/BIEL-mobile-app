@@ -17,7 +17,7 @@ import {
   isChapterScriptureDownloaded,
 } from '@/api/services/offline-text';
 import { useContentDownload } from '@/hooks/use-content-download';
-import { resolveDownloadStatus } from '@/types/download';
+import { resolveDownloadStatus } from '@/domain/downloads';
 
 type UseChapterDownloadOptions = {
   languageCode: string;

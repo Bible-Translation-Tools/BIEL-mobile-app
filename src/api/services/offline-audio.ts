@@ -31,8 +31,8 @@ import {
   mergeChapterRecords,
   sumChapterBytes,
   sumManifestBytes,
-  type DownloadOutcome,
 } from '@/domain/downloads';
+import type { DownloadOutcome } from '@/types/download';
 import type { AudioBookManifest, ResolvedChapterAudio } from '@/types/audio';
 import type { AudioFile } from '@/types/catalog';
 

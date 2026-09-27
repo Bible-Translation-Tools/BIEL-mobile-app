@@ -8,15 +8,12 @@ import { TestamentTabs } from '@/components/books/testament-tabs';
 import { DownloadsLibraryHeader } from '@/components/download/downloads-library-header';
 import { DownloadsLibraryList } from '@/components/download/downloads-library-list';
 import { DownloadsLibraryToolbar } from '@/components/download/downloads-library-toolbar';
+import { bookMatchesContentFilter, getBookContentFlags } from '@/domain/content-type';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDownloadsLibrary } from '@/hooks/use-downloads-library';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
-import {
-  bookMatchesContentFilter,
-  getBookContentFlags,
-  type LibraryContentFilter,
-} from '@/types/content-type';
+import type { LibraryContentFilter } from '@/types/content-type';
 
 export function DownloadsLibraryView() {
   const router = useRouter();

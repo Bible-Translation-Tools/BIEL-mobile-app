@@ -9,13 +9,10 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { BookLayout, Typography, type ThemeColor } from '@/constants/theme';
+import { CHAPTER_CONTENT_LEGEND_ORDER, getChapterContentIndicator } from '@/domain/content-type';
 import { useTheme } from '@/hooks/use-theme';
 import type { ChapterItem } from '@/types/book';
-import {
-  CHAPTER_CONTENT_LEGEND_ORDER,
-  getChapterContentIndicator,
-  type ContentTypeIndicator,
-} from '@/types/content-type';
+import type { ContentTypeIndicator } from '@/types/content-type';
 
 const CONTENT_TYPE_COLORS: Record<
   ContentTypeIndicator,

@@ -1,11 +1,28 @@
-/** How a download ended. Callers must not treat `cancelled` or `partial` as success. */
-export type DownloadOutcome =
-  | { status: 'completed' }
-  | { status: 'cancelled' }
-  | { status: 'partial'; failedBookSlugs: string[] };
+import type { DownloadOutcome, DownloadStatus } from '@/types/download';
+import type { GlobalDownloadSync } from '@/types/download-progress';
 
 export const DOWNLOAD_COMPLETED: DownloadOutcome = { status: 'completed' };
 export const DOWNLOAD_CANCELLED: DownloadOutcome = { status: 'cancelled' };
+
+export function resolveDownloadStatus(
+  isDownloading: boolean,
+  isDownloaded: boolean,
+  isChecking = false,
+  isPartial = false,
+): DownloadStatus {
+  if (isChecking) return 'checking';
+  if (isDownloading) return 'downloading';
+  if (isDownloaded) return 'downloaded';
+  if (isPartial) return 'partial';
+  return 'pending';
+}
+
+export function buildDownloadTaskId(sync: GlobalDownloadSync): string {
+  if ('bookSlug' in sync) {
+    return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.kind}`;
+  }
+  return `${sync.languageCode}:__language__:${sync.kind}`;
+}
 
 /**
  * Whether every content type that exists for an item is on the device.
