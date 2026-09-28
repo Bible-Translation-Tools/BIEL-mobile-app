@@ -1,6 +1,7 @@
 import { File } from 'expo-file-system';
 
 import { catalogApi } from '@/api/catalog';
+import { fetchRenderedContent } from '@/api/content-fetch';
 import {
   ensureOfflineRootExists,
   ensureOfflineScriptureDirectory,
@@ -9,17 +10,6 @@ import {
   normalizeBookSlug,
   removeBookScriptureDirectory,
 } from '@/api/offline-storage';
-import { resolveLanguageBookSlugs } from '@/api/services/books';
-import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { pickRendering } from '@/domain/resource-selection';
-import {
-  extractChapterNumbersFromWholeBookJson,
-  offlineBookChapterHtmlMap,
-  parseWholeBookJson,
-} from '@/domain/whole-book-parser';
-import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
-import { yieldToUi } from '@/utils/yield-to-ui';
-
 import {
   deleteBook as deleteBookRecord,
   deleteScriptureChapter as deleteScriptureChapterRecord,
@@ -35,6 +25,15 @@ import {
   upsertScriptureChapter,
 } from '@/db';
 import { DOWNLOAD_CANCELLED, DOWNLOAD_COMPLETED } from '@/domain/downloads';
+import { pickRendering } from '@/domain/resource-selection';
+import {
+  extractChapterNumbersFromWholeBookJson,
+  offlineBookChapterHtmlMap,
+  parseWholeBookJson,
+} from '@/domain/whole-book-parser';
+import { getLanguageBookSlugs } from '@/features/catalog/books';
+import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
+import { yieldToUi } from '@/utils/yield-to-ui';
 import type { ScriptureRendering } from '@/types/catalog';
 import type { DownloadOutcome } from '@/types/download';
 import type { OfflineBook, ResolvedBookContent } from '@/types/offline';
@@ -67,7 +66,7 @@ function withOfflineBookIdentity(
   };
 }
 
-export async function resolveBookContent(
+export async function fetchBookContent(
   languageCode: string,
   bookSlug: string,
 ): Promise<ResolvedBookContent> {
@@ -89,11 +88,11 @@ export async function resolveBookContent(
   };
 }
 
-export async function getBookScriptureFileSizeBytes(
+export async function fetchBookScriptureFileSizeBytes(
   languageCode: string,
   bookSlug: string,
 ): Promise<number> {
-  const resolved = await resolveBookContent(languageCode, bookSlug);
+  const resolved = await fetchBookContent(languageCode, bookSlug);
   return resolved.fileSizeBytes;
 }
 
@@ -174,7 +173,7 @@ export async function loadWholeBookChapters(
   return offlineBookChapterHtmlMap(offlineBook);
 }
 
-async function getOfflineChapterHtmlFromFile(
+async function loadOfflineChapterHtmlFromFile(
   languageCode: string,
   bookSlug: string,
   chapter: number,
@@ -197,12 +196,12 @@ async function getOfflineChapterHtmlFromFile(
   return { html: await file.text(), bookName: record.bookName };
 }
 
-export async function getOfflineChapterHtml(
+export async function loadOfflineChapterHtml(
   languageCode: string,
   bookSlug: string,
   chapter: number,
 ): Promise<{ html: string; bookName: string } | null> {
-  const fromFile = await getOfflineChapterHtmlFromFile(languageCode, bookSlug, chapter);
+  const fromFile = await loadOfflineChapterHtmlFromFile(languageCode, bookSlug, chapter);
   if (fromFile) return fromFile;
 
   const record = await getBookDownloadRecord(languageCode, bookSlug);
@@ -258,7 +257,7 @@ export async function getChapterScriptureFileSizeBytes(
   return rendering?.fileSizeBytes ?? 0;
 }
 
-export async function getDownloadedChapterScriptureByteSize(
+export async function loadDownloadedChapterScriptureByteSize(
   languageCode: string,
   bookSlug: string,
   chapter: number,
@@ -389,7 +388,7 @@ export async function downloadBookScripture(
   let completed = false;
 
   try {
-    const resolved = await resolveBookContent(languageCode, bookSlug);
+    const resolved = await fetchBookContent(languageCode, bookSlug);
     if (options?.signal?.aborted) {
       throw abortError();
     }
@@ -492,7 +491,7 @@ export async function deleteBookScripture(languageCode: string, bookSlug: string
   await deleteScriptureChaptersForBook(languageCode, canonicalSlug);
 }
 
-export async function getOfflineChapterNumbers(
+export async function loadOfflineChapterNumbers(
   languageCode: string,
   bookSlug: string,
 ): Promise<number[]> {
@@ -515,7 +514,7 @@ export async function getOfflineChapterNumbers(
   return [...numbers].sort((a, b) => a - b);
 }
 
-export async function getDownloadedBookByteSize(
+export async function loadDownloadedBookByteSize(
   languageCode: string,
   bookSlug: string,
 ): Promise<number | null> {
@@ -526,14 +525,14 @@ export async function getDownloadedBookByteSize(
   return chapterBytes > 0 ? chapterBytes : null;
 }
 
-export async function getLanguageDownloadedByteSize(languageCode: string): Promise<number> {
+export async function loadLanguageDownloadedByteSize(languageCode: string): Promise<number> {
   const records = await listDownloadedBooksForLanguage(languageCode);
   return records.reduce((sum, record) => sum + record.byteSize, 0);
 }
 
 export async function getLanguageScriptureTotalBytes(languageCode: string): Promise<number> {
   const [slugs, remoteBytesBySlug, downloadedRecords] = await Promise.all([
-    resolveLanguageBookSlugs(languageCode),
+    getLanguageBookSlugs(languageCode),
     fetchLanguageScriptureFiles(languageCode).then(parseLanguageScriptureBytesBySlug),
     listDownloadedBooksForLanguage(languageCode),
   ]);
@@ -554,7 +553,7 @@ export async function getLanguageScriptureTotalBytes(languageCode: string): Prom
 }
 
 export async function isLanguageScriptureDownloaded(languageCode: string): Promise<boolean> {
-  const slugs = await resolveLanguageBookSlugs(languageCode);
+  const slugs = await getLanguageBookSlugs(languageCode);
   if (slugs.length === 0) return false;
 
   for (const bookSlug of slugs) {
@@ -572,7 +571,7 @@ export async function downloadLanguageScripture(
     signal?: AbortSignal;
   },
 ): Promise<DownloadOutcome> {
-  const slugs = await resolveLanguageBookSlugs(languageCode);
+  const slugs = await getLanguageBookSlugs(languageCode);
   if (slugs.length === 0) {
     throw new Error('No books available to download for this language');
   }
@@ -621,7 +620,7 @@ export async function downloadLanguageScripture(
         if (isAbortError(err)) {
           return;
         }
-        console.warn('[offline-text] book download failed', { languageCode, bookSlug, err });
+        console.warn('[offline-scripture] book download failed', { languageCode, bookSlug, err });
         failedBookSlugs.push(bookSlug);
         progressByBook[index] = 1;
         reportOverallProgress();

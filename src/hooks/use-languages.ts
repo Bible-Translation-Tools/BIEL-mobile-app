@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import {
   getLanguageCatalogSnapshot,
   LANGUAGE_CATALOG_LOAD_FAILED,
-  loadLanguageCatalog,
+  getLanguageCatalog,
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
-} from '@/services/language-catalog';
+} from '@/features/catalog';
 import { useForceOffline } from '@/stores/force-offline-store';
 
 function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
@@ -36,7 +36,7 @@ export function useLanguages() {
     setState((current) => ({ ...current, loading: true, error: null }));
 
     try {
-      const next = await loadLanguageCatalog({ force: true });
+      const next = await getLanguageCatalog({ force: true });
       setState({ ...next, loading: false });
     } catch (err) {
       setState({
@@ -55,10 +55,10 @@ export function useLanguages() {
     setState((current) => ({ ...current, loading: true, error: null }));
 
     const load = forceReload
-      ? loadLanguageCatalog({ force: true })
+      ? getLanguageCatalog({ force: true })
       : getLanguageCatalogSnapshot()
         ? Promise.resolve(getLanguageCatalogSnapshot()!)
-        : loadLanguageCatalog();
+        : getLanguageCatalog();
 
     load
       .then((next) => {

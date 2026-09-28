@@ -15,7 +15,7 @@ import {
 import { DownloadsLibraryBookRow } from '@/components/download/downloads-library-book-row';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadsLibraryLayout, HomeLayout } from '@/constants/theme';
-import type { DownloadedLibraryLanguage } from '@/api/services/books';
+import type { DownloadedLibraryLanguage } from '@/features/library';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useLibraryChapters } from '@/hooks/use-library-chapters';
 import { useTheme } from '@/hooks/use-theme';

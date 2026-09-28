@@ -1,18 +1,8 @@
 import { catalogApi } from '@/api/catalog';
 import { BOOK_SLUG_ORDER, isOldTestament } from '@/constants/bible-books';
-import {
-  listBookCatalog,
-  listDownloadedAudioBookSlugs,
-  listDownloadedBookSlugs,
-  listDownloadedBooksForLanguage,
-  listLanguagesWithDownloads,
-  listLocalContentBooks,
-  listLocalContentBooksForLanguage,
-  replaceBookCatalog,
-} from '@/db';
+import { listBookCatalog, listDownloadedBooksForLanguage, replaceBookCatalog } from '@/db';
 import type { BookItem } from '@/types/book';
 import type { CatalogBook } from '@/types/catalog';
-import type { LanguageItem } from '@/types/language';
 
 function mapCatalogBookToItem(book: CatalogBook): BookItem | null {
   const slug = book.bookSlug?.trim();
@@ -31,7 +21,7 @@ function mapCatalogBookToItem(book: CatalogBook): BookItem | null {
   };
 }
 
-function sortBooks(books: BookItem[]): BookItem[] {
+export function sortBooks(books: BookItem[]): BookItem[] {
   return [...books].sort(
     (a, b) => (BOOK_SLUG_ORDER.get(a.slug as never) ?? 999) - (BOOK_SLUG_ORDER.get(b.slug as never) ?? 999),
   );
@@ -70,7 +60,7 @@ function downloadedRecordToBookItem(record: {
 }
 
 /** Loads books from SQLite when the network catalog is unavailable. */
-export async function fetchBooksForLanguageOffline(languageCode: string): Promise<BookItem[]> {
+export async function loadBooksForLanguage(languageCode: string): Promise<BookItem[]> {
   const catalog = await listBookCatalog(languageCode);
   const downloaded = await listDownloadedBooksForLanguage(languageCode).catch(() => []);
 
@@ -94,70 +84,8 @@ export async function fetchBooksForLanguageOffline(languageCode: string): Promis
   return sortBooks([...bySlug.values()]);
 }
 
-function localRecordToBookItem(record: {
-  bookSlug: string;
-  bookName: string;
-  hasText: boolean;
-  hasAudio: boolean;
-}): BookItem {
-  const slug = record.bookSlug;
-  return {
-    id: slug,
-    name: record.bookName,
-    slug,
-    testament: isOldTestament(slug) ? 'old' : 'new',
-    downloadStatus: record.hasText ? 'downloaded' : 'pending',
-    audioDownloadStatus: record.hasAudio ? 'downloaded' : 'pending',
-    hasAudio: record.hasAudio,
-  } satisfies BookItem;
-}
-
-/** Books that have local scripture and/or audio — Downloads Library / offline-only list. */
-export async function fetchDownloadedBooksForLanguage(languageCode: string): Promise<BookItem[]> {
-  const records = await listLocalContentBooksForLanguage(languageCode);
-  return sortBooks(records.map(localRecordToBookItem));
-}
-
-export type DownloadedLibraryLanguage = {
-  language: LanguageItem;
-  books: BookItem[];
-};
-
-/** Languages with local books for the Downloads Library accordion. Local DB only. */
-export async function fetchDownloadedLibrary(): Promise<DownloadedLibraryLanguage[]> {
-  const [languages, records] = await Promise.all([
-    listLanguagesWithDownloads(),
-    listLocalContentBooks(),
-  ]);
-
-  const booksByLanguage = new Map<string, BookItem[]>();
-  for (const record of records) {
-    const key = record.languageCode.toUpperCase();
-    const books = booksByLanguage.get(key) ?? [];
-    books.push(localRecordToBookItem(record));
-    booksByLanguage.set(key, books);
-  }
-
-  return languages.flatMap((language) => {
-    const books = booksByLanguage.get(language.code.toUpperCase());
-    if (!books || books.length === 0) return [];
-    return [{ language, books: sortBooks(books) }];
-  });
-}
-
-/** Slugs of books with downloaded scripture and audio. Local DB only; failures yield empty lists. */
-export async function listDownloadedBookSlugsByKind(
-  languageCode: string,
-): Promise<{ scripture: string[]; audio: string[] }> {
-  const [scripture, audio] = await Promise.all([
-    listDownloadedBookSlugs(languageCode).catch(() => []),
-    listDownloadedAudioBookSlugs(languageCode).catch(() => []),
-  ]);
-  return { scripture, audio };
-}
-
-/** Book slugs for bulk download: cached catalog, then network, then downloaded-only fallback. */
-export async function resolveLanguageBookSlugs(languageCode: string): Promise<string[]> {
+/** Cache, then network, then downloaded-only: slugs for bulk download. */
+export async function getLanguageBookSlugs(languageCode: string): Promise<string[]> {
   const catalog = await listBookCatalog(languageCode);
   if (catalog.length > 0) {
     return catalog.map((book) => book.slug);

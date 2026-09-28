@@ -5,7 +5,7 @@ import {
   getDownloadTask,
   getDownloadTaskList,
   subscribeDownloadTasks,
-} from '@/services/download-progress';
+} from '@/features/downloads';
 import type { DownloadProgressTask, GlobalDownloadSync } from '@/types/download-progress';
 
 const EMPTY_TASKS: DownloadProgressTask[] = [];

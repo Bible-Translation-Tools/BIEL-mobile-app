@@ -87,7 +87,7 @@ function mergeLanguageLists(
 }
 
 /** Loads languages from SQLite when the network catalog is unavailable. */
-export async function fetchLanguagesOffline(): Promise<LanguageItem[]> {
+export async function loadLanguages(): Promise<LanguageItem[]> {
   const [catalog, downloadedOnly] = await Promise.all([
     listLanguageCatalog(),
     listLanguagesWithDownloads(),

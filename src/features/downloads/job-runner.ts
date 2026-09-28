@@ -1,16 +1,14 @@
 import { buildDownloadTaskId } from '@/domain/downloads';
-import {
-  showDownloadFinishedNotification,
-  syncDownloadNotification,
-} from '@/services/download-notification-service';
+import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
+import { isAbortError } from '@/utils/run-with-concurrency';
+
+import { showDownloadFinishedNotification, syncDownloadNotification } from './notifications';
 import {
   isDownloadActive,
   removeDownloadTask,
   updateDownloadTaskProgress,
   upsertDownloadTask,
-} from '@/services/download-progress';
-import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
-import { isAbortError } from '@/utils/run-with-concurrency';
+} from './task-registry';
 
 type ActiveJob = {
   sync: GlobalDownloadSync;
@@ -23,12 +21,12 @@ function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-export function cancelGlobalBookDownload(sync: GlobalDownloadSync): void {
+export function cancelDownload(sync: GlobalDownloadSync): void {
   const id = buildDownloadTaskId(sync);
   activeJobs.get(id)?.controller.abort();
 }
 
-export async function runGlobalBookDownload(params: {
+export async function runDownload(params: {
   sync: GlobalDownloadSync;
   download: DownloadJob;
   errorFallback: string;

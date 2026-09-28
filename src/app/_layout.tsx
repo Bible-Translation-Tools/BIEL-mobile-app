@@ -15,9 +15,9 @@ import { initDatabase } from '@/db';
 import { loadLocalePreference } from '@/db/locale-preferences';
 import { i18n, initI18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
-import { initDownloadNotifications } from '@/services/download-notification-service';
-import { loadLanguageCatalog } from '@/services/language-catalog';
-import { initPlaybackAppLifecycle } from '@/services/track-player/app-lifecycle';
+import { getLanguageCatalog } from '@/features/catalog';
+import { initDownloadNotifications } from '@/features/downloads';
+import { initPlaybackAppLifecycle } from '@/features/playback';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
@@ -72,7 +72,7 @@ export default function RootLayout() {
           Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
         ]);
         await ensureOfflineRootExists();
-        await loadLanguageCatalog();
+        await getLanguageCatalog();
       } catch (err) {
         console.error('[layout] app startup failed', err);
       } finally {

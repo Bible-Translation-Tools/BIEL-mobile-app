@@ -4,6 +4,15 @@ const expoConfig = require("eslint-config-expo/flat");
 
 const layer = (...names) => names.flatMap((name) => [name, `${name}/**`]);
 
+const FEATURE_BARREL = {
+  regex: "^@/features/[^/]+$",
+  message: "Inside features, import the sibling file directly, not another feature's index.",
+};
+const FEATURE_INTERNALS = {
+  regex: "^@/features/[^/]+/.+",
+  message: "Import features through their index (e.g. '@/features/downloads').",
+};
+
 module.exports = defineConfig([
   expoConfig,
   {
@@ -19,24 +28,52 @@ module.exports = defineConfig([
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          ...layer("@/api", "@/services", "@/db", "@/hooks", "@/stores", "@/components"),
+          ...layer("@/api", "@/services", "@/db", "@/features", "@/hooks", "@/stores", "@/components"),
           "react", "react-*", "expo", "expo-*",
         ],
       }],
     },
   },
   {
-    // I/O layers must not reach into UI or state. The notification service renders
-    // OS notifications outside React, so it keeps i18n.
+    // Adapters sit below features and must not reach into UI or state.
     files: ["src/{api,services,db}/**"],
-    ignores: ["src/services/download-notification-service.ts"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          ...layer("@/hooks", "@/stores", "@/components", "@/i18n"),
+          ...layer("@/features", "@/hooks", "@/stores", "@/components", "@/i18n"),
           "@/constants/theme",
         ],
       }],
+    },
+  },
+  {
+    // Application layer. Download notifications render OS notifications
+    // outside React, so that file keeps i18n.
+    files: ["src/features/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          { group: [...layer("@/hooks", "@/stores", "@/components", "@/i18n"), "@/constants/theme"] },
+          FEATURE_BARREL,
+        ],
+      }],
+    },
+  },
+  {
+    files: ["src/features/downloads/notifications.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          { group: [...layer("@/hooks", "@/stores", "@/components"), "@/constants/theme"] },
+          FEATURE_BARREL,
+        ],
+      }],
+    },
+  },
+  {
+    files: ["src/{app,components,hooks,stores,contexts}/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [FEATURE_INTERNALS] }],
     },
   },
   {

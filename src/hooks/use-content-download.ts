@@ -3,11 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { buildDownloadTaskId } from '@/domain/downloads';
 import { formatByteSize } from '@/domain/whole-book-parser';
-import {
-    cancelGlobalBookDownload,
-    runGlobalBookDownload,
-} from '@/services/book-download-runner';
-import { removeDownloadTask } from '@/services/download-progress';
+import { cancelDownload as cancelDownloadTask, runDownload, removeDownloadTask } from '@/features/downloads';
 import { useDownloadProgress } from '@/stores/download-progress-store';
 import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
 import { isAbortError } from '@/utils/run-with-concurrency';
@@ -227,7 +223,7 @@ export function useContentDownload({
 
   const cancelDownload = useCallback(() => {
     if (usesGlobalSync && globalSync) {
-      cancelGlobalBookDownload(globalSync);
+      cancelDownloadTask(globalSync);
       return;
     }
 
@@ -246,7 +242,7 @@ export function useContentDownload({
     clearError();
 
     if (usesGlobalSync && globalSync) {
-      await runGlobalBookDownload({
+      await runDownload({
         sync: globalSync,
         download,
         errorFallback: resolvedDownloadFailedMessage,

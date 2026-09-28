@@ -108,7 +108,7 @@ Relevant files:
 | File | Role |
 |------|------|
 | `src/app/+native-intent.tsx` | Rewrites TrackPlayer notification URI to `/read` |
-| `src/services/track-player/chapter-playback.ts` | Session state, `getActivePlaybackReadRoute()`, `getResumedPlaybackChapter()` |
+| `src/features/playback` | Session state, `getActivePlaybackReadRoute()`, `getResumedPlaybackChapter()` |
 | `src/services/track-player/setup.ts` | TrackPlayer setup and Android options |
 | `src/hooks/use-stop-playback-on-leave.ts` | Stops audio when leaving the reading screen |
 
@@ -128,7 +128,7 @@ Relevant files:
 | File | Role |
 |------|------|
 | `src/hooks/use-stop-playback-on-leave.ts` | Blur cleanup + `stopPlaybackBeforeLeave()` |
-| `src/services/track-player/app-lifecycle.ts` | `AppState` listener; tracks whether read screen is focused |
+| `src/features/playback` | `initPlaybackAppLifecycle()` — `AppState` listener; tracks whether read screen is focused |
 | `src/components/reading/reading-toolbar.tsx` | Back button stops before `router.back()` |
 | `src/components/reading/audio-only-toolbar.tsx` | Same for audio-only mode |
 | `src/app/books.tsx` | Safety stop when book list gains focus |

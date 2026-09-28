@@ -1,6 +1,6 @@
 import TrackPlayer, { Event } from 'react-native-track-player';
 
-import { handleQueueEnded } from './chapter-playback';
+import { handleQueueEnded } from './session';
 
 async function playbackService() {
   TrackPlayer.addEventListener(Event.RemotePlay, () => {

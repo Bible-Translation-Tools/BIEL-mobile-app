@@ -30,7 +30,7 @@ import {
   subscribeChapterPlayback,
   togglePlay as togglePlayPlayback,
   updateNowPlayingVerse,
-} from '@/services/track-player/chapter-playback';
+} from '@/features/playback';
 import { useAudioVolume, useSetAudioVolume } from '@/stores/audio-volume-store';
 
 import type { UseChapterAudioParams } from './use-chapter-audio.types';

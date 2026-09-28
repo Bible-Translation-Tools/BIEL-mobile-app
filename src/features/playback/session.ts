@@ -1,9 +1,8 @@
 import TrackPlayer, { State } from 'react-native-track-player';
 
-import { fetchChapterAudioUrl, fetchChapterVerseTimings } from '@/api/services/audio';
-import { fetchAudioChaptersForBook } from '@/api/services/chapters';
 import { findNextVerseTiming, findPreviousVerseTiming } from '@/domain/verse-navigation';
 
+import { getAudioChaptersForBook, getChapterAudioUrl, getChapterVerseTimings } from './chapter-audio';
 import type { ChapterPlaybackSession, ChapterPlaybackSnapshot } from './types';
 
 const defaultSnapshot: ChapterPlaybackSnapshot = {
@@ -188,7 +187,7 @@ export async function stopPlayback(): Promise<void> {
 export async function ensureChapterNumbers(): Promise<void> {
   if (!session || session.chapterNumbers.length > 0) return;
 
-  const chapters = await fetchAudioChaptersForBook(session.languageCode, session.bookSlug);
+  const chapters = await getAudioChaptersForBook(session.languageCode, session.bookSlug);
   session.chapterNumbers = chapters.map((item) => item.number).sort((a, b) => a - b);
 }
 
@@ -223,8 +222,8 @@ export async function loadChapter(
     await ensureChapterNumbers();
 
     const [url, timings] = await Promise.all([
-      fetchChapterAudioUrl(session.languageCode, session.bookSlug, chapter),
-      fetchChapterVerseTimings(session.languageCode, session.bookSlug, chapter),
+      getChapterAudioUrl(session.languageCode, session.bookSlug, chapter),
+      getChapterVerseTimings(session.languageCode, session.bookSlug, chapter),
     ]);
 
     if (generation !== loadGeneration) return;

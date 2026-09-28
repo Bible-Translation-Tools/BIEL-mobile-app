@@ -2,8 +2,9 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { i18n } from '@/i18n';
-import { listActiveDownloadTasks } from '@/services/download-progress';
 import type { DownloadProgressTask } from '@/types/download-progress';
+
+import { listActiveDownloadTasks } from './task-registry';
 
 const DOWNLOAD_CHANNEL_ID = 'book-downloads';
 const ACTIVE_DOWNLOAD_NOTIFICATION_ID = 'biel-active-book-download';

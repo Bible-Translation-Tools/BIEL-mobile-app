@@ -1,11 +1,22 @@
 import { catalogApi } from '@/api/catalog';
-import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { getOfflineChapterHtml } from '@/api/services/offline-text';
+import { fetchRenderedContent } from '@/api/content-fetch';
 import { buildChapterContentFromHtml } from '@/domain/chapter-html-parser';
 import { pickRendering } from '@/domain/resource-selection';
+import { loadOfflineChapterHtml } from '@/features/downloads/offline-scripture';
 import type { ChapterContent } from '@/types/reading';
+import { localFirst } from '@/utils/source-strategy';
 
-async function fetchChapterContentFromNetwork(
+async function loadOfflineChapterContent(
+  languageCode: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<ChapterContent | null> {
+  const offline = await loadOfflineChapterHtml(languageCode, bookSlug, chapter);
+  if (!offline) return null;
+  return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
+}
+
+async function fetchChapterContent(
   languageCode: string,
   bookSlug: string,
   chapter: number,
@@ -42,15 +53,13 @@ async function fetchChapterContentFromNetwork(
   return buildChapterContentFromHtml(html, rendering.bookName, rendering.chapter);
 }
 
-export async function fetchChapterContent(
+export async function getChapterContent(
   languageCode: string,
   bookSlug: string,
   chapter: number,
 ): Promise<ChapterContent> {
-  const offline = await getOfflineChapterHtml(languageCode, bookSlug, chapter);
-  if (offline) {
-    return buildChapterContentFromHtml(offline.html, offline.bookName, chapter);
-  }
-
-  return fetchChapterContentFromNetwork(languageCode, bookSlug, chapter);
+  return localFirst(
+    () => loadOfflineChapterContent(languageCode, bookSlug, chapter),
+    () => fetchChapterContent(languageCode, bookSlug, chapter),
+  );
 }

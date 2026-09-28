@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 
 import {
   consumeSuppressStopPlayback,
+  setReadingScreenFocused,
   stopPlayback,
-} from '@/services/track-player/chapter-playback';
-import { setReadingScreenFocused } from '@/services/track-player/app-lifecycle';
+} from '@/features/playback';
 
 /** Stops chapter audio when the reading screen loses focus (unless resuming from notification). */
 export function useStopPlaybackOnLeave(): void {

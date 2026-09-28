@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fetchChaptersForBook } from '@/api/services/chapters';
-import { isChapterAudioDownloaded } from '@/api/services/offline-audio';
-import { fetchChapterContent } from '@/api/services/reader';
+import { getChaptersForBook } from '@/features/catalog';
+import { isChapterAudioDownloaded } from '@/features/downloads';
+import { getChapterContent } from '@/features/reading';
 import type { ChapterContent } from '@/types/reading';
 
 const SCROLL_LOAD_THRESHOLD = 240;
@@ -54,7 +54,7 @@ export function useReaderScroll(
       const ref = direction === 'next' ? prefetchNextRef : prefetchPrevRef;
       if (ref.current?.chapter === chapter) return;
 
-      const promise = fetchChapterContent(languageCode, bookSlug, chapter);
+      const promise = getChapterContent(languageCode, bookSlug, chapter);
       ref.current = { chapter, promise };
       // Attach a handler immediately so a failed prefetch is not an unhandled
       // rejection (Expo shows those as a bottom toast). loadMore/loadPrevious
@@ -81,7 +81,7 @@ export function useReaderScroll(
     let numbers: number[] = [];
 
     try {
-      const chapterList = await fetchChaptersForBook(languageCode, bookSlug);
+      const chapterList = await getChaptersForBook(languageCode, bookSlug);
       numbers = chapterList.map((item) => item.number).sort((a, b) => a - b);
       const previous =
         initialChapter > 1 ? getPreviousChapterNumber(numbers, initialChapter) : null;
@@ -89,7 +89,7 @@ export function useReaderScroll(
       let initialChapters: ChapterContent[];
 
       if (previous != null) {
-        const currentContent = await fetchChapterContent(
+        const currentContent = await getChapterContent(
           languageCode,
           bookSlug,
           initialChapter,
@@ -97,7 +97,7 @@ export function useReaderScroll(
 
         let previousContent: ChapterContent | null = null;
         try {
-          previousContent = await fetchChapterContent(languageCode, bookSlug, previous);
+          previousContent = await getChapterContent(languageCode, bookSlug, previous);
         } catch {
           // Previous chapter may not be available offline when only this chapter was downloaded.
         }
@@ -115,7 +115,7 @@ export function useReaderScroll(
           setInitialScrollIndex(0);
         }
       } else {
-        const currentContent = await fetchChapterContent(
+        const currentContent = await getChapterContent(
           languageCode,
           bookSlug,
           initialChapter,
@@ -185,7 +185,7 @@ export function useReaderScroll(
         content = await prefetchNextRef.current.promise;
         prefetchNextRef.current = null;
       } else {
-        content = await fetchChapterContent(languageCode, bookSlug, nextChapter);
+        content = await getChapterContent(languageCode, bookSlug, nextChapter);
       }
 
       setChapters((prev) => {
@@ -223,7 +223,7 @@ export function useReaderScroll(
         content = await prefetchPrevRef.current.promise;
         prefetchPrevRef.current = null;
       } else {
-        content = await fetchChapterContent(languageCode, bookSlug, previousChapter);
+        content = await getChapterContent(languageCode, bookSlug, previousChapter);
       }
 
       setChapters((prev) => {

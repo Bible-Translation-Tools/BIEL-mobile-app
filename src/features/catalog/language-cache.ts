@@ -1,7 +1,8 @@
-import { fetchLanguages, fetchLanguagesOffline } from '@/api/services/languages';
-import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage, listLanguagesWithDownloads } from '@/db';
+import { getBookCatalogCountsByLanguage, getDownloadedBookCountsByLanguage } from '@/db';
 import type { DownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
+
+import { fetchLanguages, loadLanguages } from './languages';
 
 /** Error code for a failure without its own message. The UI translates it. */
 export const LANGUAGE_CATALOG_LOAD_FAILED = 'language_catalog_load_failed';
@@ -31,7 +32,7 @@ function applyLanguageDownloadStatus(
   });
 }
 
-async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]> {
+export async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]> {
   const [downloadedCounts, catalogCounts] = await Promise.all([
     getDownloadedBookCountsByLanguage(),
     getBookCatalogCountsByLanguage(),
@@ -59,10 +60,10 @@ async function snapshotFromNetwork(): Promise<LanguageCatalogSnapshot> {
   };
 }
 
-async function fetchLanguageCatalogSnapshot(forceNetwork: boolean): Promise<LanguageCatalogSnapshot> {
+async function buildLanguageCatalogSnapshot(forceNetwork: boolean): Promise<LanguageCatalogSnapshot> {
   let localItems: LanguageItem[] = [];
   try {
-    localItems = await fetchLanguagesOffline();
+    localItems = await loadLanguages();
   } catch {
     localItems = [];
   }
@@ -92,26 +93,6 @@ async function fetchLanguageCatalogSnapshot(forceNetwork: boolean): Promise<Lang
   }
 }
 
-/** Languages that have local scripture and/or audio (Downloads Library). */
-export async function loadDownloadedLanguagesCatalog(): Promise<LanguageCatalogSnapshot> {
-  try {
-    const items = await listLanguagesWithDownloads();
-    try {
-      return {
-        languages: await withDownloadStatus(items),
-        error: null,
-      };
-    } catch {
-      return { languages: items, error: null };
-    }
-  } catch (err) {
-    return {
-      languages: [],
-      error: err instanceof Error ? err.message : LANGUAGE_CATALOG_LOAD_FAILED,
-    };
-  }
-}
-
 let snapshot: LanguageCatalogSnapshot | null = null;
 let loadPromise: Promise<LanguageCatalogSnapshot> | null = null;
 
@@ -119,7 +100,11 @@ export function getLanguageCatalogSnapshot(): LanguageCatalogSnapshot | null {
   return snapshot;
 }
 
-export function loadLanguageCatalog(options?: { force?: boolean }): Promise<LanguageCatalogSnapshot> {
+/**
+ * Cache first, refreshed in the background: serves the local catalog when there is one,
+ * otherwise the network. `force` goes to the network first.
+ */
+export function getLanguageCatalog(options?: { force?: boolean }): Promise<LanguageCatalogSnapshot> {
   if (!options?.force && snapshot) {
     return Promise.resolve(snapshot);
   }
@@ -128,7 +113,7 @@ export function loadLanguageCatalog(options?: { force?: boolean }): Promise<Lang
     return loadPromise;
   }
 
-  loadPromise = fetchLanguageCatalogSnapshot(Boolean(options?.force))
+  loadPromise = buildLanguageCatalogSnapshot(Boolean(options?.force))
     .then((result) => {
       snapshot = result;
       return result;

@@ -54,7 +54,7 @@ The drawer (`handleDownloadsLibraryPress`) flips the flag, closes, then `dismiss
 
 ### Data
 
-`useDownloadsLibrary` loads everything from SQLite via `fetchDownloadedLibrary()`:
+`useDownloadsLibrary` loads everything from SQLite via `loadDownloadedLibrary()`:
 
 1. `listLanguagesWithDownloads()` — languages with any local scripture or audio
 2. `listLocalContentBooks()` — books across those languages, from `books`, `scripture_chapters`, and `audio_books`
@@ -102,8 +102,7 @@ Canonical counts are `BIBLE_BOOK_CHAPTER_COUNTS` in `src/constants/bible-books.t
 | `src/components/download/content-type-badge.tsx` | Both / Text / Audio / Mixed pills |
 | `src/hooks/use-downloads-library.ts` | Local languages + books |
 | `src/hooks/use-library-chapters.ts` | Offline chapter grid load |
-| `src/api/services/books.ts` | `fetchDownloadedLibrary` |
-| `src/api/services/chapters.ts` | `fetchOfflineChaptersForBook` |
+| `src/features/library` | `loadDownloadedLibrary`, `loadDownloadedChaptersForBook` |
 | `src/db/repository.ts` | `listLanguagesWithDownloads`, `listLocalContentBooks` |
 | `src/locales/*.json` | `library` namespace |
 

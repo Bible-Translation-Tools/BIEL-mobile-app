@@ -24,7 +24,7 @@ import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
 import { useStopPlaybackOnLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
-import { getResumedPlaybackChapter } from '@/services/track-player/chapter-playback';
+import { getResumedPlaybackChapter } from '@/features/playback';
 import { useReadingTextStyles } from '@/stores/reading-text-settings-store';
 import type { ChapterContent } from '@/types/reading';
 import { normalizeRouteParam } from '@/utils/route-params';

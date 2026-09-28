@@ -1,6 +1,6 @@
 import { AppState, Platform } from 'react-native';
 
-import { stopPlayback } from '@/services/track-player/chapter-playback';
+import { stopPlayback } from './session';
 
 let readingScreenFocused = false;
 

@@ -13,7 +13,7 @@ import { BookLayout } from '@/constants/theme';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-import { stopPlayback } from '@/services/track-player/chapter-playback';
+import { stopPlayback } from '@/features/playback';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
 import { normalizeRouteParam } from '@/utils/route-params';
 
