@@ -1,9 +1,6 @@
 import { File } from 'expo-file-system';
 
 import { catalogApi } from '@/api/catalog';
-import { fetchRenderedContent } from '@/api/services/content-fetch';
-import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
-
 import {
   ensureOfflineAudioDirectory,
   ensureOfflineRootExists,
@@ -11,7 +8,10 @@ import {
   getChapterMp3File,
   getOfflineAudioDirectory,
   normalizeBookSlug,
-} from '@/constants/offline-storage';
+} from '@/api/offline-storage';
+import { fetchRenderedContent } from '@/api/services/content-fetch';
+import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
+
 import type { AudioChapterRecord } from '@/db';
 import {
   deleteAudioBook as deleteAudioBookRecord,

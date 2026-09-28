@@ -64,7 +64,7 @@ flowchart TB
 | **Catalog API** | Transport-agnostic remote catalog / content-URL lookups | `src/api/catalog/` |
 | **GraphQL** | Current Catalog API adapter (client + queries) | `src/api/graphql/` |
 | **DB** | Local metadata and indexes | `src/db/` |
-| **Files** | Scripture HTML/JSON and audio MP3/CUE on disk | via `src/constants/offline-storage.ts` |
+| **Files** | Scripture HTML/JSON and audio MP3/CUE on disk | via `src/api/offline-storage.ts` |
 
 ## Main screens
 

@@ -5,10 +5,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { ensureOfflineRootExists } from '@/api/offline-storage';
 import { OfflineBanner } from '@/components/offline-banner';
 import { SplashScreenView } from '@/components/splash-screen';
 import { resolveAppLocale, type AppLocale } from '@/constants/locale';
-import { ensureOfflineRootExists } from '@/constants/offline-storage';
 import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-context';
 import { LocaleProvider } from '@/contexts/locale-context';
 import { initDatabase } from '@/db';

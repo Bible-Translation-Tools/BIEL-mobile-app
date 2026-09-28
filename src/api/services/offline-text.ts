@@ -1,6 +1,14 @@
 import { File } from 'expo-file-system';
 
 import { catalogApi } from '@/api/catalog';
+import {
+  ensureOfflineRootExists,
+  ensureOfflineScriptureDirectory,
+  getChapterHtmlFile,
+  getWholeJsonFile,
+  normalizeBookSlug,
+  removeBookScriptureDirectory,
+} from '@/api/offline-storage';
 import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { pickRendering } from '@/domain/resource-selection';
@@ -12,14 +20,6 @@ import {
 import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
 import { yieldToUi } from '@/utils/yield-to-ui';
 
-import {
-  ensureOfflineRootExists,
-  ensureOfflineScriptureDirectory,
-  getChapterHtmlFile,
-  getWholeJsonFile,
-  normalizeBookSlug,
-  removeBookScriptureDirectory,
-} from '@/constants/offline-storage';
 import {
   deleteBook as deleteBookRecord,
   deleteScriptureChapter as deleteScriptureChapterRecord,
