@@ -21,6 +21,9 @@ export {
   upsertBookCatalogEntry,
 } from './book-catalog';
 
+export { loadChapterCatalog, saveChapterCatalog } from './chapter-catalog';
+export type { ChapterCatalogContentType } from './chapter-catalog';
+
 export {
   deleteBook,
   getBookDownloadRecord,

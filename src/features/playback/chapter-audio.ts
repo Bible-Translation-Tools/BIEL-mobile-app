@@ -1,5 +1,7 @@
 import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/content-fetch';
+import { loadChapterCatalog, saveChapterCatalog } from '@/db';
+import { normalizeBookSlug } from '@/domain/book-slug';
 import { getVerseTimingParser } from '@/domain/verse-timing';
 import {
   fetchBookAudioManifest,
@@ -9,25 +11,37 @@ import {
 } from '@/features/downloads/offline-audio';
 import type { TimingFileFormat, VerseTiming } from '@/types/audio';
 import type { ChapterItem } from '@/types/book';
-import { localFirst, networkFirst } from '@/utils/source-strategy';
+import { cacheFirst, localFirst } from '@/utils/source-strategy';
 
 /** Timing format of both downloaded and remote chapter timing files. */
 const TIMING_FORMAT: TimingFileFormat = 'cue';
 
-/** Chapters of a book that have audio; offline, the chapters with downloaded audio. */
+async function fetchAudioChapterNumbers(languageCode: string, bookSlug: string): Promise<number[]> {
+  const manifest = await fetchBookAudioManifest(languageCode, bookSlug);
+  const chapterNumbers = manifest.chapters.map((chapter) => chapter.chapter);
+  if (chapterNumbers.length > 0) {
+    await saveChapterCatalog(languageCode, manifest.bookSlug, 'audio', chapterNumbers).catch(
+      () => {},
+    );
+  }
+  return chapterNumbers;
+}
+
+/**
+ * Chapters of a book that have audio: the cached catalog list, then the catalog (saved for
+ * next time), then offline the chapters with downloaded audio. The cache is never refreshed.
+ */
 export async function getAudioChaptersForBook(
   languageCode: string,
   bookSlug: string,
 ): Promise<ChapterItem[]> {
-  return networkFirst(
-    async () => {
-      const manifest = await fetchBookAudioManifest(languageCode, bookSlug);
-      return manifest.chapters.map((chapter) => ({ number: chapter.chapter }));
-    },
-    async () =>
-      (await loadOfflineAudioChapterNumbers(languageCode, bookSlug)).map((number) => ({ number })),
+  const chapterNumbers = await cacheFirst(
+    () => loadChapterCatalog(languageCode, normalizeBookSlug(bookSlug), 'audio'),
+    () => fetchAudioChapterNumbers(languageCode, bookSlug),
+    () => loadOfflineAudioChapterNumbers(languageCode, bookSlug),
     (chapters) => chapters.length > 0,
   );
+  return chapterNumbers.map((number) => ({ number }));
 }
 
 export async function getChapterAudioUrl(

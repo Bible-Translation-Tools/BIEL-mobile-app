@@ -77,7 +77,7 @@ Applied to `features/` only:
 Named helpers in `src/utils/source-strategy.ts`:
 
 - `localFirst(local, remote)`: downloaded copy, then network. Used by `getChapterContent`, `getChapterAudioUrl`, `getChapterVerseTimings`.
-- `networkFirst(remote, local, isUsable)`: catalog first; on failure, local if usable. Used by `getChaptersForBook`, `getAudioChaptersForBook`.
+- `cacheFirst(cached, remote, fallback, isUsable)`: cached catalog copy, then network; on failure, the fallback (downloaded) if usable. The cache is never refreshed. Used by `getChaptersForBook`, `getAudioChaptersForBook`, which save the network result to the cache.
 
 Custom (commented on the function, not a helper): `getLanguageBookSlugs` (cache, then network, then downloaded) and `getLanguageCatalog` (serve cache, refresh in the background).
 
@@ -100,6 +100,7 @@ Custom (commented on the function, not a helper): `getLanguageBookSlugs` (cache,
 | `connection.ts` | — | `initDatabase`, the shared connection, serialized transactions |
 | `languages.ts` | `languages`, `language_catalog` | cached language catalog; the `languages` row downloads reference |
 | `book-catalog.ts` | `book_catalog` | cached book list per language |
+| `chapter-catalog.ts` | `chapter_catalog` | cached chapter numbers per book (text and audio) |
 | `scripture-books.ts` | `books`, `chapters` | whole-book scripture downloads |
 | `scripture-chapters.ts` | `scripture_chapters` | chapters downloaded on their own |
 | `audio-books.ts` | `audio_books`, `audio_chapters` | audio downloads |
