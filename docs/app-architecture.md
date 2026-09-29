@@ -17,7 +17,7 @@ src/
   domain/        pure rules and parsers (no I/O, no React)
   api/           server, network, and file adapters
   services/      device adapters (TrackPlayer setup, system volume)
-  db/            SQLite
+  db/            SQLite, one file per table group (see below)
   types/         shared type declarations only (our shapes, not server shapes)
   utils/         leftover helpers (including source-strategy)
 ```
@@ -51,7 +51,7 @@ Each `src/features/<capability>/index.ts` is the public list of operations. File
 | `downloads` | Download or delete scripture and audio | `download*` / `delete*` (chapter, book, language), `runDownload`, `cancelDownload` |
 | `library` | Browse what is on the device | `loadDownloadedLibrary`, `loadDownloadedBooksForLanguage`, `loadDownloadedChaptersForBook`, `loadDownloadedLanguages` |
 
-`domain/` stays separate: features do I/O; domain is the lint-enforced pure zone. Shared rules: `downloads.ts` (status, task IDs, "fully downloaded"), `resource-selection.ts` (reading + downloads), `verse-navigation.ts` (playback), `content-type.ts` (library UI), plus the parsers.
+`domain/` stays separate: features do I/O; domain is the lint-enforced pure zone. Shared rules: `downloads.ts` (status, task IDs, "fully downloaded", missing chapters, progress), `resource-selection.ts` (picking and grouping renderings), `audio-manifest.ts` (catalog audio files → chapter list), `book-slug.ts` (canonical slug), `verse-navigation.ts` (playback), `content-type.ts` (library UI), plus the parsers.
 
 Which domain rules each feature uses:
 
@@ -60,7 +60,7 @@ Which domain rules each feature uses:
 | `catalog` | — |
 | `reading` | `chapter-html-parser`, `resource-selection` |
 | `playback` | `verse-timing`, `verse-navigation` |
-| `downloads` | `downloads`, `resource-selection`, `whole-book-parser` |
+| `downloads` | `downloads`, `audio-manifest`, `book-slug`, `resource-selection`, `whole-book-parser` |
 | `library` | `content-type` (in UI; library feature itself maps local records) |
 
 ## Verb rule
@@ -89,7 +89,24 @@ Custom (commented on the function, not a helper): `getLanguageBookSlugs` (cache,
 | Does | Catalog, reading, playback, downloads, library | GraphQL, content HTTP, disk layout | TrackPlayer setup, system volume |
 | Example | `getChapterContent`, `runDownload` | `catalogApi`, `offline-storage.ts` | `track-player/setup.ts` |
 
-Plain module state lives in `features/` (or `api/` / `services/` for adapters); `stores/` wraps it in hooks. Features return error codes or throw; hooks translate for display.
+Plain module state lives in `features/` (or `api/` / `services/` for adapters); `stores/` wraps it in hooks. Features return error codes or throw; hooks translate for display. Downloads describe failures as `DownloadFailure` data (`types/download.ts`, built in `features/downloads/failures.ts`); `useContentDownload` turns it into translated text.
+
+## Database
+
+`src/db/index.ts` is the public list; files are grouped by table:
+
+| File | Tables | Holds |
+|------|--------|-------|
+| `connection.ts` | — | `initDatabase`, the shared connection, serialized transactions |
+| `languages.ts` | `languages`, `language_catalog` | cached language catalog; the `languages` row downloads reference |
+| `book-catalog.ts` | `book_catalog` | cached book list per language |
+| `scripture-books.ts` | `books`, `chapters` | whole-book scripture downloads |
+| `scripture-chapters.ts` | `scripture_chapters` | chapters downloaded on their own |
+| `audio-books.ts` | `audio_books`, `audio_chapters` | audio downloads |
+| `local-content.ts` | all download tables | what is on the device, across types |
+| `preferences.ts` and `*-preferences.ts` | `preferences` | settings |
+
+`db/` only reads and writes rows. Read-modify-write rules (for example "add one chapter to an audio book") live in the feature that needs them.
 
 ## Server shapes
 

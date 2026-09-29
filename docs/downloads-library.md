@@ -103,7 +103,7 @@ Canonical counts are `BIBLE_BOOK_CHAPTER_COUNTS` in `src/constants/bible-books.t
 | `src/hooks/use-downloads-library.ts` | Local languages + books |
 | `src/hooks/use-library-chapters.ts` | Offline chapter grid load |
 | `src/features/library` | `loadDownloadedLibrary`, `loadDownloadedChaptersForBook` |
-| `src/db/repository.ts` | `listLanguagesWithDownloads`, `listLocalContentBooks` |
+| `src/db/local-content.ts` | `listLanguagesWithDownloads`, `listLocalContentBooks` |
 | `src/locales/*.json` | `library` namespace |
 
 ## How to test

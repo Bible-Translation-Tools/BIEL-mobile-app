@@ -1,4 +1,5 @@
 import { buildDownloadTaskId } from '@/domain/downloads';
+import type { DownloadFailure } from '@/types/download';
 import type {
   DownloadProgressTask,
   DownloadTaskStatus,
@@ -38,7 +39,7 @@ export function isDownloadActive(sync: GlobalDownloadSync): boolean {
 
 export function upsertDownloadTask(
   sync: GlobalDownloadSync,
-  patch: Partial<Pick<DownloadProgressTask, 'progress' | 'status' | 'errorMessage'>>,
+  patch: Partial<Pick<DownloadProgressTask, 'progress' | 'status' | 'failure'>>,
 ): DownloadProgressTask {
   const id = buildDownloadTaskId(sync);
   const existing = tasks.get(id);
@@ -52,7 +53,7 @@ export function upsertDownloadTask(
     kind: sync.kind,
     progress: patch.progress ?? existing?.progress ?? 0,
     status: patch.status ?? existing?.status ?? 'downloading',
-    errorMessage: patch.errorMessage,
+    failure: patch.failure,
     updatedAt: Date.now(),
   };
   tasks.set(id, next);
@@ -70,7 +71,7 @@ export function updateDownloadTaskProgress(id: string, progress: number) {
 export function setDownloadTaskStatus(
   id: string,
   status: DownloadTaskStatus,
-  errorMessage?: string,
+  failure?: DownloadFailure,
 ) {
   const task = tasks.get(id);
   if (!task) return;
@@ -78,7 +79,7 @@ export function setDownloadTaskStatus(
     ...task,
     status,
     progress: status === 'completed' ? 1 : task.progress,
-    errorMessage,
+    failure,
     updatedAt: Date.now(),
   });
   emit();

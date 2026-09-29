@@ -1,13 +1,15 @@
 import { buildDownloadTaskId } from '@/domain/downloads';
+import type { DownloadFailure } from '@/types/download';
 import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
 import { isAbortError } from '@/utils/run-with-concurrency';
 
+import { partialDownloadFailure, toDownloadFailure } from './failures';
 import { showDownloadFinishedNotification, syncDownloadNotification } from './notifications';
 import {
-  isDownloadActive,
-  removeDownloadTask,
-  updateDownloadTaskProgress,
-  upsertDownloadTask,
+    isDownloadActive,
+    removeDownloadTask,
+    updateDownloadTaskProgress,
+    upsertDownloadTask,
 } from './task-registry';
 
 type ActiveJob = {
@@ -17,10 +19,6 @@ type ActiveJob = {
 
 const activeJobs = new Map<string, ActiveJob>();
 
-function toErrorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
-}
-
 export function cancelDownload(sync: GlobalDownloadSync): void {
   const id = buildDownloadTaskId(sync);
   activeJobs.get(id)?.controller.abort();
@@ -29,9 +27,8 @@ export function cancelDownload(sync: GlobalDownloadSync): void {
 export async function runDownload(params: {
   sync: GlobalDownloadSync;
   download: DownloadJob;
-  errorFallback: string;
   onSuccess?: () => void;
-  onError?: (message: string) => void;
+  onError?: (failure: DownloadFailure) => void;
 }): Promise<void> {
   const id = buildDownloadTaskId(params.sync);
   if (isDownloadActive(params.sync) || activeJobs.has(id)) {
@@ -44,13 +41,10 @@ export async function runDownload(params: {
   upsertDownloadTask(params.sync, { status: 'downloading', progress: 0 });
   await syncDownloadNotification();
 
-  const fail = async (message: string) => {
-    const task = upsertDownloadTask(params.sync, {
-      status: 'failed',
-      errorMessage: message,
-    });
+  const fail = async (failure: DownloadFailure) => {
+    const task = upsertDownloadTask(params.sync, { status: 'failed', failure });
     await showDownloadFinishedNotification(task, false);
-    params.onError?.(message);
+    params.onError?.(failure);
   };
 
   const cancel = async () => {
@@ -72,7 +66,7 @@ export async function runDownload(params: {
       return;
     }
     if (outcome.status === 'partial') {
-      await fail(params.errorFallback);
+      await fail(partialDownloadFailure(outcome.failedBookSlugs));
       return;
     }
 
@@ -84,7 +78,7 @@ export async function runDownload(params: {
       await cancel();
       return;
     }
-    await fail(toErrorMessage(err, params.errorFallback));
+    await fail(toDownloadFailure(err));
   } finally {
     activeJobs.delete(id);
     setTimeout(() => {

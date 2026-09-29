@@ -8,6 +8,8 @@ export {
   subscribeDownloadTasks,
 } from './task-registry';
 export { initDownloadNotifications } from './notifications';
+/** Why a download failed, as data for the UI to translate. */
+export { partialDownloadFailure, toDownloadFailure } from './failures';
 
 /** Scripture: download, delete, and size of a chapter, book, or language. */
 export {

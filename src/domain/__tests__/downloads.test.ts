@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  averageProgress,
   buildDownloadTaskId,
   isFullyDownloaded,
   isManifestFullyDownloaded,
+  listMissingChapters,
   mergeChapterRecords,
   resolveDownloadStatus,
   sumChapterBytes,
@@ -72,6 +74,23 @@ describe('isManifestFullyDownloaded', () => {
 
   it('never treats an empty manifest as complete', () => {
     expect(isManifestFullyDownloaded([], new Set([1]))).toBe(false);
+  });
+});
+
+describe('listMissingChapters', () => {
+  it('returns unavailable manifest chapters, sorted', () => {
+    expect(listMissingChapters([3, 1, 2], new Set([2]))).toEqual([1, 3]);
+    expect(listMissingChapters([1, 2], new Set([1, 2]))).toEqual([]);
+  });
+});
+
+describe('averageProgress', () => {
+  it('averages per-item progress', () => {
+    expect(averageProgress([1, 0.5, 0, 0.5])).toBe(0.5);
+  });
+
+  it('is zero for no items', () => {
+    expect(averageProgress([])).toBe(0);
   });
 });
 

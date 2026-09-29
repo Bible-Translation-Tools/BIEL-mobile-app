@@ -1,9 +1,35 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
+import { normalizeBookSlug } from '@/domain/book-slug';
+
 export const OFFLINE_ROOT_DIR_NAME = 'biel-offline';
 
-export function normalizeBookSlug(bookSlug: string): string {
-  return bookSlug.trim().toUpperCase();
+function tempFileFor(file: File): File {
+  return new File(file.parentDirectory, `${file.name}.tmp`);
+}
+
+/** Writes through a `.tmp` sibling so a crash never leaves a half-written target. */
+export function writeFileAtomically(targetFile: File, contents: string | Uint8Array): void {
+  const tempFile = tempFileFor(targetFile);
+  if (tempFile.exists) {
+    tempFile.delete();
+  }
+  tempFile.write(contents);
+  if (targetFile.exists) {
+    targetFile.delete();
+  }
+  tempFile.move(targetFile);
+}
+
+/** Deletes a file and any `.tmp` left by an interrupted {@link writeFileAtomically}. */
+export function deleteFileAndTemp(file: File): void {
+  const tempFile = tempFileFor(file);
+  if (tempFile.exists) {
+    tempFile.delete();
+  }
+  if (file.exists) {
+    file.delete();
+  }
 }
 
 export function getOfflineBookDirectory(languageCode: string, bookSlug: string): Directory {

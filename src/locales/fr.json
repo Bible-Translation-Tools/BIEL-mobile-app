@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "Impossible de télécharger la langue",
     "couldNotDownloadScripture": "Impossible de télécharger le texte",
     "couldNotRemoveScripture": "Impossible de supprimer le texte téléchargé",
+    "missingAudioChapters_one": "Impossible de télécharger l'audio du chapitre {{chapters}}",
+    "missingAudioChapters_other": "Impossible de télécharger l'audio de {{count}} chapitres : {{chapters}}",
+    "failedBooks_one": "{{count}} livre n'a pas pu être téléchargé",
+    "failedBooks_other": "{{count}} livres n'ont pas pu être téléchargés",
     "notification": {
       "channelName": "Téléchargements de livres",
       "downloadingScripture": "Téléchargement de {{name}}",

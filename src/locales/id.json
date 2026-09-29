@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "Tidak dapat mengunduh bahasa",
     "couldNotDownloadScripture": "Tidak dapat mengunduh teks",
     "couldNotRemoveScripture": "Tidak dapat menghapus teks yang diunduh",
+    "missingAudioChapters_one": "Tidak dapat mengunduh audio untuk pasal {{chapters}}",
+    "missingAudioChapters_other": "Tidak dapat mengunduh audio untuk {{count}} pasal: {{chapters}}",
+    "failedBooks_one": "{{count}} kitab tidak dapat diunduh",
+    "failedBooks_other": "{{count}} kitab tidak dapat diunduh",
     "notification": {
       "channelName": "Unduhan buku",
       "downloadingScripture": "Mengunduh {{name}}",

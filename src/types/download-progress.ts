@@ -1,4 +1,4 @@
-import type { DownloadOutcome } from '@/types/download';
+import type { DownloadFailure, DownloadOutcome } from '@/types/download';
 
 export type DownloadJob = (options: {
   signal: AbortSignal;
@@ -34,6 +34,6 @@ export type DownloadProgressTask = {
   bookSlug?: string;
   progress: number;
   status: DownloadTaskStatus;
-  errorMessage?: string;
+  failure?: DownloadFailure;
   updatedAt: number;
 };

@@ -3,48 +3,45 @@ import { File } from 'expo-file-system';
 import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/content-fetch';
 import {
-  ensureOfflineRootExists,
-  ensureOfflineScriptureDirectory,
-  getChapterHtmlFile,
-  getWholeJsonFile,
-  normalizeBookSlug,
-  removeBookScriptureDirectory,
+    ensureOfflineRootExists,
+    ensureOfflineScriptureDirectory,
+    getChapterHtmlFile,
+    getWholeJsonFile,
+    removeBookScriptureDirectory,
+    writeFileAtomically,
 } from '@/api/offline-storage';
 import {
-  deleteBook as deleteBookRecord,
-  deleteScriptureChapter as deleteScriptureChapterRecord,
-  deleteScriptureChaptersForBook,
-  getBookDownloadRecord,
-  getChapterNumbersForBook,
-  getScriptureChapterRecord,
-  listDownloadedBookSlugs,
-  listDownloadedBooksForLanguage,
-  listScriptureChapterNumbersForBook,
-  sumScriptureChapterByteSizeForBook,
-  upsertBookWithChapters,
-  upsertScriptureChapter,
+    deleteBook as deleteBookRecord,
+    deleteScriptureChapter as deleteScriptureChapterRecord,
+    deleteScriptureChaptersForBook,
+    getBookDownloadRecord,
+    getChapterNumbersForBook,
+    getScriptureChapterRecord,
+    listDownloadedBooksForLanguage,
+    listDownloadedBookSlugs,
+    listScriptureChapterNumbersForBook,
+    sumScriptureChapterByteSizeForBook,
+    upsertBookWithChapters,
+    upsertScriptureChapter,
 } from '@/db';
-import { DOWNLOAD_CANCELLED, DOWNLOAD_COMPLETED } from '@/domain/downloads';
-import { pickRendering } from '@/domain/resource-selection';
+import { normalizeBookSlug } from '@/domain/book-slug';
+import { averageProgress, DOWNLOAD_CANCELLED, DOWNLOAD_COMPLETED } from '@/domain/downloads';
+import { bookByteSizesFromRenderings, pickRendering } from '@/domain/resource-selection';
 import {
-  extractChapterNumbersFromWholeBookJson,
-  offlineBookChapterHtmlMap,
-  parseWholeBookJson,
+    extractChapterNumbersFromWholeBookJson,
+    offlineBookChapterHtmlMap,
+    parseDownloadedBookJson,
+    parseWholeBookJson,
+    withOfflineBookIdentity,
 } from '@/domain/whole-book-parser';
 import { getLanguageBookSlugs } from '@/features/catalog/books';
-import { isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
-import { yieldToUi } from '@/utils/yield-to-ui';
 import type { ScriptureRendering } from '@/types/catalog';
 import type { DownloadOutcome } from '@/types/download';
 import type { OfflineBook, ResolvedBookContent } from '@/types/offline';
+import { createAbortError, isAbortError, runWithConcurrency } from '@/utils/run-with-concurrency';
+import { yieldToUi } from '@/utils/yield-to-ui';
 
 const SCRIPTURE_BOOK_DOWNLOAD_CONCURRENCY = 10;
-
-function abortError(): Error {
-  const error = new Error('Download aborted');
-  error.name = 'AbortError';
-  return error;
-}
 
 /** Dedupes overlapping language scripture catalog requests per language code. */
 const languageScriptureFilesInflight = new Map<string, Promise<ScriptureRendering[]>>();
@@ -53,17 +50,6 @@ let wholeBookCache: Map<string, OfflineBook> = new Map();
 
 function cacheKey(languageCode: string, bookSlug: string): string {
   return `${languageCode}:${bookSlug.toUpperCase()}`;
-}
-
-function withOfflineBookIdentity(
-  book: OfflineBook,
-  identity: { slug: string; name: string },
-): OfflineBook {
-  return {
-    ...book,
-    slug: book.slug || identity.slug,
-    name: book.name || identity.name,
-  };
 }
 
 export async function fetchBookContent(
@@ -108,37 +94,6 @@ async function fetchLanguageScriptureFiles(languageCode: string): Promise<Script
   });
   languageScriptureFilesInflight.set(key, request);
   return request;
-}
-
-function groupScriptureRenderingsByBookSlug(
-  renderings: ScriptureRendering[],
-): Map<string, ScriptureRendering[]> {
-  const bySlug = new Map<string, ScriptureRendering[]>();
-
-  for (const rendering of renderings) {
-    if (!rendering.bookSlug) continue;
-    const slug = normalizeBookSlug(rendering.bookSlug);
-    const grouped = bySlug.get(slug) ?? [];
-    grouped.push(rendering);
-    bySlug.set(slug, grouped);
-  }
-
-  return bySlug;
-}
-
-function parseLanguageScriptureBytesBySlug(
-  renderings: ScriptureRendering[],
-): Map<string, number> {
-  const bytesBySlug = new Map<string, number>();
-
-  for (const [bookSlug, bookRenderings] of groupScriptureRenderingsByBookSlug(renderings)) {
-    const rendering = pickRendering(bookRenderings, { bookSlug });
-    if (rendering?.fileSizeBytes != null) {
-      bytesBySlug.set(bookSlug, rendering.fileSizeBytes);
-    }
-  }
-
-  return bytesBySlug;
 }
 
 export async function isBookDownloaded(
@@ -295,7 +250,7 @@ export async function downloadChapterScripture(
   }
 
   if (options?.signal?.aborted) {
-    throw abortError();
+    throw createAbortError();
   }
 
   options?.onProgress?.(0.1);
@@ -310,7 +265,7 @@ export async function downloadChapterScripture(
 
   const html = await response.text();
   if (options?.signal?.aborted) {
-    throw abortError();
+    throw createAbortError();
   }
 
   options?.onProgress?.(0.8);
@@ -319,15 +274,7 @@ export async function downloadChapterScripture(
   ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
 
   const htmlFile = getChapterHtmlFile(languageCode, canonicalSlug, chapter);
-  const tempFile = new File(htmlFile.parentDirectory, `${htmlFile.name}.tmp`);
-  if (tempFile.exists) {
-    tempFile.delete();
-  }
-  tempFile.write(html);
-  if (htmlFile.exists) {
-    htmlFile.delete();
-  }
-  tempFile.move(htmlFile);
+  writeFileAtomically(htmlFile, html);
 
   const byteSize = new TextEncoder().encode(html).length;
 
@@ -390,7 +337,7 @@ export async function downloadBookScripture(
   try {
     const resolved = await fetchBookContent(languageCode, bookSlug);
     if (options?.signal?.aborted) {
-      throw abortError();
+      throw createAbortError();
     }
 
     options?.onProgress?.(0.1);
@@ -405,26 +352,14 @@ export async function downloadBookScripture(
 
     const jsonText = (await response.text()).trim();
     if (options?.signal?.aborted) {
-      throw abortError();
+      throw createAbortError();
     }
 
     options?.onProgress?.(0.6);
 
     await yieldToUi();
 
-    let payload: unknown;
-    try {
-      payload = JSON.parse(jsonText) as unknown;
-    } catch {
-      const preview = jsonText.slice(0, 80);
-      if (preview.startsWith('<')) {
-        throw new Error('Download returned HTML instead of book data');
-      }
-      if (preview.startsWith('\\id ')) {
-        throw new Error('Received USFM text instead of whole.json');
-      }
-      throw new Error('Downloaded book data is not valid JSON');
-    }
+    const payload = parseDownloadedBookJson(jsonText);
 
     await yieldToUi();
 
@@ -436,15 +371,7 @@ export async function downloadBookScripture(
     ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
 
     const bookJsonFile = getWholeJsonFile(languageCode, canonicalSlug);
-    const tempFile = new File(bookJsonFile.parentDirectory, 'whole.json.tmp');
-    if (tempFile.exists) {
-      tempFile.delete();
-    }
-    tempFile.write(jsonText);
-    if (bookJsonFile.exists) {
-      bookJsonFile.delete();
-    }
-    tempFile.move(bookJsonFile);
+    writeFileAtomically(bookJsonFile, jsonText);
 
     wholeBookCache.delete(cacheKey(languageCode, canonicalSlug));
 
@@ -533,7 +460,7 @@ export async function loadLanguageDownloadedByteSize(languageCode: string): Prom
 export async function getLanguageScriptureTotalBytes(languageCode: string): Promise<number> {
   const [slugs, remoteBytesBySlug, downloadedRecords] = await Promise.all([
     getLanguageBookSlugs(languageCode),
-    fetchLanguageScriptureFiles(languageCode).then(parseLanguageScriptureBytesBySlug),
+    fetchLanguageScriptureFiles(languageCode).then(bookByteSizesFromRenderings),
     listDownloadedBooksForLanguage(languageCode),
   ]);
 
@@ -595,9 +522,7 @@ export async function downloadLanguageScripture(
 
   const progressByBook = new Array<number>(pendingSlugs.length).fill(0);
   const reportOverallProgress = () => {
-    const overall =
-      progressByBook.reduce((sum, bookProgress) => sum + bookProgress, 0) / pendingSlugs.length;
-    options?.onProgress?.(overall);
+    options?.onProgress?.(averageProgress(progressByBook));
   };
 
   await runWithConcurrency(

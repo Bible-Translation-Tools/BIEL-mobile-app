@@ -229,6 +229,37 @@ export function parseWholeBookJson(payload: unknown): OfflineBook {
   return { slug, name, chapters };
 }
 
+/**
+ * Parses downloaded whole-book text, turning common wrong-payload cases
+ * (an HTML error page, raw USFM) into readable errors.
+ */
+export function parseDownloadedBookJson(jsonText: string): unknown {
+  try {
+    return JSON.parse(jsonText) as unknown;
+  } catch {
+    const preview = jsonText.slice(0, 80);
+    if (preview.startsWith('<')) {
+      throw new Error('Download returned HTML instead of book data');
+    }
+    if (preview.startsWith('\\id ')) {
+      throw new Error('Received USFM text instead of whole.json');
+    }
+    throw new Error('Downloaded book data is not valid JSON');
+  }
+}
+
+/** Fills a missing slug or name from the book being loaded. */
+export function withOfflineBookIdentity(
+  book: OfflineBook,
+  identity: { slug: string; name: string },
+): OfflineBook {
+  return {
+    ...book,
+    slug: book.slug || identity.slug,
+    name: book.name || identity.name,
+  };
+}
+
 export function offlineBookChapterHtmlMap(book: OfflineBook): Map<number, string> {
   const chapters = new Map<number, string>();
   for (const [chapterNumber, chapter] of book.chapters.entries()) {

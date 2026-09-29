@@ -50,6 +50,22 @@ export function isManifestFullyDownloaded(
   );
 }
 
+/** Manifest chapters not yet available locally, sorted. */
+export function listMissingChapters(
+  manifestChapters: readonly number[],
+  availableChapters: ReadonlySet<number>,
+): number[] {
+  return manifestChapters
+    .filter((chapter) => !availableChapters.has(chapter))
+    .sort((a, b) => a - b);
+}
+
+/** Mean of per-item progress values (each 0–1); 0 for an empty list. */
+export function averageProgress(progressByItem: readonly number[]): number {
+  if (progressByItem.length === 0) return 0;
+  return progressByItem.reduce((sum, progress) => sum + progress, 0) / progressByItem.length;
+}
+
 export function sumChapterBytes(
   chapters: readonly { mp3ByteSize: number; cueByteSize: number }[],
 ): number {

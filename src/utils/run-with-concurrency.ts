@@ -6,6 +6,12 @@ export function isAbortError(err: unknown): boolean {
   );
 }
 
+export function createAbortError(): Error {
+  const error = new Error('Download aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
 export async function runWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,

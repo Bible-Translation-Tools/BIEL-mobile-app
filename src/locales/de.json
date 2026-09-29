@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "Sprache konnte nicht heruntergeladen werden",
     "couldNotDownloadScripture": "Text konnte nicht heruntergeladen werden",
     "couldNotRemoveScripture": "Heruntergeladener Text konnte nicht entfernt werden",
+    "missingAudioChapters_one": "Audio für Kapitel {{chapters}} konnte nicht heruntergeladen werden",
+    "missingAudioChapters_other": "Audio für {{count}} Kapitel konnte nicht heruntergeladen werden: {{chapters}}",
+    "failedBooks_one": "{{count}} Buch konnte nicht heruntergeladen werden",
+    "failedBooks_other": "{{count}} Bücher konnten nicht heruntergeladen werden",
     "notification": {
       "channelName": "Buch-Downloads",
       "downloadingScripture": "{{name}} wird heruntergeladen",
