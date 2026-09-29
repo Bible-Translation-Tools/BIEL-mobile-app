@@ -11,7 +11,7 @@ src/
   app/           screens (Expo Router)
   components/    UI
   hooks/         React bindings
-  stores/        useSyncExternalStore hooks over module state
+  stores/        UI state shared across screens, exposed as hooks
   contexts/      appearance and locale providers
   features/      what the app does (catalog, reading, playback, downloads, library)
   domain/        pure rules and parsers (no I/O, no React)
@@ -89,7 +89,7 @@ Custom (commented on the function, not a helper): `getLanguageBookSlugs` (cache,
 | Does | Catalog, reading, playback, downloads, library | GraphQL, content HTTP, disk layout | TrackPlayer setup, system volume |
 | Example | `getChapterContent`, `runDownload` | `catalogApi`, `offline-storage.ts` | `track-player/setup.ts` |
 
-Plain module state lives in `features/` (or `api/` / `services/` for adapters); `stores/` wraps it in hooks. Features return error codes or throw; hooks translate for display. Downloads describe failures as `DownloadFailure` data (`types/download.ts`, built in `features/downloads/failures.ts`); `useContentDownload` turns it into translated text.
+`stores/` owns UI state that only screens and hooks read. State that a feature or adapter needs lives in that layer, and the store only wraps it in a hook (exception: force-offline, a temporary testing switch rather than a product feature, keeps its flag in the store and pushes it to `api/network.ts`). Features return error codes or throw; hooks translate for display. Downloads describe failures as `DownloadFailure` data (`types/download.ts`, built in `features/downloads/failures.ts`); `useContentDownload` turns it into translated text.
 
 ## Database
 
@@ -133,11 +133,12 @@ Exception: `features/downloads/notifications.ts` may import i18n, because it ren
 
 1. JSX / route → `app/` or `components/`
 2. `useState` / `useEffect` → `hooks/`
-3. Rule or parser with no I/O → `domain/`
-4. A thing the user can do → `features/<capability>/`, exported from that folder's `index.ts`
-5. Talk to BIEL, files, or SQLite → `api/` or `db/`
-6. Talk to a device API → `services/`
-7. New server field → map it in `api/graphql/catalog-api.ts`
+3. UI state shared across screens → `stores/`
+4. Rule or parser with no I/O → `domain/`
+5. A thing the user can do → `features/<capability>/`, exported from that folder's `index.ts`
+6. Talk to BIEL, files, or SQLite → `api/` or `db/`
+7. Talk to a device API → `services/`
+8. New server field → map it in `api/graphql/catalog-api.ts`
 
 ## Deferred
 
