@@ -1,6 +1,6 @@
 # App architecture
 
-Normal Expo/React layout. Clean Architecture is an **import rule**, not extra folders.
+Normal Expo/React layout plus a capability-based `features/` layer and one pure `domain/` folder. Boundaries are enforced by lint, not by extra layers.
 
 See also: [Offline mode](./offline-mode.md), [Chapter audio](./chapter-audio.md), [Downloads Library](./downloads-library.md).
 
@@ -11,71 +11,137 @@ src/
   app/           screens (Expo Router)
   components/    UI
   hooks/         React bindings
-  stores/        client state
-  api/           GraphQL + content (fetch, download, parse)
-  services/      device / app-session (player, notifications, caches)
-  db/            SQLite
-  types/         shared types
-  utils/         leftover helpers
+  stores/        UI state shared across screens, exposed as hooks
+  contexts/      appearance and locale providers
+  features/      what the app does (catalog, reading, playback, downloads, library)
+  domain/        pure rules and parsers (no I/O, no React)
+  api/           server, network, and file adapters
+  services/      device adapters (TrackPlayer setup, system volume)
+  db/            SQLite, one file per table group (see below)
+  types/         shared type declarations only (our shapes, not server shapes)
+  utils/         leftover helpers (including source-strategy)
 ```
 
 ```
 screens / components
         ↓
-     hooks / stores
+     hooks / stores / contexts
         ↓
-  services (device)     api/services (content)
-        ↓                        ↓
-   native modules          graphql / db / files
+     features/*/index.ts
+        ↓
+   features (capability logic)
+        ↓          ↘
+   domain        api / db / services
 ```
 
 - UI does not call GraphQL or TrackPlayer.
-- Hooks stay thin: call a function below, map to loading/error.
-- `api/` and `services/` do not import React, Expo Router, or components.
+- Hooks stay thin: call a feature function, map to loading/error.
+- UI imports features through their `index.ts`. Features import sibling files, never another feature's index.
 - No ports or use-case classes.
 
-## `api/services` vs `services`
+## Capability map
 
-| | `src/api/services` | `src/services` |
-|---|-------------------|----------------|
-| Job | Bible content | This phone / this session |
-| Does | Fetch, map, download, persist | Player, volume, notifications, boot cache, download jobs |
-| Example | `fetchLanguages`, `downloadBookScripture` | TrackPlayer session, `language-catalog` snapshot |
+Each `src/features/<capability>/index.ts` is the public list of operations. File names describe the subject; the folder already says which capability it belongs to (one to three kebab-case words; no `-service` / `-utils` suffixes).
 
-Talk to BIEL or store scripture → `api/services`. Talk to the device or keep running state → `services`.
+| Capability | What the user does | Entry functions |
+|------------|--------------------|-----------------|
+| `catalog` | Browse languages, books, chapters | `fetchLanguages`, `loadLanguages`, `getLanguageCatalog`, `fetchBooksForLanguage`, `loadBooksForLanguage`, `getLanguageBookSlugs`, `getChaptersForBook` |
+| `reading` | Read a chapter | `getChapterContent` |
+| `playback` | Play chapter audio | `getChapterAudioUrl`, `getChapterVerseTimings`, `getAudioChaptersForBook`, `loadChapter`, `play`, `seekTo*`, `stopPlayback` |
+| `downloads` | Download or delete scripture and audio | `download*` / `delete*` (chapter, book, language), `runDownload`, `cancelDownload` |
+| `library` | Browse what is on the device | `loadDownloadedLibrary`, `loadDownloadedBooksForLanguage`, `loadDownloadedChaptersForBook`, `loadDownloadedLanguages` |
 
-`language-catalog.ts` is in `services/` because it caches the list in memory at boot. The fetch itself is `api/services/languages.ts`.
+`domain/` stays separate: features do I/O; domain is the lint-enforced pure zone. Shared rules: `downloads.ts` (status, task IDs, "fully downloaded", missing chapters, progress), `resource-selection.ts` (picking and grouping renderings), `audio-manifest.ts` (catalog audio files → chapter list), `book-slug.ts` (canonical slug), `verse-navigation.ts` (playback), `content-type.ts` (library UI), plus the parsers.
 
-SQLite stays in `db/`. Stores are UI state, not the database.
+Which domain rules each feature uses:
+
+| Feature | Domain |
+|---------|--------|
+| `catalog` | — |
+| `reading` | `chapter-html-parser`, `resource-selection` |
+| `playback` | `verse-timing`, `verse-navigation` |
+| `downloads` | `downloads`, `audio-manifest`, `book-slug`, `resource-selection`, `whole-book-parser` |
+| `library` | `content-type` (in UI; library feature itself maps local records) |
+
+## Verb rule
+
+Applied to `features/` only:
+
+- `fetch*`: network only; throws when offline or blocked.
+- `load*`: local only (SQLite or files).
+- `get*`: uses whichever source works, via a named strategy helper. Synchronous `get*Snapshot` accessors keep their names.
+- Action verbs stay as they are: `download*`, `delete*`, `cancel*`, `play`, `seekTo*`, `is*` / `has*`.
+
+## Offline strategies
+
+Named helpers in `src/utils/source-strategy.ts`:
+
+- `localFirst(local, remote)`: downloaded copy, then network. Used by `getChapterContent`, `getChapterAudioUrl`, `getChapterVerseTimings`.
+- `cacheFirst(cached, remote, fallback, isUsable)`: cached catalog copy, then network; on failure, the fallback (downloaded) if usable. The cache is never refreshed. Used by `getChaptersForBook`, `getAudioChaptersForBook`, which save the network result to the cache.
+
+Custom (commented on the function, not a helper): `getLanguageBookSlugs` (cache, then network, then downloaded) and `getLanguageCatalog` (serve cache, refresh in the background).
+
+## `features/` vs adapters
+
+| | `src/features` | `src/api` | `src/services` |
+|---|----------------|-----------|----------------|
+| Job | What the app does | Talk to BIEL / files | Talk to this phone |
+| Does | Catalog, reading, playback, downloads, library | GraphQL, content HTTP, disk layout | TrackPlayer setup, system volume |
+| Example | `getChapterContent`, `runDownload` | `catalogApi`, `offline-storage.ts` | `track-player/setup.ts` |
+
+`stores/` owns UI state that only screens and hooks read. State that a feature or adapter needs lives in that layer, and the store only wraps it in a hook (exception: force-offline, a temporary testing switch rather than a product feature, keeps its flag in the store and pushes it to `api/network.ts`). Features return error codes or throw; hooks translate for display. Downloads describe failures as `DownloadFailure` data (`types/download.ts`, built in `features/downloads/failures.ts`); `useContentDownload` turns it into translated text.
+
+## Database
+
+`src/db/index.ts` is the public list; files are grouped by table:
+
+| File | Tables | Holds |
+|------|--------|-------|
+| `connection.ts` | — | `initDatabase`, the shared connection, serialized transactions |
+| `languages.ts` | `languages`, `language_catalog` | cached language catalog; the `languages` row downloads reference |
+| `book-catalog.ts` | `book_catalog` | cached book list per language |
+| `chapter-catalog.ts` | `chapter_catalog` | cached chapter numbers per book (text and audio) |
+| `scripture-books.ts` | `books`, `chapters` | whole-book scripture downloads |
+| `scripture-chapters.ts` | `scripture_chapters` | chapters downloaded on their own |
+| `audio-books.ts` | `audio_books`, `audio_chapters` | audio downloads |
+| `local-content.ts` | all download tables | what is on the device, across types |
+| `preferences.ts` and `*-preferences.ts` | `preferences` | settings |
+
+`db/` only reads and writes rows. Read-modify-write rules (for example "add one chapter to an audio book") live in the feature that needs them.
+
+## Server shapes
+
+Only `src/api/graphql/` knows GraphQL field names (`scriptural_rendering_metadata`, `CONTENTS` URLs, upper-case file types). `catalog-api.ts` maps them to `src/types/catalog.ts` (`ScriptureRendering`, `CatalogLanguage`, `CatalogBook`, `AudioFile`). Everything above the adapter uses those types.
+
+Force-offline is a temporary switch: the store calls `setNetworkBlocked` in `api/network.ts`, and `api/` never imports the store.
+
+## Lint boundaries
+
+Configured in `eslint.config.js`, run with `pnpm lint`:
+
+| Files | May not import |
+|-------|----------------|
+| `src/domain/**` | `@/api`, `@/services`, `@/db`, `@/features`, `@/hooks`, `@/stores`, `@/components`, `react*`, `expo*` |
+| `src/{api,services,db}/**` | `@/features`, `@/hooks`, `@/stores`, `@/components`, `@/i18n`, `@/constants/theme` |
+| `src/features/**` | `@/hooks`, `@/stores`, `@/components`, `@/i18n`, `@/constants/theme`, other features' `index.ts` |
+| `src/{app,components,hooks,stores,contexts}/**` | `@/features/*/*` (must use the capability index) |
+| `src/types/**` | `@/hooks`, `@/components`, `@/constants/theme` |
+| everything | import cycles (`import/no-cycle`) |
+
+Exception: `features/downloads/notifications.ts` may import i18n, because it renders OS notifications outside React.
 
 ## New code
 
 1. JSX / route → `app/` or `components/`
 2. `useState` / `useEffect` → `hooks/`
-3. Get/save Bible content → `api/services/`
-4. Device or app session → `services/`
-5. SQL → `db/`
-6. Pure function used in two places → sibling file, not `src/domain/`
+3. UI state shared across screens → `stores/`
+4. Rule or parser with no I/O → `domain/`
+5. A thing the user can do → `features/<capability>/`, exported from that folder's `index.ts`
+6. Talk to BIEL, files, or SQLite → `api/` or `db/`
+7. Talk to a device API → `services/`
+8. New server field → map it in `api/graphql/catalog-api.ts`
 
-Extract a pure module when a rule is copied, or when you want a test with no mocks. Do not extract a single GraphQL call behind a repository.
+## Deferred
 
-## Splitting mixed files
-
-A file either does I/O or it does not — never both. Stay in the same folders. Sibling `*-mapping.ts` / `*-parse.ts` with no `graphqlRequest`, `@/db`, files, or TrackPlayer.
-
-Already pure (leave them): `resource-selection.ts`, `whole-book-parser.ts`, `audio-timing/cue-parser.ts`.
-
-Worth splitting:
-
-| File | Keep (I/O) | Extract |
-|------|------------|---------|
-| `reader.ts` | `fetchChapterContent` | HTML parse |
-| `languages.ts` / `books.ts` | fetch | map / merge / sort |
-| `language-catalog.ts` | snapshot cache | “is this language downloaded” |
-| `chapter-playback.ts` | session + TrackPlayer | verse-seek rules (optional) |
-
-Start with `reader.ts` — parse vs network is already split, and tests only cover parse.
-
-Leave `offline-text.ts`, `offline-audio.ts`, `book-download-runner.ts`, and native adapters alone until a rule is actually duplicated.
-
-Device code may import content rules. Rules must not import TrackPlayer, `db`, or React.
+- **Merge the scripture and audio download engines** (`offline-scripture.ts`, `offline-audio.ts`) only after comparing what is left in the two files, or when a third content type is scheduled.
+- **Split `read.tsx` and `audio-play-button.tsx`** when a feature next touches them.

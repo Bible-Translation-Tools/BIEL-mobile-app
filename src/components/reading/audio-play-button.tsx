@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/use-theme';
 import {
   getChapterPlaybackSnapshot,
   requestChapterLoad,
-} from '@/services/track-player/chapter-playback';
+} from '@/features/playback';
 import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {

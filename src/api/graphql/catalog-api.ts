@@ -12,82 +12,158 @@ import {
   LANGUAGES_QUERY,
   LANGUAGES_WITH_CHAPTER_AUDIO_QUERY,
 } from '@/api/graphql/queries';
-import type { BookAudioFilesQueryResult, ChapterAudioQueryResult } from '@/types/audio';
-import type { BooksQueryResult, ChaptersQueryResult } from '@/types/book';
-import type { LanguagesQueryResult, LanguagesWithChapterAudioQueryResult } from '@/types/language';
-import type { BookContentQueryResult, LanguageScriptureFilesQueryResult } from '@/types/offline';
-import type { ChapterContentQueryResult } from '@/types/reading';
+import type {
+  ApiScriptureRendering,
+  AudioFilesQueryResult,
+  BooksQueryResult,
+  ChaptersQueryResult,
+  LanguagesQueryResult,
+  LanguagesWithChapterAudioQueryResult,
+  ScriptureRenderingsQueryResult,
+} from '@/api/graphql/types';
+import type { AudioFile, ScriptureRendering } from '@/types/catalog';
+
+/** Only rendered audio under a `CONTENTS` path is the published chapter file. */
+function isContentsUrl(url: string | null | undefined): url is string {
+  return Boolean(url && url.includes('CONTENTS'));
+}
+
+function toScriptureRendering(rendering: ApiScriptureRendering): ScriptureRendering {
+  return {
+    bookSlug: rendering.book_slug ?? null,
+    bookName: rendering.book_name,
+    chapter: rendering.chapter ?? null,
+    resourceType: rendering.rendered_content.content.resource_type,
+    contentName: rendering.rendered_content.content.name,
+    url: rendering.rendered_content.url,
+    hash: rendering.rendered_content.hash ?? null,
+    fileSizeBytes: rendering.rendered_content.file_size_bytes ?? null,
+  };
+}
+
+function toScriptureRenderings(data: ScriptureRenderingsQueryResult): ScriptureRendering[] {
+  return data.scriptural_rendering_metadata.map(toScriptureRendering);
+}
+
+function toAudioFiles(data: AudioFilesQueryResult): AudioFile[] {
+  return data.content.flatMap((content) =>
+    content.rendered_contents.flatMap((rendered): AudioFile[] => {
+      if (!isContentsUrl(rendered.url)) return [];
+      const meta = rendered.scriptural_rendering_metadata;
+      return [
+        {
+          url: rendered.url,
+          fileType: rendered.file_type?.toLowerCase() ?? '',
+          fileSizeBytes: rendered.file_size_bytes ?? null,
+          chapter: meta?.chapter ?? null,
+          bookSlug: meta?.book_slug ?? null,
+          bookName: meta?.book_name ?? null,
+        },
+      ];
+    }),
+  );
+}
 
 /** GraphQL-backed implementation of {@link BielCatalogApi}. */
 export function createGraphqlCatalogApi(): BielCatalogApi {
   return {
-    getLanguages() {
-      return graphqlRequest<LanguagesQueryResult>(LANGUAGES_QUERY);
+    async getLanguages() {
+      const data = await graphqlRequest<LanguagesQueryResult>(LANGUAGES_QUERY);
+      return data.language.map((language) => ({
+        code: language.ietf_code,
+        englishName: language.english_name,
+        nationalName: language.national_name,
+        resourceTypes: language.contents
+          .map((content) => content.resource_type)
+          .filter((type): type is string => Boolean(type)),
+      }));
     },
 
-    getLanguagesWithChapterAudio() {
-      return graphqlRequest<LanguagesWithChapterAudioQueryResult>(
+    async getLanguageCodesWithChapterAudio() {
+      const data = await graphqlRequest<LanguagesWithChapterAudioQueryResult>(
         LANGUAGES_WITH_CHAPTER_AUDIO_QUERY,
+      );
+      return data.language.map((language) => language.ietf_code);
+    },
+
+    async getBooksForLanguage(languageCode: string) {
+      const data = await graphqlRequest<BooksQueryResult>(BOOKS_FOR_LANGUAGE_QUERY, {
+        languageCode,
+      });
+      return data.scriptural_rendering_metadata.map((book) => ({
+        bookSlug: book.book_slug,
+        bookName: book.book_name,
+      }));
+    },
+
+    async getChapterNumbersForBook(languageCode: string, bookSlug: string) {
+      const data = await graphqlRequest<ChaptersQueryResult>(CHAPTERS_FOR_BOOK_QUERY, {
+        languageCode,
+        bookSlug,
+      });
+      return data.scriptural_rendering_metadata
+        .map((item) => item.chapter)
+        .filter((chapter): chapter is number => chapter != null);
+    },
+
+    async getChapterRenderings(languageCode: string, bookSlug: string, chapter: number) {
+      return toScriptureRenderings(
+        await graphqlRequest<ScriptureRenderingsQueryResult>(CHAPTER_CONTENT_QUERY, {
+          languageCode,
+          bookSlug,
+          chapter,
+        }),
       );
     },
 
-    getBooksForLanguage(languageCode: string) {
-      return graphqlRequest<BooksQueryResult>(BOOKS_FOR_LANGUAGE_QUERY, { languageCode });
+    async getBookRenderings(languageCode: string, bookSlug: string) {
+      return toScriptureRenderings(
+        await graphqlRequest<ScriptureRenderingsQueryResult>(BOOK_CONTENT_QUERY, {
+          languageCode,
+          bookSlug,
+        }),
+      );
     },
 
-    getChaptersForBook(languageCode: string, bookSlug: string) {
-      return graphqlRequest<ChaptersQueryResult>(CHAPTERS_FOR_BOOK_QUERY, {
-        languageCode,
-        bookSlug,
-      });
+    async getLanguageScriptureRenderings(languageCode: string) {
+      return toScriptureRenderings(
+        await graphqlRequest<ScriptureRenderingsQueryResult>(LANGUAGE_SCRIPTURE_FILES_QUERY, {
+          languageCode,
+        }),
+      );
     },
 
-    getChapterContent(languageCode: string, bookSlug: string, chapter: number) {
-      return graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
-        languageCode,
-        bookSlug,
-        chapter,
-      });
+    async getBookAudioFiles(languageCode: string, bookSlug: string) {
+      return toAudioFiles(
+        await graphqlRequest<AudioFilesQueryResult>(BOOK_AUDIO_FILES_QUERY, {
+          languageCode,
+          bookSlug,
+        }),
+      );
     },
 
-    getBookContent(languageCode: string, bookSlug: string) {
-      return graphqlRequest<BookContentQueryResult>(BOOK_CONTENT_QUERY, {
-        languageCode,
-        bookSlug,
-      });
+    async getLanguageAudioFiles(languageCode: string) {
+      return toAudioFiles(
+        await graphqlRequest<AudioFilesQueryResult>(LANGUAGE_AUDIO_FILES_QUERY, {
+          languageCode,
+        }),
+      );
     },
 
-    getLanguageScriptureFiles(languageCode: string) {
-      return graphqlRequest<LanguageScriptureFilesQueryResult>(LANGUAGE_SCRIPTURE_FILES_QUERY, {
-        languageCode,
-      });
-    },
-
-    getBookAudioFiles(languageCode: string, bookSlug: string) {
-      return graphqlRequest<BookAudioFilesQueryResult>(BOOK_AUDIO_FILES_QUERY, {
-        languageCode,
-        bookSlug,
-      });
-    },
-
-    getLanguageAudioFiles(languageCode: string) {
-      return graphqlRequest<BookAudioFilesQueryResult>(LANGUAGE_AUDIO_FILES_QUERY, {
-        languageCode,
-      });
-    },
-
-    getChapterAudioFile(
+    async getChapterAudioFiles(
       languageCode: string,
       bookSlug: string,
       chapter: number,
       fileType: ChapterAudioFileType,
     ) {
-      return graphqlRequest<ChapterAudioQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
-        languageCode,
-        bookSlug,
-        chapter,
-        fileType,
-      });
+      return toAudioFiles(
+        await graphqlRequest<AudioFilesQueryResult>(CHAPTER_AUDIO_FILE_QUERY, {
+          languageCode,
+          bookSlug,
+          chapter,
+          fileType,
+        }),
+      );
     },
   };
 }

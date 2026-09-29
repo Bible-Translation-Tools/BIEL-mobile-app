@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
+import { setNetworkBlocked } from '@/api/network';
+
 let forceOffline = false;
 
 const listeners = new Set<() => void>();
@@ -20,6 +22,7 @@ export function isForceOffline() {
 export function setForceOffline(next: boolean) {
   if (forceOffline === next) return;
   forceOffline = next;
+  setNetworkBlocked(next);
   emit();
 }
 

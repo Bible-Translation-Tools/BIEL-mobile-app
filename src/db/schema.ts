@@ -39,6 +39,13 @@ export const SCHEMA_STATEMENTS = [  `PRAGMA foreign_keys = ON;`,
     PRIMARY KEY (language_code, book_slug)
   );`,
   `CREATE INDEX IF NOT EXISTS idx_book_catalog_language ON book_catalog(language_code);`,
+  `CREATE TABLE IF NOT EXISTS chapter_catalog (
+    language_code TEXT NOT NULL,
+    book_slug TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    chapter_numbers TEXT NOT NULL,
+    PRIMARY KEY (language_code, book_slug, content_type)
+  );`,
   `CREATE TABLE IF NOT EXISTS language_catalog (
     ietf_code TEXT PRIMARY KEY NOT NULL,
     english_name TEXT NOT NULL,

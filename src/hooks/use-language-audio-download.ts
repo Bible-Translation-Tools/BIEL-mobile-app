@@ -4,10 +4,10 @@ import {
   deleteLanguageAudio,
   downloadLanguageAudio,
   getLanguageAudioTotalBytes,
-  getLanguageDownloadedAudioByteSize,
+  loadLanguageDownloadedAudioByteSize,
   isLanguageAudioDownloaded,
-  resolveLanguageAudioBooks,
-} from '@/api/services/offline-audio';
+  fetchLanguageAudioBooks,
+} from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
 
 type UseLanguageAudioDownloadOptions = {
@@ -40,13 +40,13 @@ export function useLanguageAudioDownload({
     download: (options) => downloadLanguageAudio(languageCode, options),
     deleteContent: () => deleteLanguageAudio(languageCode),
     getDownloadedBytes: async () => {
-      const bytes = await getLanguageDownloadedAudioByteSize(languageCode);
+      const bytes = await loadLanguageDownloadedAudioByteSize(languageCode);
       return bytes > 0 ? bytes : null;
     },
     getTotalBytes: () => getLanguageAudioTotalBytes(languageCode),
     getIsDownloaded: () => isLanguageAudioDownloaded(languageCode).catch(() => false),
     getCanDownload: async () => {
-      const books = await resolveLanguageAudioBooks(languageCode).catch(() => []);
+      const books = await fetchLanguageAudioBooks(languageCode).catch(() => []);
       return books.length > 0;
     },
   });

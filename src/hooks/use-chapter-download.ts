@@ -3,21 +3,19 @@ import { useTranslation } from 'react-i18next';
 
 import {
   deleteChapterAudio,
-  downloadChapterAudio,
-  getChapterAudioTotalBytes,
-  getDownloadedChapterAudioByteSize,
-  isChapterAudioDownloaded,
-} from '@/api/services/offline-audio';
-import {
   deleteChapterScripture,
+  downloadChapterAudio,
   downloadChapterScripture,
+  getChapterAudioTotalBytes,
   getChapterScriptureFileSizeBytes,
-  getDownloadedChapterScriptureByteSize,
   hasStandaloneChapterScripture,
+  isChapterAudioDownloaded,
   isChapterScriptureDownloaded,
-} from '@/api/services/offline-text';
+  loadDownloadedChapterAudioByteSize,
+  loadDownloadedChapterScriptureByteSize,
+} from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
-import { resolveDownloadStatus } from '@/types/download';
+import { resolveDownloadStatus } from '@/domain/downloads';
 
 type UseChapterDownloadOptions = {
   languageCode: string;
@@ -52,7 +50,7 @@ export function useChapterDownload({
       downloadChapterScripture(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterScripture(languageCode, bookSlug, chapter),
     getDownloadedBytes: () =>
-      getDownloadedChapterScriptureByteSize(languageCode, bookSlug, chapter),
+      loadDownloadedChapterScriptureByteSize(languageCode, bookSlug, chapter),
     getTotalBytes: () => getChapterScriptureFileSizeBytes(languageCode, bookSlug, chapter),
     getIsDownloaded: () => isChapterScriptureDownloaded(languageCode, bookSlug, chapter),
   });
@@ -63,7 +61,7 @@ export function useChapterDownload({
     download: (options) => downloadChapterAudio(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterAudio(languageCode, bookSlug, chapter),
     getDownloadedBytes: () =>
-      getDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
+      loadDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
     getTotalBytes: () => getChapterAudioTotalBytes(languageCode, bookSlug, chapter),
     getIsDownloaded: () => isChapterAudioDownloaded(languageCode, bookSlug, chapter),
     getCanDownload: async () => {

@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import {
   deleteLanguageScripture,
   downloadLanguageScripture,
-  getLanguageDownloadedByteSize,
+  loadLanguageDownloadedByteSize,
   getLanguageScriptureTotalBytes,
-} from '@/api/services/offline-text';
+} from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
 
 type UseLanguageDownloadOptions = {
@@ -36,7 +36,7 @@ export function useLanguageDownload({
     download: (options) => downloadLanguageScripture(languageCode, options),
     deleteContent: () => deleteLanguageScripture(languageCode),
     getDownloadedBytes: async () => {
-      const bytes = await getLanguageDownloadedByteSize(languageCode);
+      const bytes = await loadLanguageDownloadedByteSize(languageCode);
       return bytes > 0 ? bytes : null;
     },
     getTotalBytes: () => getLanguageScriptureTotalBytes(languageCode),

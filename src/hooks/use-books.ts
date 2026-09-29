@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import {
   fetchBooksForLanguage,
-  fetchBooksForLanguageOffline,
-} from '@/api/services/books';
-import { resolveLanguageAudioBooks } from '@/api/services/offline-audio';
-import { listDownloadedAudioBookSlugs, listDownloadedBookSlugs } from '@/db';
+  loadBooksForLanguage,
+} from '@/features/catalog';
+import { fetchLanguageAudioBooks } from '@/features/downloads';
+import { loadDownloadedBookSlugsByKind } from '@/features/library';
 import { useForceOffline } from '@/stores/force-offline-store';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
@@ -18,11 +18,11 @@ export type BookDownloadStatusChange = {
 };
 
 async function getDownloadStatusSets(languageCode: string) {
-  const [downloadedSlugs, audioDownloadedSlugs, audioBooks] = await Promise.all([
-    listDownloadedBookSlugs(languageCode).catch(() => []),
-    listDownloadedAudioBookSlugs(languageCode).catch(() => []),
-    resolveLanguageAudioBooks(languageCode).catch(() => null),
-  ]);
+  const [{ scripture: downloadedSlugs, audio: audioDownloadedSlugs }, audioBooks] =
+    await Promise.all([
+      loadDownloadedBookSlugsByKind(languageCode),
+      fetchLanguageAudioBooks(languageCode).catch(() => null),
+    ]);
 
   return {
     downloadedSet: new Set(downloadedSlugs.map((slug) => slug.toUpperCase())),
@@ -110,7 +110,7 @@ export function useBooks(languageCode: string | undefined) {
 
     let offlineItems: BookItem[] = [];
     try {
-      offlineItems = await fetchBooksForLanguageOffline(languageCode);
+      offlineItems = await loadBooksForLanguage(languageCode);
     } catch {
       offlineItems = [];
     }

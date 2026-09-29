@@ -9,11 +9,11 @@ import {
 } from '@/components/download/download-menu-popover';
 import { DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
+import { isFullyDownloaded as isFullyDownloadedRule, resolveDownloadStatus } from '@/domain/downloads';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
 import { useTheme } from '@/hooks/use-theme';
-import { resolveDownloadStatus } from '@/types/download';
 import type { LanguageItem } from '@/types/language';
 
 type LanguageCardRowProps = {
@@ -87,8 +87,12 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   useDownloadErrorAlert(audioError, clearAudioError);
 
   const needsAudioDownload = canDownloadAudio && hasAudio;
-  const isFullyDownloaded =
-    (!canDownloadText || isScriptureDownloaded) && (!needsAudioDownload || isAudioDownloaded);
+  const isFullyDownloaded = isFullyDownloadedRule({
+    hasText: canDownloadText,
+    textDownloaded: isScriptureDownloaded,
+    hasAudio: needsAudioDownload,
+    audioDownloaded: isAudioDownloaded,
+  });
   const isAnyDownloadActive = isDownloading || isAudioDownloading;
 
   const openDownloadMenu = useCallback(() => {

@@ -5,19 +5,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { ensureOfflineRootExists } from '@/api/offline-storage';
 import { OfflineBanner } from '@/components/offline-banner';
 import { SplashScreenView } from '@/components/splash-screen';
 import { resolveAppLocale, type AppLocale } from '@/constants/locale';
-import { ensureOfflineRootExists } from '@/constants/offline-storage';
 import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-context';
 import { LocaleProvider } from '@/contexts/locale-context';
 import { initDatabase } from '@/db';
 import { loadLocalePreference } from '@/db/locale-preferences';
 import { i18n, initI18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
-import { initDownloadNotifications } from '@/services/download-notification-service';
-import { loadLanguageCatalog } from '@/services/language-catalog';
-import { initPlaybackAppLifecycle } from '@/services/track-player/app-lifecycle';
+import { getLanguageCatalog } from '@/features/catalog';
+import { initDownloadNotifications } from '@/features/downloads';
+import { initPlaybackAppLifecycle } from '@/features/playback';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
@@ -72,7 +72,9 @@ export default function RootLayout() {
           Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
         ]);
         await ensureOfflineRootExists();
-        await loadLanguageCatalog();
+        await getLanguageCatalog();
+      } catch (err) {
+        console.error('[layout] app startup failed', err);
       } finally {
         hideNativeSplash();
         setAppReady(true);

@@ -7,18 +7,18 @@ import {
   useTrackPlayerEvents,
 } from 'react-native-track-player';
 
+import { resolveCurrentVerse } from '@/domain/verse-navigation';
 import {
+  canSeekToNextVerseInChapter,
   canSeekToPreviousVerseInChapter,
   clearDidJustFinish,
   clearSession,
   consumeUserRequestedChapter,
   getChapterPlaybackSnapshot,
-  getPlaybackCurrentTime,
   loadChapter,
   shouldKeepLoadedChapter,
   pause as pausePlayback,
   play as playPlayback,
-  resolveCurrentVerse,
   seekTo as seekToPlayback,
   seekToFirstVerse as seekToFirstVersePlayback,
   seekToLastVerse as seekToLastVersePlayback,
@@ -30,8 +30,7 @@ import {
   subscribeChapterPlayback,
   togglePlay as togglePlayPlayback,
   updateNowPlayingVerse,
-  VERSE_BOUNDARY_EPSILON,
-} from '@/services/track-player/chapter-playback';
+} from '@/features/playback';
 import { useAudioVolume, useSetAudioVolume } from '@/stores/audio-volume-store';
 
 import type { UseChapterAudioParams } from './use-chapter-audio.types';
@@ -170,11 +169,7 @@ export function useChapterAudio({
   }, [progress.duration]);
 
   const seekToNextVerse = useCallback((): boolean => {
-    const timings = getChapterPlaybackSnapshot().verseTimings;
-    if (timings.length === 0) return false;
-    const now = getPlaybackCurrentTime();
-    const next = timings.find((item) => item.time > now + VERSE_BOUNDARY_EPSILON);
-    if (!next) return false;
+    if (!canSeekToNextVerseInChapter()) return false;
     void seekToNextVersePlayback();
     return true;
   }, []);

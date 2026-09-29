@@ -20,7 +20,7 @@ forceOffline|force-offline|ForceOffline|assertNetworkAvailable|isForceOffline|se
   - Remove `isForceOffline` import
   - Remove `NETWORK_UNAVAILABLE_MESSAGE`
   - Remove `assertNetworkAvailable()` and its call from `graphqlRequest`
-- [ ] `src/api/services/content-fetch.ts`
+- [ ] `src/api/content-fetch.ts`
   - Remove `assertNetworkAvailable` import
   - Remove `assertNetworkAvailable()` call from `fetchRenderedContent`
 

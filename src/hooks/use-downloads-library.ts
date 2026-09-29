@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  fetchDownloadedLibrary,
+  loadDownloadedLibrary,
   type DownloadedLibraryLanguage,
-} from '@/api/services/books';
+} from '@/features/library';
 
 export function useDownloadsLibrary() {
   const { t } = useTranslation('library');
@@ -17,7 +17,7 @@ export function useDownloadsLibrary() {
     setError(null);
 
     try {
-      const next = await fetchDownloadedLibrary();
+      const next = await loadDownloadedLibrary();
       setItems(next);
       setError(null);
     } catch (err) {
@@ -30,7 +30,7 @@ export function useDownloadsLibrary() {
 
   const refreshAfterChange = useCallback(async () => {
     try {
-      const next = await fetchDownloadedLibrary();
+      const next = await loadDownloadedLibrary();
       setItems(next);
     } catch {
       // Keep the current list if a background refresh fails.

@@ -1,3 +1,10 @@
+import type { DownloadFailure, DownloadOutcome } from '@/types/download';
+
+export type DownloadJob = (options: {
+  signal: AbortSignal;
+  onProgress: (progress: number) => void;
+}) => Promise<DownloadOutcome>;
+
 export type BookDownloadKind = 'book-scripture' | 'book-audio';
 export type LanguageDownloadKind = 'language-scripture' | 'language-audio';
 export type DownloadKind = BookDownloadKind | LanguageDownloadKind;
@@ -27,16 +34,6 @@ export type DownloadProgressTask = {
   bookSlug?: string;
   progress: number;
   status: DownloadTaskStatus;
-  errorMessage?: string;
+  failure?: DownloadFailure;
   updatedAt: number;
 };
-
-export function buildDownloadTaskId(sync: GlobalDownloadSync): string {
-  if ('bookSlug' in sync) {
-    return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.kind}`;
-  }
-  return `${sync.languageCode}:__language__:${sync.kind}`;
-}
-
-/** @deprecated Use buildDownloadTaskId */
-export const buildBookDownloadTaskId = buildDownloadTaskId;

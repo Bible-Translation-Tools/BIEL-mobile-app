@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getChapterAudioTotalBytes } from '@/api/services/offline-audio';
+import { getChapterAudioTotalBytes } from '@/features/downloads';
 import { useForceOffline } from '@/stores/force-offline-store';
 
 type UseChapterHasAudioParams = {

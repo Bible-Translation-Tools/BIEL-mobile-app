@@ -8,15 +8,20 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { BookLayout, Typography } from '@/constants/theme';
+import { BookLayout, Typography, type ThemeColor } from '@/constants/theme';
+import { CHAPTER_CONTENT_LEGEND_ORDER, getChapterContentIndicator } from '@/domain/content-type';
 import { useTheme } from '@/hooks/use-theme';
 import type { ChapterItem } from '@/types/book';
-import {
-  CHAPTER_CONTENT_LEGEND_ORDER,
-  CONTENT_TYPE_COLORS,
-  getChapterContentIndicator,
-  type ContentTypeIndicator,
-} from '@/types/content-type';
+import type { ContentTypeIndicator } from '@/types/content-type';
+
+const CONTENT_TYPE_COLORS: Record<
+  ContentTypeIndicator,
+  { background: ThemeColor; foreground: ThemeColor }
+> = {
+  both: { background: 'badgeBothBackground', foreground: 'badgeBothForeground' },
+  text: { background: 'badgeTextBackground', foreground: 'badgeTextForeground' },
+  audio: { background: 'badgeAudioBackground', foreground: 'badgeAudioForeground' },
+};
 
 type ChapterGridProps = {
   chapters: ChapterItem[];

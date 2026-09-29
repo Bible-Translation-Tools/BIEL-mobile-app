@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { fetchAudioChaptersForBook, fetchChaptersForBook } from '@/api/services/chapters';
+import { getChaptersForBook } from '@/features/catalog';
+import { getAudioChaptersForBook } from '@/features/playback';
 import { useForceOffline } from '@/stores/force-offline-store';
 import type { ChapterItem } from '@/types/book';
 
@@ -37,8 +38,8 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
 
       try {
         const chapters = audioOnly
-          ? await fetchAudioChaptersForBook(languageCode, bookSlug)
-          : await fetchChaptersForBook(languageCode, bookSlug);
+          ? await getAudioChaptersForBook(languageCode, bookSlug)
+          : await getChaptersForBook(languageCode, bookSlug);
         cacheRef.current[bookSlug] = chapters;
         setChaptersByBook((prev) => ({ ...prev, [bookSlug]: chapters }));
       } catch {

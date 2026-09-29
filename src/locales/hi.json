@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "भाषा डाउनलोड नहीं हो सकी",
     "couldNotDownloadScripture": "पाठ डाउनलोड नहीं हो सका",
     "couldNotRemoveScripture": "डाउनलोड किया पाठ हटाया नहीं जा सका",
+    "missingAudioChapters_one": "अध्याय {{chapters}} का ऑडियो डाउनलोड नहीं हो सका",
+    "missingAudioChapters_other": "{{count}} अध्यायों का ऑडियो डाउनलोड नहीं हो सका: {{chapters}}",
+    "failedBooks_one": "{{count}} पुस्तक डाउनलोड नहीं हो सकी",
+    "failedBooks_other": "{{count}} पुस्तकें डाउनलोड नहीं हो सकीं",
     "notification": {
       "channelName": "पुस्तक डाउनलोड",
       "downloadingScripture": "{{name}} डाउनलोड हो रहा है",
