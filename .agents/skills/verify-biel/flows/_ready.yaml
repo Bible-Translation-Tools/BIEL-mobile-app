@@ -1,0 +1,17 @@
+# Wait until the app has booted past splash (DB, i18n, catalog) and shows Home.
+# "Open" confirms iOS's "Open in BIEL?" prompt for the dev-client deep link (simctl openurl).
+# "Allow"/"Continue" are fallbacks; biel-verify normally prevents those prompts.
+appId: ${APP_ID}
+---
+- tapOn:
+    text: "Open"
+    optional: true
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- extendedWaitUntil:
+    visible: "Browse the Bible"
+    timeout: 120000

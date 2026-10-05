@@ -1,0 +1,7 @@
+# Return to Home from anywhere by relaunching the JS app (keeps app data).
+appId: ${APP_ID}
+---
+- launchApp:
+    stopApp: true
+    clearState: false
+- runFlow: _ready.yaml

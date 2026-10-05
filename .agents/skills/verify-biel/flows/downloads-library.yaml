@@ -1,0 +1,58 @@
+# Downloads Library: lists only local content, filters by type, deletes with confirmation.
+# Precondition: `biel-verify flow download-book` passed (2 John text downloaded, nothing else).
+appId: ${APP_ID}
+---
+- runFlow: _home.yaml
+- tapOn: "Menu"
+- tapOn: "Downloads Library"
+- extendedWaitUntil:
+    visible: "Old Testament"
+    timeout: 20000
+# Current behavior @eebc86c: the default OT tab says "No downloads yet" even when NT books are downloaded.
+- assertVisible: "No downloads yet"
+- takeScreenshot: 01-library-ot-tab
+- tapOn: "New Testament"
+- extendedWaitUntil:
+    visible: ".*1 book downloaded.*"
+    timeout: 20000
+- takeScreenshot: 01b-library-nt-tab
+- tapOn:
+    text: "Expand English"
+    optional: true
+- assertVisible: "Expand 2 John|Collapse 2 John"
+- tapOn: "Filter downloads"
+- waitForAnimationToEnd   # popover animates in; an early tap is silently lost
+- tapOn: ".*Audio Only"        # iOS label is ", Audio Only" (empty icon labels); selecting closes the popover
+- waitForAnimationToEnd
+- assertNotVisible: "Expand 2 John|Collapse 2 John"
+- assertVisible: "No downloads yet"   # same copy as a truly empty library
+- takeScreenshot: 02-filter-audio-only-empty
+- tapOn: "Filter downloads"
+- waitForAnimationToEnd   # popover animates in; an early tap is silently lost
+- tapOn: ".*Text Only"         # selecting closes the popover
+- waitForAnimationToEnd
+- assertVisible: "Expand 2 John|Collapse 2 John"
+- takeScreenshot: 03-filter-text-only
+- tapOn: "Delete 2 John"            # row trash opens the per-track menu, not a confirm
+- waitForAnimationToEnd
+- assertVisible: "Delete downloaded All Text"
+- assertVisible: "Download All Audio"
+- takeScreenshot: 04-track-menu
+- tapOn: "Delete downloaded All Text"
+- assertVisible: "Delete Download"
+- assertVisible: "Are you sure you want to delete?"
+- takeScreenshot: 05-confirm-delete
+- tapOn:                            # backdrop is ALSO labelled "Cancel"; anchor to the dialog button
+    text: "Cancel"
+    below: "Are you sure you want to delete\\?"
+- waitForAnimationToEnd
+- assertVisible: "Delete downloaded All Text"   # cancel leaves the download intact
+- tapOn: "Delete downloaded All Text"
+- assertVisible: "Delete Download"
+- tapOn:
+    text: "Delete"
+    below: "Are you sure you want to delete\\?"
+- extendedWaitUntil:
+    visible: "No downloads yet"
+    timeout: 20000
+- takeScreenshot: 06-after-delete

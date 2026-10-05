@@ -1,0 +1,21 @@
+# Download a whole book's text from the book card menu; the menu flips that track to "downloaded".
+# The card itself only shows Delete when text AND audio are both downloaded (books with audio).
+# Side effects are proven outside Maestro: `biel-verify db` + `biel-verify files` (see features/downloads.md).
+appId: ${APP_ID}
+---
+- runFlow: _open-2john.yaml
+- tapOn: "Download 2 John"
+- assertVisible: "Download All Text"
+- assertVisible: "Download All Audio"
+- takeScreenshot: 01-menu
+- tapOn: "Download All Text"
+- extendedWaitUntil:
+    notVisible: "Download All Text"
+    timeout: 60000
+- tapOn: "Download 2 John"
+- extendedWaitUntil:
+    visible: "Delete downloaded All Text"
+    timeout: 30000
+- assertVisible: "Download All Audio"
+- takeScreenshot: 02-text-downloaded
+- tapOn: "Close download menu"

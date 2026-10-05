@@ -1,0 +1,40 @@
+# Local-first read with the network really off.
+# Preconditions: `biel-verify flow download-book` passed, then `biel-verify net off`.
+appId: ${APP_ID}
+---
+- runFlow: _home.yaml
+- assertVisible: "You are in offline mode."
+- takeScreenshot: 01-home-offline
+- tapOn: "Dismiss"
+- tapOn: "Search language here..."
+- inputText: "en"
+- hideKeyboard
+- tapOn: "Open English"
+- extendedWaitUntil:
+    visible: "New Testament"
+    timeout: 30000
+- tapOn: "New Testament"
+- tapOn: "Search book here..."
+- inputText: "2 John"
+- hideKeyboard
+- tapOn: "Expand 2 John"
+- extendedWaitUntil:
+    visible: "Chapter 1.*"
+    timeout: 30000
+- takeScreenshot: 02-2john-offline-chapters
+- tapOn: "Chapter 1.*"
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 30000
+- assertVisible: "2 John 1"
+- takeScreenshot: 03-2john-read-offline
+- tapOn: "Go back"
+- tapOn: "Clear search"
+- tapOn: "Search book here..."
+- inputText: "3 John"
+- hideKeyboard
+- tapOn: "Expand 3 John"
+- waitForAnimationToEnd
+- takeScreenshot: 04-3john-not-downloaded
+# Current behavior @eebc86c: an undownloaded book expands to an empty card offline (no chapters, no message).
+- assertNotVisible: "Chapter 1.*"

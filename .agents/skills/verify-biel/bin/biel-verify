@@ -1,0 +1,283 @@
+#!/usr/bin/env bash
+# Drive the BIEL Expo dev build on an Android emulator or iOS simulator for verification.
+# Run from anywhere inside the repo. See ../SKILL.md for the full contract.
+set -euo pipefail
+
+ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+SKILL_DIR="$ROOT/.agents/skills/verify-biel"
+RUN_DIR="$ROOT/.verify/run"
+APP_ID="org.bibletranslationtools.biel"
+PORT="${BIEL_METRO_PORT:-8081}"
+AVD="${BIEL_AVD:-Pixel_8_Pro_API_33}"
+SIM_NAME="${BIEL_SIM:-iPhone 17 Pro}"   # name (newest installed iOS runtime wins) or a UDID
+
+export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$HOME/.maestro/bin:$PATH"
+export MAESTRO_CLI_NO_ANALYTICS=1 MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED=true
+# JDK 17 + Node 24 come from the repo's mise.toml (matches CI).
+if command -v mise >/dev/null; then eval "$(mise env -C "$ROOT" -s bash)"; fi
+
+mkdir -p "$RUN_DIR"
+cd "$ROOT"
+
+sha() { git rev-parse --short HEAD; }
+dirty() { git diff --quiet HEAD -- src app.json package.json && echo clean || echo dirty; }
+evidence_root() { echo "$ROOT/.verify/evidence/$(sha)"; }
+log() { printf '› %s\n' "$*" >&2; }
+die() { printf '✗ %s\n' "$*" >&2; exit 1; }
+
+android_serial() { adb devices | awk '/^emulator-[0-9]+\tdevice$/ {print $1; exit}'; }
+# Resolve BIEL_SIM to one UDID: names repeat across installed iOS runtimes.
+sim_udid() {
+  if [[ "$SIM_NAME" =~ ^[0-9A-F-]{36}$ ]]; then echo "$SIM_NAME"; return; fi
+  xcrun simctl list devices available -j | jq -r --arg n "$SIM_NAME" '
+    .devices | to_entries | map(select(.key | test("SimRuntime.iOS-"))) | sort_by(.key | sub(".*iOS-";"") | split("-") | map(tonumber)) | reverse
+    | map(.value[] | select(.name == $n) | .udid) | first // empty'
+}
+ios_udid() { xcrun simctl list devices booted -j 2>/dev/null | jq -r '[.devices[][] | select(.state=="Booted")][0].udid // empty'; }
+
+metro_up() { curl -fsS "http://127.0.0.1:$PORT/status" 2>/dev/null | grep -q packager-status:running; }
+metro_ours() { [[ -f "$RUN_DIR/metro.pid" ]] && kill -0 "$(cat "$RUN_DIR/metro.pid")" 2>/dev/null; }
+
+start_metro() {
+  if metro_up; then
+    metro_ours || die "Port $PORT already has a Metro this run did not start. Stop it or set BIEL_METRO_PORT."
+    return
+  fi
+  log "Starting Metro on :$PORT (log: $RUN_DIR/metro.log)"
+  CI=1 nohup pnpm exec expo start --dev-client --port "$PORT" >"$RUN_DIR/metro.log" 2>&1 &
+  echo $! >"$RUN_DIR/metro.pid"
+  for _ in $(seq 1 90); do metro_up && return; sleep 1; done
+  die "Metro did not answer /status within 90s; see $RUN_DIR/metro.log"
+}
+
+open_app() {
+  local platform="$1" url
+  # disableOnboarding skips the dev-menu intro sheet that otherwise covers the app on first run.
+  url="exp+biel-mobile-app://expo-development-client/?url=$(jq -rn --arg u "http://127.0.0.1:$PORT" '$u|@uri')&disableOnboarding=1"
+  if [[ "$platform" == android ]]; then
+    adb -s "$(android_serial)" reverse "tcp:$PORT" "tcp:$PORT" >/dev/null
+    adb -s "$(android_serial)" shell am force-stop "$APP_ID"
+    # Pre-grant so the Android 13+ notification prompt never interrupts a flow.
+    adb -s "$(android_serial)" shell pm grant "$APP_ID" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+    # Hide Expo's floating dev "Tools" button: it sits on top of the app's Menu button.
+    printf '%s' "<?xml version='1.0' encoding='utf-8' standalone='yes' ?><map><boolean name=\"isOnboardingFinished\" value=\"true\" /><boolean name=\"showFab\" value=\"false\" /><boolean name=\"showsAtLaunch\" value=\"false\" /></map>" \
+      | adb -s "$(android_serial)" shell "run-as $APP_ID sh -c 'mkdir -p shared_prefs && cat > shared_prefs/expo.modules.devmenu.sharedpreferences.xml'"
+    adb -s "$(android_serial)" shell am start -a android.intent.action.VIEW -d "'$url'" "$APP_ID" >/dev/null
+  else
+    xcrun simctl terminate booted "$APP_ID" 2>/dev/null || true
+    # Same intent as Android: no dev-menu onboarding, no floating Tools button over the app's Menu.
+    xcrun simctl spawn booted defaults write "$APP_ID" EXDevMenuIsOnboardingFinished -bool true
+    xcrun simctl spawn booted defaults write "$APP_ID" EXDevMenuShowFloatingActionButton -bool false
+    xcrun simctl spawn booted defaults write "$APP_ID" EXDevMenuShowsAtLaunch -bool false
+    xcrun simctl privacy booted grant notifications "$APP_ID" 2>/dev/null || true
+    xcrun simctl openurl booted "$url"
+  fi
+}
+
+# `expo run:ios` dies on Xcode 27 ("Can't determine id of Simulator app"), so build + install directly.
+build_ios() {
+  if [[ ! -d ios ]]; then
+    CI=1 pnpm exec expo prebuild --platform ios
+    # Prebuild writes ios.bundleIdentifier (+ a duplicate "audio" background mode) back into app.json; undo that.
+    git checkout -- app.json
+  fi
+  [[ -d ios/Pods ]] || (cd ios && pod install >"$RUN_DIR/pod-install.log" 2>&1) || die "pod install failed; see $RUN_DIR/pod-install.log"
+  # IPHONEOS_DEPLOYMENT_TARGET=16.0 (verification-only, all targets): Xcode 27 rejects pods below 15.0
+  # (SDWebImage, Mute, RNSVGFilters) and marks UIAction.subtitle, used by expo-router, as iOS 16+.
+  xcodebuild -workspace ios/BIEL.xcworkspace -scheme BIEL -configuration Debug -sdk iphonesimulator \
+    -destination "id=$(ios_udid)" -derivedDataPath ios/build \
+    IPHONEOS_DEPLOYMENT_TARGET=16.0 build >"$RUN_DIR/xcodebuild.log" 2>&1 \
+    || die "xcodebuild failed; see $RUN_DIR/xcodebuild.log"
+  xcrun simctl install "$(ios_udid)" ios/build/Build/Products/Debug-iphonesimulator/BIEL.app
+}
+
+cmd_launch() {
+  local platform="${1:-android}"
+  case "$platform" in
+    android)
+      if [[ -z "$(android_serial)" ]]; then
+        log "Booting emulator $AVD"
+        nohup emulator -avd "$AVD" -no-snapshot-save -no-boot-anim >"$RUN_DIR/emulator.log" 2>&1 &
+        echo $! >"$RUN_DIR/emulator.pid"
+        adb wait-for-device
+        until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; do sleep 2; done
+      fi
+      if ! adb -s "$(android_serial)" shell pm path "$APP_ID" >/dev/null 2>&1; then
+        log "Dev build not installed; building (first build ~10 min)"
+        CI=1 pnpm exec expo run:android --device "$AVD" --no-bundler
+      fi ;;
+    ios)
+      if [[ -z "$(ios_udid)" ]]; then
+        local udid; udid="$(sim_udid)"; [[ -n "$udid" ]] || die "no available simulator named '$SIM_NAME'"
+        log "Booting simulator $SIM_NAME ($udid)"
+        xcrun simctl boot "$udid"
+        touch "$RUN_DIR/simulator.booted-by-us"
+      fi
+      # Xcode 27 replaced Simulator.app with DeviceHub.app; flows work headless either way.
+      open -a Simulator 2>/dev/null || open "$(xcode-select -p)/../Applications/DeviceHub.app" 2>/dev/null || true
+      if ! xcrun simctl get_app_container booted "$APP_ID" >/dev/null 2>&1; then
+        log "Dev build not installed; building (first build ~10 min)"
+        build_ios
+      fi ;;
+    *) die "platform must be android or ios" ;;
+  esac
+  start_metro
+  open_app "$platform"
+  echo "$platform" >"$RUN_DIR/platform"
+  wait_ready "$platform" launch
+  log "Ready: $platform @ $(sha) ($(dirty))"
+}
+
+wait_ready() {
+  local out rc=0
+  log "Waiting for Home (\"Browse the Bible\")"
+  out="$(run_flow "$1" "$SKILL_DIR/flows/_ready.yaml" "$2")" || rc=$?
+  ((rc == 0)) || die "app never reached Home; see $out/maestro.log and screenshots there"
+}
+
+cmd_doctor() {
+  local platform; platform="${1:-$(cat "$RUN_DIR/platform" 2>/dev/null || echo android)}"
+  local ok=1
+  check() { if eval "$2"; then printf '  ✓ %s\n' "$1"; else printf '  ✗ %s\n' "$1"; ok=0; fi; }
+  echo "BIEL verify doctor — $platform @ $(sha) ($(dirty))"
+  check "java 17 on PATH" 'java -version 2>&1 | grep -q "\"17\."'
+  check "maestro installed" 'command -v maestro >/dev/null'
+  if [[ "$platform" == android ]]; then
+    check "emulator booted" '[[ -n "$(android_serial)" ]]'
+    check "dev build installed ($APP_ID)" 'adb shell pm path "$APP_ID" >/dev/null 2>&1'
+    check "adb reverse tcp:$PORT" 'adb reverse --list 2>/dev/null | grep -q "tcp:$PORT"'
+  else
+    check "xcode license accepted" 'xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1 && ! xcrun simctl help 2>&1 | grep -q license'
+    check "simulator booted" '[[ -n "$(ios_udid)" ]]'
+    check "dev build installed ($APP_ID)" 'xcrun simctl get_app_container booted "$APP_ID" >/dev/null 2>&1'
+  fi
+  check "metro answering :$PORT" 'metro_up'
+  check "metro started by this run (pid file)" 'metro_ours'
+  check "metro serving this checkout" 'metro_ours && [[ "$(lsof -a -p "$(cat "$RUN_DIR/metro.pid")" -d cwd -Fn 2>/dev/null | sed -n "s/^n//p")" == "$ROOT" ]]'
+  ((ok)) && echo "healthy" || { echo "UNHEALTHY — fix the ✗ lines (or run launch) before driving"; return 1; }
+}
+
+run_flow() {
+  local platform="$1" flow="$2" feature="$3" out rc=0
+  out="$(evidence_root)/$feature/$(date +%Y%m%d-%H%M%S)-$platform"
+  mkdir -p "$out"
+  local device; device=$([[ "$platform" == android ]] && android_serial || ios_udid)
+  # Watchdog: Maestro can hang inside a hierarchy dump past its own timeouts.
+  ( sleep "${BIEL_FLOW_TIMEOUT:-420}"; pkill -f "maestro.cli.AppKt --device $device test.*$out" ) >/dev/null 2>&1 &
+  local watchdog=$!
+  ( cd "$out" && maestro --device "$device" test \
+      --format junit --output "$out/report.xml" \
+      --test-output-dir "$out" --debug-output "$out/debug" \
+      -e APP_ID="$APP_ID" "$flow" ) >"$out/maestro.log" 2>&1 || rc=$?
+  pkill -P "$watchdog" 2>/dev/null || true; kill "$watchdog" 2>/dev/null || true
+  echo "$out"
+  return $rc
+}
+
+cmd_flow() {
+  local name="${1:?flow name, e.g. browse-languages}" platform="${2:-$(cat "$RUN_DIR/platform" 2>/dev/null || echo android)}"
+  local flow="$SKILL_DIR/flows/$name.yaml"
+  [[ -f "$flow" ]] || die "no flow $flow"
+  local out rc=0
+  out="$(run_flow "$platform" "$flow" "$name")" || rc=$?
+  if ((rc == 0)); then echo "PASS $name ($platform) → $out"; else echo "FAIL $name ($platform) → $out (see maestro.log, debug/)"; fi
+  return $rc
+}
+
+cmd_snapshot() {
+  local label="${1:?label}" platform; platform="$(cat "$RUN_DIR/platform" 2>/dev/null || echo android)"
+  local out; out="$(evidence_root)/snapshots"; mkdir -p "$out"
+  local stamp; stamp="$(date +%Y%m%d-%H%M%S)-$platform-$label"
+  if [[ "$platform" == android ]]; then
+    adb exec-out screencap -p >"$out/$stamp.png"
+  else
+    xcrun simctl io booted screenshot "$out/$stamp.png" >/dev/null 2>&1
+  fi
+  maestro --device "$([[ "$platform" == android ]] && android_serial || ios_udid)" hierarchy >"$out/$stamp.hierarchy.json" 2>/dev/null || true
+  echo "$out/$stamp.png"
+}
+
+# Copy the app's SQLite DB to the host and run a read-only query against it.
+cmd_db() {
+  local sql="${1:?SQL, e.g. 'select * from books'}" platform; platform="$(cat "$RUN_DIR/platform" 2>/dev/null || echo android)"
+  local copy="$RUN_DIR/biel-offline.db"
+  if [[ "$platform" == android ]]; then
+    for f in biel-offline.db biel-offline.db-wal biel-offline.db-shm; do
+      adb exec-out run-as "$APP_ID" cat "files/SQLite/$f" >"$RUN_DIR/$f" 2>/dev/null || rm -f "$RUN_DIR/$f"
+    done
+  else
+    local c; c="$(xcrun simctl get_app_container booted "$APP_ID" data)"
+    cp "$c/Documents/SQLite/biel-offline.db"* "$RUN_DIR/"
+  fi
+  sqlite3 -readonly -header -column "$copy" "$sql"
+}
+
+# List offline content files under Paths.document/biel-offline.
+cmd_files() {
+  local platform; platform="$(cat "$RUN_DIR/platform" 2>/dev/null || echo android)"
+  if [[ "$platform" == android ]]; then
+    adb shell run-as "$APP_ID" find files/biel-offline -type f -exec ls -l {} + 2>/dev/null | awk '{print $5"\t"$NF}'
+  else
+    local c; c="$(xcrun simctl get_app_container booted "$APP_ID" data)"
+    (cd "$c/Documents" && find biel-offline -type f -exec stat -f '%z	%N' {} +)
+  fi
+}
+
+# Wipe app data (DB, downloads, prefs) so the next launch starts from first-run state.
+cmd_reset() {
+  local platform; platform="$(cat "$RUN_DIR/platform" 2>/dev/null || echo android)"
+  if [[ "$platform" == android ]]; then
+    adb shell pm clear "$APP_ID" >/dev/null
+  else
+    xcrun simctl terminate booted "$APP_ID" 2>/dev/null || true
+    rm -rf "$(xcrun simctl get_app_container booted "$APP_ID" data)"/{Documents,Library}/* 2>/dev/null || true
+  fi
+  open_app "$platform"
+  wait_ready "$platform" reset
+  echo "app data cleared and relaunched"
+}
+
+# Real network cut (Android only). Metro still works: adb reverse does not use the guest network.
+cmd_net() {
+  case "${1:?on|off}" in
+    off) adb shell cmd connectivity airplane-mode enable ;;
+    on)  adb shell cmd connectivity airplane-mode disable ;;
+    *) die "net on|off" ;;
+  esac
+  echo "airplane-mode: $(adb shell settings get global airplane_mode_on | tr -d '\r')"
+}
+
+cmd_cleanup() {
+  adb shell cmd connectivity airplane-mode disable >/dev/null 2>&1 || true
+  if metro_ours; then
+    local pid; pid="$(cat "$RUN_DIR/metro.pid")"
+    pkill -P "$pid" 2>/dev/null || true; kill "$pid" 2>/dev/null || true
+    log "stopped Metro (pid $pid)"
+  fi
+  rm -f "$RUN_DIR/metro.pid"
+  if [[ -f "$RUN_DIR/emulator.pid" ]]; then
+    adb -s "$(android_serial)" emu kill >/dev/null 2>&1 || kill "$(cat "$RUN_DIR/emulator.pid")" 2>/dev/null || true
+    rm -f "$RUN_DIR/emulator.pid"; log "stopped emulator this run booted"
+  fi
+  if [[ -f "$RUN_DIR/simulator.booted-by-us" ]]; then
+    xcrun simctl shutdown booted 2>/dev/null || true
+    rm -f "$RUN_DIR/simulator.booted-by-us"; log "shut down simulator this run booted"
+  fi
+  rm -f "$RUN_DIR/platform" "$RUN_DIR"/biel-offline.db*
+  echo "cleaned up; evidence kept at $(evidence_root)"
+}
+
+case "${1:-}" in
+  launch)   shift; cmd_launch "$@" ;;
+  doctor)   shift; cmd_doctor "$@" ;;
+  flow)     shift; cmd_flow "$@" ;;
+  snapshot) shift; cmd_snapshot "$@" ;;
+  db)       shift; cmd_db "$@" ;;
+  files)    shift; cmd_files "$@" ;;
+  reset)    shift; cmd_reset "$@" ;;
+  net)      shift; cmd_net "$@" ;;
+  cleanup)  shift; cmd_cleanup "$@" ;;
+  evidence) evidence_root ;;
+  *) sed -n '2,3p' "$0"; echo "usage: biel-verify {launch [android|ios]|doctor|flow <name> [platform]|snapshot <label>|db <sql>|files|net on|off|reset|cleanup|evidence}"; exit 2 ;;
+esac

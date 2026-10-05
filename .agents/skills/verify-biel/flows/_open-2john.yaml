@@ -1,0 +1,12 @@
+# English → New Testament → 2 John expanded (chapter grid visible). Stops before opening a chapter.
+appId: ${APP_ID}
+---
+- runFlow: _open-english.yaml
+- tapOn: "New Testament"
+- tapOn: "Search book here..."
+- inputText: "2 John"
+- hideKeyboard
+- tapOn: "Expand 2 John"
+- extendedWaitUntil:
+    visible: "Chapter 1.*"
+    timeout: 30000

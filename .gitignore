@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# verify-biel evidence and run state
+.verify/
