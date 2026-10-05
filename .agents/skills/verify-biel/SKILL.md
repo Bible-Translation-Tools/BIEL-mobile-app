@@ -9,6 +9,9 @@ Scripted, repeatable proof that BIEL works on a device. Everything goes through 
 `.agents/skills/verify-biel/bin/biel-verify` (below: `bv`), and Maestro flows in `flows/`.
 The feature map in `features/` is the source of truth for *what* to verify; this file is *how*.
 
+From the repo root, `pnpm verify <command>` is the same thing (e.g. `pnpm verify launch ios`). In a shell or agent
+session, a short alias avoids pnpm's banner:
+
 ```bash
 bv() { "$(git rev-parse --show-toplevel)/.agents/skills/verify-biel/bin/biel-verify" "$@"; }
 ```

@@ -12,6 +12,7 @@
     "lint": "expo lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify": ".agents/skills/verify-biel/bin/biel-verify",
     "postinstall": "node ./scripts/patch-android-cxx-paths.js"
   },
   "dependencies": {
