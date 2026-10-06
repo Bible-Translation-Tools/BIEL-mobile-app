@@ -145,44 +145,44 @@ export const ChapterItem = memo(function ChapterItem({
     let searchLineIdx = 0;
     let searchCharIdx = 0;
 
-      for (const verse of paragraph.verses) {
-        const superscript = toSuperscript(verse.number);
-        const needle = `${VERSE_NUMBER_MARKER}${superscript}`;
-        let foundLineIdx = -1;
-        let foundCharIdx = -1;
+    for (const verse of paragraph.verses) {
+      const superscript = toSuperscript(verse.number);
+      const needle = `${VERSE_NUMBER_MARKER}${superscript}`;
+      let foundLineIdx = -1;
+      let foundCharIdx = -1;
 
+      for (let i = searchLineIdx; i < lines.length; i += 1) {
+        const startAt = i === searchLineIdx ? searchCharIdx : 0;
+        const idx = lines[i].text.indexOf(needle, startAt);
+        if (idx !== -1) {
+          foundLineIdx = i;
+          foundCharIdx = idx;
+          break;
+        }
+      }
+
+      // Word Joiner is sometimes stripped from onTextLayout line text; fall back to
+      // superscript search, skipping footnote markers (those follow a regular space).
+      if (foundLineIdx === -1) {
         for (let i = searchLineIdx; i < lines.length; i += 1) {
           const startAt = i === searchLineIdx ? searchCharIdx : 0;
-          const idx = lines[i].text.indexOf(needle, startAt);
-          if (idx !== -1) {
-            foundLineIdx = i;
-            foundCharIdx = idx;
-            break;
-          }
-        }
-
-        // Word Joiner is sometimes stripped from onTextLayout line text; fall back to
-        // superscript search, skipping footnote markers (those follow a regular space).
-        if (foundLineIdx === -1) {
-          for (let i = searchLineIdx; i < lines.length; i += 1) {
-            const startAt = i === searchLineIdx ? searchCharIdx : 0;
-            let from = startAt;
-            while (from < lines[i].text.length) {
-              const idx = lines[i].text.indexOf(superscript, from);
-              if (idx === -1) break;
-              const before = idx > 0 ? lines[i].text[idx - 1] : '\n';
-              if (before !== ' ') {
-                foundLineIdx = i;
-                foundCharIdx = idx;
-                break;
-              }
-              from = idx + superscript.length;
+          let from = startAt;
+          while (from < lines[i].text.length) {
+            const idx = lines[i].text.indexOf(superscript, from);
+            if (idx === -1) break;
+            const before = idx > 0 ? lines[i].text[idx - 1] : '\n';
+            if (before !== ' ') {
+              foundLineIdx = i;
+              foundCharIdx = idx;
+              break;
             }
-            if (foundLineIdx !== -1) break;
+            from = idx + superscript.length;
           }
+          if (foundLineIdx !== -1) break;
         }
+      }
 
-        if (foundLineIdx === -1) {
+      if (foundLineIdx === -1) {
         // Fallback: assume verse starts at the previous match's line so we
         // don't lose track of subsequent verses.
         verseToLineY.set(verse.number, lines[searchLineIdx]?.y ?? 0);
@@ -240,9 +240,7 @@ export const ChapterItem = memo(function ChapterItem({
   );
 
   return (
-    <View
-      ref={onRootRef}
-      style={[styles.chapterBlock, !isFirst && styles.chapterBlockSpaced]}>
+    <View ref={onRootRef} style={[styles.chapterBlock, !isFirst && styles.chapterBlockSpaced]}>
       <Text style={[styles.chapterTitle, { color: theme.text }]}>
         {bookName} {chapter.chapter}
       </Text>
@@ -254,9 +252,7 @@ export const ChapterItem = memo(function ChapterItem({
             style={styles.section}
             onLayout={(event) => handleSectionLayout(sectionIndex, event)}>
             {section.heading ? (
-              <Text style={[styles.sectionHeading, { color: theme.text }]}>
-                {section.heading}
-              </Text>
+              <Text style={[styles.sectionHeading, { color: theme.text }]}>{section.heading}</Text>
             ) : null}
 
             {section.paragraphs.map((paragraph, paragraphIndex) => (
@@ -280,9 +276,7 @@ export const ChapterItem = memo(function ChapterItem({
                     </Text>
                     {verse.startsOnNewLine ? '' : ' '}
                     <Text
-                      onPress={
-                        onVersePress ? () => onVersePress(verse.number) : undefined
-                      }
+                      onPress={onVersePress ? () => onVersePress(verse.number) : undefined}
                       suppressHighlighting={onVersePress == null}>
                       {verse.lines.map((line, lineIndex) =>
                         renderVerseLine(
@@ -312,9 +306,7 @@ export const ChapterItem = memo(function ChapterItem({
             <Text style={[styles.footnoteLabel, { color: theme.text }]}>
               Footnote {activeFootnote?.label}
             </Text>
-            <Text style={footnoteTextStyle}>
-              {activeFootnote?.text ?? ''}
-            </Text>
+            <Text style={footnoteTextStyle}>{activeFootnote?.text ?? ''}</Text>
           </Pressable>
         </Pressable>
       </Modal>

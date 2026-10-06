@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { buildDownloadTaskId } from '@/domain/downloads';
 import { formatByteSize } from '@/domain/whole-book-parser';
 import {
-    cancelDownload as cancelDownloadTask,
-    partialDownloadFailure,
-    removeDownloadTask,
-    runDownload,
-    toDownloadFailure,
+  cancelDownload as cancelDownloadTask,
+  partialDownloadFailure,
+  removeDownloadTask,
+  runDownload,
+  toDownloadFailure,
 } from '@/features/downloads';
 import { useDownloadProgress } from '@/stores/download-progress-store';
 import type { DownloadFailure } from '@/types/download';
@@ -89,8 +89,7 @@ export function useContentDownload({
 }: UseContentDownloadOptions) {
   const { t } = useTranslation('download');
   const resolvedDownloadFailedTitle = downloadFailedTitle ?? t('downloadFailedTitle');
-  const resolvedDownloadFailedMessage =
-    downloadFailedMessage ?? t('downloadFailedMessage');
+  const resolvedDownloadFailedMessage = downloadFailedMessage ?? t('downloadFailedMessage');
   const resolvedDeleteFailedTitle = deleteFailedTitle ?? t('deleteFailedTitle');
   const resolvedDeleteFailedMessage = deleteFailedMessage ?? t('deleteFailedMessage');
 
@@ -133,9 +132,7 @@ export function useContentDownload({
   const notifyCompleteIfDownloaded = useCallback(async () => {
     if (!onComplete) return;
 
-    const fullyDownloaded = getIsDownloaded
-      ? await getIsDownloaded().catch(() => false)
-      : true;
+    const fullyDownloaded = getIsDownloaded ? await getIsDownloaded().catch(() => false) : true;
 
     if (fullyDownloaded) {
       scheduleOnComplete(onComplete);
@@ -181,9 +178,7 @@ export function useContentDownload({
       setCanDownload(available);
 
       const downloadedBytes = await getDownloadedBytes().catch(() => null);
-      const fullyDownloaded = getIsDownloaded
-        ? await getIsDownloaded().catch(() => false)
-        : false;
+      const fullyDownloaded = getIsDownloaded ? await getIsDownloaded().catch(() => false) : false;
 
       if (getIsDownloaded) {
         setIsDownloaded(fullyDownloaded);
@@ -191,9 +186,7 @@ export function useContentDownload({
 
       if (!available) {
         setFileSizeLabel(
-          downloadedBytes != null && downloadedBytes > 0
-            ? formatByteSize(downloadedBytes)
-            : null,
+          downloadedBytes != null && downloadedBytes > 0 ? formatByteSize(downloadedBytes) : null,
         );
         return;
       }
@@ -216,9 +209,7 @@ export function useContentDownload({
         }
       } catch {
         setFileSizeLabel(
-          downloadedBytes != null && downloadedBytes > 0
-            ? formatByteSize(downloadedBytes)
-            : null,
+          downloadedBytes != null && downloadedBytes > 0 ? formatByteSize(downloadedBytes) : null,
         );
         setCanDownload(downloadedBytes != null && downloadedBytes > 0);
       }

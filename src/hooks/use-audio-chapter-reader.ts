@@ -152,13 +152,7 @@ export function useAudioChapterReader(
     setSeekTarget({ chapter: nextChapter, position: 'start' });
     setShouldAutoPlay(true);
     isAdvancingRef.current = false;
-  }, [
-    activeChapter,
-    audio.didJustFinish,
-    audio.loadedChapter,
-    audio.pause,
-    chapterNumbers,
-  ]);
+  }, [activeChapter, audio.didJustFinish, audio.loadedChapter, audio.pause, chapterNumbers]);
 
   function changeChapter(
     chapter: number,

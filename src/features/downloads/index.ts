@@ -1,10 +1,6 @@
 /** Run or cancel a download job and keep its progress on screen. */
 export { cancelDownload, runDownload } from './job-runner';
-export {
-  getDownloadTask,
-  removeDownloadTask,
-  subscribeDownloadTasks,
-} from './task-registry';
+export { getDownloadTask, removeDownloadTask, subscribeDownloadTasks } from './task-registry';
 export { initDownloadNotifications } from './notifications';
 /** Why a download failed, as data for the UI to translate. */
 export { partialDownloadFailure, toDownloadFailure } from './failures';

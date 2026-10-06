@@ -13,11 +13,11 @@ import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-contex
 import { LocaleProvider } from '@/contexts/locale-context';
 import { initDatabase } from '@/db';
 import { loadLocalePreference } from '@/db/locale-preferences';
-import { i18n, initI18n } from '@/i18n';
-import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 import { getLanguageCatalog } from '@/features/catalog';
 import { initDownloadNotifications } from '@/features/downloads';
 import { initPlaybackAppLifecycle } from '@/features/playback';
+import { i18n, initI18n } from '@/i18n';
+import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
@@ -59,9 +59,7 @@ export default function RootLayout() {
         await initDatabase();
 
         const savedLocale = await loadLocalePreference();
-        const resolvedLocale = resolveAppLocale(
-          savedLocale ?? resolveDeviceLocale(),
-        );
+        const resolvedLocale = resolveAppLocale(savedLocale ?? resolveDeviceLocale());
         await initI18n(resolvedLocale);
         setInitialLocale(resolvedLocale);
 

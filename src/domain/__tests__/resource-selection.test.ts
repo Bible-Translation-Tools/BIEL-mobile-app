@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { bookByteSizesFromRenderings, groupRenderingsByBookSlug } from '@/domain/resource-selection';
+import {
+  bookByteSizesFromRenderings,
+  groupRenderingsByBookSlug,
+} from '@/domain/resource-selection';
 import type { ScriptureRendering } from '@/types/catalog';
 
 function rendering(overrides: Partial<ScriptureRendering>): ScriptureRendering {

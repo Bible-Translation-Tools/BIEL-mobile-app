@@ -54,11 +54,9 @@ describe('bookMatchesContentFilter', () => {
       true,
       true,
     ]);
-    expect([textOnly, audioOnly, both].map((b) => bookMatchesContentFilter(b, 'scripture'))).toEqual([
-      true,
-      false,
-      true,
-    ]);
+    expect(
+      [textOnly, audioOnly, both].map((b) => bookMatchesContentFilter(b, 'scripture')),
+    ).toEqual([true, false, true]);
     expect([textOnly, audioOnly, both].map((b) => bookMatchesContentFilter(b, 'audio'))).toEqual([
       false,
       true,

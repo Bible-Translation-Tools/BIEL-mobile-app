@@ -46,9 +46,7 @@ export function OfflineBanner() {
           size={32}
           color={theme.warningForeground}
         />
-        <Text
-          numberOfLines={2}
-          style={[styles.messageText, { color: theme.warningForeground }]}>
+        <Text numberOfLines={2} style={[styles.messageText, { color: theme.warningForeground }]}>
           {t('offlineBanner.message')}
         </Text>
       </View>

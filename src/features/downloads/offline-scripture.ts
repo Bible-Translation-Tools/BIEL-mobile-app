@@ -3,36 +3,36 @@ import { File } from 'expo-file-system';
 import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/content-fetch';
 import {
-    ensureOfflineRootExists,
-    ensureOfflineScriptureDirectory,
-    getChapterHtmlFile,
-    getWholeJsonFile,
-    removeBookScriptureDirectory,
-    writeFileAtomically,
+  ensureOfflineRootExists,
+  ensureOfflineScriptureDirectory,
+  getChapterHtmlFile,
+  getWholeJsonFile,
+  removeBookScriptureDirectory,
+  writeFileAtomically,
 } from '@/api/offline-storage';
 import {
-    deleteBook as deleteBookRecord,
-    deleteScriptureChapter as deleteScriptureChapterRecord,
-    deleteScriptureChaptersForBook,
-    getBookDownloadRecord,
-    getChapterNumbersForBook,
-    getScriptureChapterRecord,
-    listDownloadedBooksForLanguage,
-    listDownloadedBookSlugs,
-    listScriptureChapterNumbersForBook,
-    sumScriptureChapterByteSizeForBook,
-    upsertBookWithChapters,
-    upsertScriptureChapter,
+  deleteBook as deleteBookRecord,
+  deleteScriptureChapter as deleteScriptureChapterRecord,
+  deleteScriptureChaptersForBook,
+  getBookDownloadRecord,
+  getChapterNumbersForBook,
+  getScriptureChapterRecord,
+  listDownloadedBooksForLanguage,
+  listDownloadedBookSlugs,
+  listScriptureChapterNumbersForBook,
+  sumScriptureChapterByteSizeForBook,
+  upsertBookWithChapters,
+  upsertScriptureChapter,
 } from '@/db';
 import { normalizeBookSlug } from '@/domain/book-slug';
 import { averageProgress, DOWNLOAD_CANCELLED, DOWNLOAD_COMPLETED } from '@/domain/downloads';
 import { bookByteSizesFromRenderings, pickRendering } from '@/domain/resource-selection';
 import {
-    extractChapterNumbersFromWholeBookJson,
-    offlineBookChapterHtmlMap,
-    parseDownloadedBookJson,
-    parseWholeBookJson,
-    withOfflineBookIdentity,
+  extractChapterNumbersFromWholeBookJson,
+  offlineBookChapterHtmlMap,
+  parseDownloadedBookJson,
+  parseWholeBookJson,
+  withOfflineBookIdentity,
 } from '@/domain/whole-book-parser';
 import { getLanguageBookSlugs } from '@/features/catalog/books';
 import type { ScriptureRendering } from '@/types/catalog';
@@ -96,10 +96,7 @@ async function fetchLanguageScriptureFiles(languageCode: string): Promise<Script
   return request;
 }
 
-export async function isBookDownloaded(
-  languageCode: string,
-  bookSlug: string,
-): Promise<boolean> {
+export async function isBookDownloaded(languageCode: string, bookSlug: string): Promise<boolean> {
   const record = await getBookDownloadRecord(languageCode, bookSlug);
   if (!record) return false;
   return getWholeJsonFile(languageCode, bookSlug).exists;
@@ -546,9 +543,7 @@ export async function downloadLanguageScripture(
   }
 
   options?.onProgress?.(1);
-  return failedBookSlugs.length > 0
-    ? { status: 'partial', failedBookSlugs }
-    : DOWNLOAD_COMPLETED;
+  return failedBookSlugs.length > 0 ? { status: 'partial', failedBookSlugs } : DOWNLOAD_COMPLETED;
 }
 
 export async function deleteLanguageScripture(languageCode: string): Promise<void> {

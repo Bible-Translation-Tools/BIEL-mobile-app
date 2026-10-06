@@ -40,7 +40,9 @@ async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]
   return applyLanguageDownloadStatus(items, downloadedCounts, catalogCounts);
 }
 
-async function snapshotFromLocal(localItems: LanguageItem[]): Promise<LanguageCatalogSnapshot | null> {
+async function snapshotFromLocal(
+  localItems: LanguageItem[],
+): Promise<LanguageCatalogSnapshot | null> {
   if (localItems.length === 0) return null;
   try {
     return {
@@ -60,7 +62,9 @@ async function snapshotFromNetwork(): Promise<LanguageCatalogSnapshot> {
   };
 }
 
-async function buildLanguageCatalogSnapshot(forceNetwork: boolean): Promise<LanguageCatalogSnapshot> {
+async function buildLanguageCatalogSnapshot(
+  forceNetwork: boolean,
+): Promise<LanguageCatalogSnapshot> {
   let localItems: LanguageItem[] = [];
   try {
     localItems = await loadLanguages();
@@ -104,7 +108,9 @@ export function getLanguageCatalogSnapshot(): LanguageCatalogSnapshot | null {
  * Cache first, refreshed in the background: serves the local catalog when there is one,
  * otherwise the network. `force` goes to the network first.
  */
-export function getLanguageCatalog(options?: { force?: boolean }): Promise<LanguageCatalogSnapshot> {
+export function getLanguageCatalog(options?: {
+  force?: boolean;
+}): Promise<LanguageCatalogSnapshot> {
   if (!options?.force && snapshot) {
     return Promise.resolve(snapshot);
   }

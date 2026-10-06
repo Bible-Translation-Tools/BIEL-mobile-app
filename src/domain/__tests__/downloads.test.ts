@@ -25,13 +25,22 @@ describe('resolveDownloadStatus', () => {
 describe('buildDownloadTaskId', () => {
   it('upper-cases the book slug so book tasks match regardless of casing', () => {
     expect(
-      buildDownloadTaskId({ languageCode: 'en', bookSlug: 'gen', bookName: 'Genesis', kind: 'book-audio' }),
+      buildDownloadTaskId({
+        languageCode: 'en',
+        bookSlug: 'gen',
+        bookName: 'Genesis',
+        kind: 'book-audio',
+      }),
     ).toBe('en:GEN:book-audio');
   });
 
   it('gives language tasks their own id space', () => {
     expect(
-      buildDownloadTaskId({ languageCode: 'en', languageName: 'English', kind: 'language-scripture' }),
+      buildDownloadTaskId({
+        languageCode: 'en',
+        languageName: 'English',
+        kind: 'language-scripture',
+      }),
     ).toBe('en:__language__:language-scripture');
   });
 });
@@ -39,25 +48,50 @@ describe('buildDownloadTaskId', () => {
 describe('isFullyDownloaded', () => {
   it('requires every content type that exists', () => {
     expect(
-      isFullyDownloaded({ hasText: true, textDownloaded: true, hasAudio: true, audioDownloaded: false }),
+      isFullyDownloaded({
+        hasText: true,
+        textDownloaded: true,
+        hasAudio: true,
+        audioDownloaded: false,
+      }),
     ).toBe(false);
     expect(
-      isFullyDownloaded({ hasText: true, textDownloaded: true, hasAudio: true, audioDownloaded: true }),
+      isFullyDownloaded({
+        hasText: true,
+        textDownloaded: true,
+        hasAudio: true,
+        audioDownloaded: true,
+      }),
     ).toBe(true);
   });
 
   it('ignores content types that do not exist', () => {
     expect(
-      isFullyDownloaded({ hasText: true, textDownloaded: true, hasAudio: false, audioDownloaded: false }),
+      isFullyDownloaded({
+        hasText: true,
+        textDownloaded: true,
+        hasAudio: false,
+        audioDownloaded: false,
+      }),
     ).toBe(true);
     expect(
-      isFullyDownloaded({ hasText: false, textDownloaded: false, hasAudio: true, audioDownloaded: true }),
+      isFullyDownloaded({
+        hasText: false,
+        textDownloaded: false,
+        hasAudio: true,
+        audioDownloaded: true,
+      }),
     ).toBe(true);
   });
 
   it('is false when the only content type is missing', () => {
     expect(
-      isFullyDownloaded({ hasText: true, textDownloaded: false, hasAudio: false, audioDownloaded: false }),
+      isFullyDownloaded({
+        hasText: true,
+        textDownloaded: false,
+        hasAudio: false,
+        audioDownloaded: false,
+      }),
     ).toBe(false);
   });
 });

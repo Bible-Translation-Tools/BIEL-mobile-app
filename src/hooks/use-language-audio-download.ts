@@ -24,10 +24,7 @@ export function useLanguageAudioDownload({
   onComplete,
 }: UseLanguageAudioDownloadOptions) {
   const { t } = useTranslation('download');
-  const {
-    canDownload,
-    ...rest
-  } = useContentDownload({
+  const { canDownload, ...rest } = useContentDownload({
     enabled,
     partialSizeLabel: true,
     globalSync: {

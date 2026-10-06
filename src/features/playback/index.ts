@@ -1,7 +1,5 @@
 /** Audio URL, verse timings, and chapters that have audio. Offline first. */
-export {
-  getAudioChaptersForBook,
-} from './chapter-audio';
+export { getAudioChaptersForBook } from './chapter-audio';
 
 /** Stop playback when the app is backgrounded outside the reader. */
 export { initPlaybackAppLifecycle, setReadingScreenFocused } from './background-stop';

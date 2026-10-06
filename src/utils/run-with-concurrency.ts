@@ -1,9 +1,7 @@
 import { yieldToUi } from '@/utils/yield-to-ui';
 
 export function isAbortError(err: unknown): boolean {
-  return (
-    (err instanceof Error || err instanceof DOMException) && err.name === 'AbortError'
-  );
+  return (err instanceof Error || err instanceof DOMException) && err.name === 'AbortError';
 }
 
 export function createAbortError(): Error {

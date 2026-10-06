@@ -72,9 +72,7 @@ type BibleBookSlug = (typeof BIBLE_BOOK_SLUGS)[number];
 
 const OLD_TESTAMENT_COUNT = 39;
 
-const OLD_TESTAMENT_SLUGS = new Set<BibleBookSlug>(
-  BIBLE_BOOK_SLUGS.slice(0, OLD_TESTAMENT_COUNT),
-);
+const OLD_TESTAMENT_SLUGS = new Set<BibleBookSlug>(BIBLE_BOOK_SLUGS.slice(0, OLD_TESTAMENT_COUNT));
 
 export const BOOK_SLUG_ORDER = new Map<BibleBookSlug, number>(
   BIBLE_BOOK_SLUGS.map((slug, index) => [slug, index]),

@@ -10,11 +10,7 @@ type UseChapterHasAudioParams = {
 };
 
 /** Whether a chapter has audio available (offline manifest or online). */
-export function useChapterHasAudio({
-  languageCode,
-  bookSlug,
-  chapter,
-}: UseChapterHasAudioParams) {
+export function useChapterHasAudio({ languageCode, bookSlug, chapter }: UseChapterHasAudioParams) {
   const forceOffline = useForceOffline();
   const [hasAudio, setHasAudio] = useState(false);
 

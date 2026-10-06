@@ -2,11 +2,11 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ChapterGrid } from '@/components/books/chapter-grid';
 import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { ChapterGrid } from '@/components/books/chapter-grid';
 import { DELETE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { getBookContentFlags } from '@/domain/content-type';
@@ -256,11 +256,7 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
 
       <View ref={downloadAnchorRef} collapsable={false}>
         <Pressable
-          style={({ pressed }) => [
-            cardStyle,
-            styles.downloadCard,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
+          style={({ pressed }) => [cardStyle, styles.downloadCard, { opacity: pressed ? 0.9 : 1 }]}
           onPress={openDownloadMenu}
           accessibilityRole="button"
           accessibilityLabel={

@@ -20,9 +20,7 @@ type LocalContentBookRow = {
 
 function localContentBooksSql(options: { filterByLanguage: boolean }): string {
   const where = options.filterByLanguage ? 'WHERE language_code = ?' : '';
-  const orderBy = options.filterByLanguage
-    ? 'book_slug ASC'
-    : 'language_code ASC, book_slug ASC';
+  const orderBy = options.filterByLanguage ? 'book_slug ASC' : 'language_code ASC, book_slug ASC';
 
   return `SELECT
          language_code,

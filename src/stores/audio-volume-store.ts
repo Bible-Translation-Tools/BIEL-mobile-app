@@ -5,7 +5,11 @@ import {
   loadAudioVolumePreference,
   saveAudioVolumePreference,
 } from '@/db/audio-volume-preferences';
-import { getSystemVolume, isSystemVolumeAvailable, setSystemVolume } from '@/services/system-audio-volume';
+import {
+  getSystemVolume,
+  isSystemVolumeAvailable,
+  setSystemVolume,
+} from '@/services/system-audio-volume';
 
 const PERSIST_DEBOUNCE_MS = 300;
 

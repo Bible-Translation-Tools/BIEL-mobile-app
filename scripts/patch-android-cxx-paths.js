@@ -6,7 +6,8 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const MARKER = 'buildStagingDirectory = file("${rootProject.projectDir}/build/cxx/${project.name}")';
+const MARKER =
+  'buildStagingDirectory = file("${rootProject.projectDir}/build/cxx/${project.name}")';
 
 const NATIVE_PACKAGES = [
   'react-native-gesture-handler',
@@ -23,7 +24,11 @@ function removeExistingMarker(content) {
 }
 
 function shouldPatchCmakeBlock(lines, cmakeLineIndex) {
-  for (let index = cmakeLineIndex + 1; index < Math.min(cmakeLineIndex + 8, lines.length); index += 1) {
+  for (
+    let index = cmakeLineIndex + 1;
+    index < Math.min(cmakeLineIndex + 8, lines.length);
+    index += 1
+  ) {
     const line = lines[index];
 
     if (/^\s*\}\s*$/.test(line)) {

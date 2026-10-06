@@ -32,9 +32,7 @@ export function ChapterUnavailablePlaceholder({
         pointerEvents="none"
         importantForAccessibility="no-hide-descendants"
         style={styles.blurred}>
-        <Text style={[styles.chapterTitle, { color: theme.textHeading }]}>
-          {PLACEHOLDER_TITLE}
-        </Text>
+        <Text style={[styles.chapterTitle, { color: theme.textHeading }]}>{PLACEHOLDER_TITLE}</Text>
         <View style={styles.scripture}>
           <Text style={[styles.sectionHeading, { color: theme.text }]}>{PLACEHOLDER_HEADING}</Text>
           {PLACEHOLDER_BODY.map((line) => (

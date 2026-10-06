@@ -56,19 +56,11 @@ export function getOfflineAudioDirectory(languageCode: string, bookSlug: string)
   return new Directory(getOfflineBookDirectory(languageCode, bookSlug), 'audio');
 }
 
-export function getChapterMp3File(
-  languageCode: string,
-  bookSlug: string,
-  chapter: number,
-): File {
+export function getChapterMp3File(languageCode: string, bookSlug: string, chapter: number): File {
   return new File(getOfflineAudioDirectory(languageCode, bookSlug), `ch-${chapter}.mp3`);
 }
 
-export function getChapterCueFile(
-  languageCode: string,
-  bookSlug: string,
-  chapter: number,
-): File {
+export function getChapterCueFile(languageCode: string, bookSlug: string, chapter: number): File {
   return new File(getOfflineAudioDirectory(languageCode, bookSlug), `ch-${chapter}.cue`);
 }
 
@@ -84,11 +76,7 @@ function getOfflineScriptureDirectory(languageCode: string, bookSlug: string): D
   return new Directory(getOfflineBookDirectory(languageCode, bookSlug), 'scripture');
 }
 
-export function getChapterHtmlFile(
-  languageCode: string,
-  bookSlug: string,
-  chapter: number,
-): File {
+export function getChapterHtmlFile(languageCode: string, bookSlug: string, chapter: number): File {
   return new File(getOfflineScriptureDirectory(languageCode, bookSlug), `ch-${chapter}.html`);
 }
 

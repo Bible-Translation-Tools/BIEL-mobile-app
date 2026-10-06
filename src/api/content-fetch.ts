@@ -9,7 +9,7 @@ import { assertNetworkAvailable } from '@/api/network';
 const CONTENT_FETCH_HEADERS = {
   Accept: 'application/json, text/html, */*',
   'User-Agent': 'Mozilla/5.0',
-  "X-Requested-With": "WA-Tool-biel-mobile"
+  'X-Requested-With': 'WA-Tool-biel-mobile',
 } as const;
 
 export async function fetchRenderedContent(url: string, init?: RequestInit): Promise<Response> {

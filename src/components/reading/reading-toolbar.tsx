@@ -1,7 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, StatusBar as RNStatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StatusBar as RNStatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
@@ -10,7 +17,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
 import { stopPlaybackBeforeLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
-
 
 type ReadingToolbarProps = {
   chapterTitle?: string;
@@ -40,44 +46,39 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
       style={[
         styles.header,
         { paddingTop: getToolbarTopInset(insets.top), backgroundColor: headerBackground },
-        isElevated && [
-          styles.headerElevated,
-          { shadowColor: '#000' },
-        ],
+        isElevated && [styles.headerElevated, { shadowColor: '#000' }],
       ]}>
       <View style={styles.toolbar}>
-      <View style={styles.leading}>
-        <Pressable
-          style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
-          onPress={() => {
-            stopPlaybackBeforeLeave();
-            router.back();
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t('goBack')}>
-          <IconSymbol
-            name={{ ios: 'chevron.left', android: 'arrow_back' }}
-            size={ReadingLayout.toolbarIconSize}
-            color={theme.iconPrimary}
-          />
-        </Pressable>
-        {chapterTitle ? (
-          <Text
-            style={[styles.chapterTitle, { color: theme.text }]}
-            numberOfLines={1}>
-            {chapterTitle}
-          </Text>
-        ) : null}
-      </View>
+        <View style={styles.leading}>
+          <Pressable
+            style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
+            onPress={() => {
+              stopPlaybackBeforeLeave();
+              router.back();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('goBack')}>
+            <IconSymbol
+              name={{ ios: 'chevron.left', android: 'arrow_back' }}
+              size={ReadingLayout.toolbarIconSize}
+              color={theme.iconPrimary}
+            />
+          </Pressable>
+          {chapterTitle ? (
+            <Text style={[styles.chapterTitle, { color: theme.text }]} numberOfLines={1}>
+              {chapterTitle}
+            </Text>
+          ) : null}
+        </View>
 
-      <View style={styles.trailing}>
-        <SettingsToolbarButton
-          iconSize={ReadingLayout.toolbarSettingsIconSize}
-          hitSize={ReadingLayout.toolbarIconSize}
-          showTextSettings
-          downloadContext={downloadContext}
-        />
-      </View>
+        <View style={styles.trailing}>
+          <SettingsToolbarButton
+            iconSize={ReadingLayout.toolbarSettingsIconSize}
+            hitSize={ReadingLayout.toolbarIconSize}
+            showTextSettings
+            downloadContext={downloadContext}
+          />
+        </View>
       </View>
     </View>
   );

@@ -443,7 +443,9 @@ export async function downloadBookAudio(
 
   const existingChapters = await listAudioChaptersForBook(languageCode, canonicalSlug);
   const pendingChapters = manifest.chapters.filter((chapterAudio) => {
-    const existing = existingChapters.find((chapter) => chapter.chapterNumber === chapterAudio.chapter);
+    const existing = existingChapters.find(
+      (chapter) => chapter.chapterNumber === chapterAudio.chapter,
+    );
     return !isChapterMp3Available(languageCode, canonicalSlug, chapterAudio.chapter, existing);
   });
 
@@ -460,12 +462,7 @@ export async function downloadBookAudio(
 
   if (pendingChapters.length === 0) {
     const merged = mergeChapterRecords(existingChapters, []);
-    const isComplete = isBookFullyDownloadedLocally(
-      manifest,
-      languageCode,
-      canonicalSlug,
-      merged,
-    );
+    const isComplete = isBookFullyDownloadedLocally(manifest, languageCode, canonicalSlug, merged);
     await persistChapters(merged, isComplete);
 
     if (!isComplete) {
@@ -525,12 +522,7 @@ export async function downloadBookAudio(
   }
 
   const merged = mergeChapterRecords(existingChapters, savedChapters);
-  const isComplete = isBookFullyDownloadedLocally(
-    manifest,
-    languageCode,
-    canonicalSlug,
-    merged,
-  );
+  const isComplete = isBookFullyDownloadedLocally(manifest, languageCode, canonicalSlug, merged);
 
   if (merged.length > 0) {
     await persistChapters(merged, isComplete);

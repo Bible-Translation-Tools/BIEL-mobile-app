@@ -1,6 +1,7 @@
 export const DATABASE_NAME = 'biel-offline.db';
 
-export const SCHEMA_STATEMENTS = [  `PRAGMA foreign_keys = ON;`,
+export const SCHEMA_STATEMENTS = [
+  `PRAGMA foreign_keys = ON;`,
   `CREATE TABLE IF NOT EXISTS languages (
     ietf_code TEXT PRIMARY KEY NOT NULL,
     english_name TEXT,

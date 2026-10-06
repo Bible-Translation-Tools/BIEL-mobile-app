@@ -1,16 +1,10 @@
 import { useCallback, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
-import { SettingsDrawer } from '@/components/settings/settings-drawer';
 import { type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
+import { SettingsDrawer } from '@/components/settings/settings-drawer';
 import { MENU_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/hooks/use-theme';
-
 
 type SettingsToolbarButtonProps = {
   iconSize?: number;

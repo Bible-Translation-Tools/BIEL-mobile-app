@@ -1,12 +1,12 @@
 import { memo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { TextSettingsStepper } from '@/components/reading/text-settings-stepper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, TextSettingsLayout, Typography } from '@/constants/theme';
-import { useReadingTextSettingsActions } from '@/stores/reading-text-settings-store';
 import { useTheme } from '@/hooks/use-theme';
+import { useReadingTextSettingsActions } from '@/stores/reading-text-settings-store';
 
 type TextSettingsMenuProps = {
   embedded?: boolean;

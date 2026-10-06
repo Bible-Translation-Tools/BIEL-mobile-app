@@ -1,5 +1,5 @@
-import { createGraphqlCatalogApi } from '@/api/graphql/catalog-api';
 import type { BielCatalogApi } from '@/api/catalog/types';
+import { createGraphqlCatalogApi } from '@/api/graphql/catalog-api';
 
 export type { BielCatalogApi } from '@/api/catalog/types';
 

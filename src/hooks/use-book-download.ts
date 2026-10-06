@@ -27,10 +27,7 @@ export function useBookDownload({
   onDeleteComplete,
 }: UseBookDownloadOptions) {
   const { t } = useTranslation('download');
-  const {
-    deleteDownload: deleteScriptureDownload,
-    ...rest
-  } = useContentDownload({
+  const { deleteDownload: deleteScriptureDownload, ...rest } = useContentDownload({
     enabled,
     globalSync: {
       languageCode,

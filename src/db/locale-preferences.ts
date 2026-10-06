@@ -14,4 +14,3 @@ export async function loadLocalePreference(): Promise<AppLocale | null> {
 export async function saveLocalePreference(locale: AppLocale): Promise<void> {
   await setPreference(PreferenceKeys.uiLocale, locale);
 }
-

@@ -16,7 +16,12 @@ type AudioOnlyToolbarProps = {
   chapter: number;
 };
 
-export function AudioOnlyToolbar({ languageCode, bookSlug, bookName, chapter }: AudioOnlyToolbarProps) {
+export function AudioOnlyToolbar({
+  languageCode,
+  bookSlug,
+  bookName,
+  chapter,
+}: AudioOnlyToolbarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();

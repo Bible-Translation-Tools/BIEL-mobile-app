@@ -1,8 +1,5 @@
 import { buildDownloadTaskId } from '@/domain/downloads';
-import type {
-  DownloadProgressTask,
-  GlobalDownloadSync,
-} from '@/types/download-progress';
+import type { DownloadProgressTask, GlobalDownloadSync } from '@/types/download-progress';
 
 const listeners = new Set<() => void>();
 const tasks = new Map<string, DownloadProgressTask>();

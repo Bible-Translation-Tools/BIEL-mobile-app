@@ -17,15 +17,13 @@ export function useReaderToolbar(bookName: string) {
     setScrollY(offsetY);
   }
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      const topVisible = viewableItems.find((item) => item.isViewable);
-      const chapter = (topVisible?.item as ChapterContent | undefined)?.chapter;
-      if (chapter != null) {
-        setVisibleChapter(chapter);
-      }
-    },
-  ).current;
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    const topVisible = viewableItems.find((item) => item.isViewable);
+    const chapter = (topVisible?.item as ChapterContent | undefined)?.chapter;
+    if (chapter != null) {
+      setVisibleChapter(chapter);
+    }
+  }).current;
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 5,
@@ -39,4 +37,4 @@ export function useReaderToolbar(bookName: string) {
     onViewableItemsChanged,
     viewabilityConfig,
   };
-};
+}

@@ -95,13 +95,7 @@ export const ChapterDownloadMenu = memo(function ChapterDownloadMenu({
     }
 
     await startAudioDownload();
-  }, [
-    audioStatus,
-    cancelAudioDownload,
-    deleteAudioDownload,
-    hasAudio,
-    startAudioDownload,
-  ]);
+  }, [audioStatus, cancelAudioDownload, deleteAudioDownload, hasAudio, startAudioDownload]);
 
   return (
     <DownloadMenu

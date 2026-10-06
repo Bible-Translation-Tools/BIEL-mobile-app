@@ -62,8 +62,7 @@ function buildNotificationContent(active: DownloadProgressTask[]) {
     };
   }
 
-  const averageProgress =
-    active.reduce((sum, task) => sum + task.progress, 0) / active.length;
+  const averageProgress = active.reduce((sum, task) => sum + task.progress, 0) / active.length;
   const percent = Math.round(averageProgress * 100);
 
   return {
@@ -102,8 +101,7 @@ export async function initDownloadNotifications(): Promise<void> {
 
   Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
-      const isProgress =
-        notification.request.content.data?.kind === NOTIFICATION_KIND.progress;
+      const isProgress = notification.request.content.data?.kind === NOTIFICATION_KIND.progress;
 
       return {
         shouldShowBanner: !isProgress,
@@ -140,9 +138,7 @@ export async function syncDownloadNotification(): Promise<void> {
 
   if (!content) {
     resetProgressSyncState();
-    await Notifications.dismissNotificationAsync(ACTIVE_DOWNLOAD_NOTIFICATION_ID).catch(
-      () => {},
-    );
+    await Notifications.dismissNotificationAsync(ACTIVE_DOWNLOAD_NOTIFICATION_ID).catch(() => {});
     return;
   }
 
@@ -176,9 +172,7 @@ export async function showDownloadFinishedNotification(
     ? i18n.t('download:notification.complete', { name: task.displayName })
     : i18n.t('download:notification.failed', { name: task.displayName });
 
-  const body = succeeded
-    ? undefined
-    : i18n.t('download:downloadFailedMessage');
+  const body = succeeded ? undefined : i18n.t('download:downloadFailedMessage');
 
   resetProgressSyncState();
 

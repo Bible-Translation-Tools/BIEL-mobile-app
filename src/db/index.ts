@@ -1,7 +1,4 @@
-export {
-  loadReadingTextPreferences,
-  saveReadingTextPreferences,
-} from './reading-text-preferences';
+export { loadReadingTextPreferences, saveReadingTextPreferences } from './reading-text-preferences';
 
 export { initDatabase } from './connection';
 
@@ -43,11 +40,6 @@ export {
   markAudioBookComplete,
   upsertAudioBookWithChapters,
 } from './audio-books';
-export type {
-  AudioChapterRecord,
-} from './audio-books';
+export type { AudioChapterRecord } from './audio-books';
 
-export {
-  listLanguagesWithDownloads,
-  listLocalContentBooks,
-} from './local-content';
+export { listLanguagesWithDownloads, listLocalContentBooks } from './local-content';

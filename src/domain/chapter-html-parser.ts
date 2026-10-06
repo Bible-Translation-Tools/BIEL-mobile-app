@@ -24,7 +24,12 @@ function decodeHtmlEntities(text: string): string {
 }
 
 function stripTags(html: string): string {
-  return decodeHtmlEntities(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+  return decodeHtmlEntities(
+    html
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
 }
 
 /** Strip empty <p></p> tags nested inside verses — they break naive paragraph matching. */
@@ -119,7 +124,12 @@ function extractLinesFromSegment(segmentHtml: string, indentLevel: number): Scri
   let shouldMergeNextTextIntoPrevious = false;
 
   for (const rawLine of rawLines) {
-    const text = decodeHtmlEntities(rawLine.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+    const text = decodeHtmlEntities(
+      rawLine
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    );
     if (!text) continue;
 
     const parts = parseLineParts(text);

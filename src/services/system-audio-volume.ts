@@ -48,7 +48,8 @@ export function subscribeSystemVolume(onChange: (volume: number) => void): () =>
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { VolumeManager } = require('react-native-volume-manager') as typeof import('react-native-volume-manager');
+    const { VolumeManager } =
+      require('react-native-volume-manager') as typeof import('react-native-volume-manager');
     const subscription = VolumeManager.addVolumeListener((result) => {
       onChange(clampVolume(result.volume));
     });

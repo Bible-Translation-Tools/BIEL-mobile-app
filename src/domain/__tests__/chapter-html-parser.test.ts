@@ -10,7 +10,9 @@ const frPsa1 = { bookName: 'Psaumes', chapter: 1, html: loadChapterHtml('fr-psa-
 
 describe('buildChapterContentFromHtml', () => {
   it('parses sequential verses from chapter HTML', () => {
-    const verses = allVerses(buildChapterContentFromHtml(enPsa1.html, enPsa1.bookName, enPsa1.chapter));
+    const verses = allVerses(
+      buildChapterContentFromHtml(enPsa1.html, enPsa1.bookName, enPsa1.chapter),
+    );
 
     expect(verses).toHaveLength(6);
     expect(verses.map((verse) => verse.number)).toEqual([1, 2, 3, 4, 5, 6]);
@@ -18,7 +20,9 @@ describe('buildChapterContentFromHtml', () => {
   });
 
   it('does not truncate verses that contain nested word-entry spans', () => {
-    const verses = allVerses(buildChapterContentFromHtml(frPsa1.html, frPsa1.bookName, frPsa1.chapter));
+    const verses = allVerses(
+      buildChapterContentFromHtml(frPsa1.html, frPsa1.bookName, frPsa1.chapter),
+    );
     const verse1 = verses.find((verse) => verse.number === 1);
 
     expect(verse1).toBeDefined();

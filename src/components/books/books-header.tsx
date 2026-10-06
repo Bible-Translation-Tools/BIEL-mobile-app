@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';

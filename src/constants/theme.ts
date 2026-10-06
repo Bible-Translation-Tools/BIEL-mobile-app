@@ -5,7 +5,6 @@
 
 import '@/global.css';
 
-
 export const Colors = {
   light: {
     text: '#2c2c2c',

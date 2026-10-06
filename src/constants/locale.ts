@@ -44,7 +44,7 @@ export const DEVICE_LOCALE_ALIASES: Record<string, AppLocale> = {
   'zh-hk': 'zh',
   'zh-tw': 'zh',
   'zh-hant': 'zh',
-  'in': 'id',
+  in: 'id',
   'id-id': 'id',
   'vi-vn': 'vi',
   'ru-ru': 'ru',

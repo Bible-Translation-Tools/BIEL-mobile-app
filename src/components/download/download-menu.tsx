@@ -1,10 +1,9 @@
 import { memo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
 import type { DownloadStatus } from '@/types/download';
 
 import { DeleteDownloadDialog } from './delete-download-dialog';
@@ -66,9 +65,7 @@ export const DownloadMenu = memo(function DownloadMenu({
       ? () => confirmDelete(onScripturePress)
       : onScripturePress;
   const onAudioActionPress =
-    allowDelete && audioStatus === 'downloaded'
-      ? () => confirmDelete(onAudioPress)
-      : onAudioPress;
+    allowDelete && audioStatus === 'downloaded' ? () => confirmDelete(onAudioPress) : onAudioPress;
 
   return (
     <View

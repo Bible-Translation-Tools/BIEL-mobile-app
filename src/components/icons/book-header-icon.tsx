@@ -18,7 +18,11 @@ export function BookHeaderIcon({ size }: BookHeaderIconProps) {
   const height = size * (VIEWBOX_HEIGHT / VIEWBOX_WIDTH);
 
   return (
-    <Svg width={size} height={height} viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} fill="none">
+    <Svg
+      width={size}
+      height={height}
+      viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+      fill="none">
       <Path d={BOOK_PATH} fill={theme.iconPrimary} />
     </Svg>
   );

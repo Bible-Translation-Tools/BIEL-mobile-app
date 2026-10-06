@@ -2,7 +2,11 @@ import TrackPlayer, { State } from 'react-native-track-player';
 
 import { findNextVerseTiming, findPreviousVerseTiming } from '@/domain/verse-navigation';
 
-import { getAudioChaptersForBook, getChapterAudioUrl, getChapterVerseTimings } from './chapter-audio';
+import {
+  getAudioChaptersForBook,
+  getChapterAudioUrl,
+  getChapterVerseTimings,
+} from './chapter-audio';
 import type { ChapterPlaybackSession, ChapterPlaybackSnapshot } from './types';
 
 const defaultSnapshot: ChapterPlaybackSnapshot = {

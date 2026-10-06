@@ -1,13 +1,6 @@
 import { memo } from 'react';
-import {
-  Dimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-  type LayoutRectangle,
-} from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Dimensions, Modal, Pressable, StyleSheet, View, type LayoutRectangle } from 'react-native';
 
 import { LocaleMenu } from '@/components/locale/locale-menu';
 import { DownloadMenuLayout, SystemSettingsLayout } from '@/constants/theme';
@@ -31,24 +24,16 @@ type MenuPosition = {
 function computeMenuPosition(anchor: LocalePopoverAnchor): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
-  const menuWidth = Math.min(
-    SystemSettingsLayout.menuWidth,
-    screenWidth - horizontalPadding * 2,
-  );
+  const menuWidth = Math.min(SystemSettingsLayout.menuWidth, screenWidth - horizontalPadding * 2);
   const anchorRight = anchor.x + anchor.width;
   const right = Math.max(horizontalPadding, screenWidth - anchorRight);
 
-  const spaceBelow =
-    screenHeight - (anchor.y + anchor.height + DownloadMenuLayout.anchorGap);
+  const spaceBelow = screenHeight - (anchor.y + anchor.height + DownloadMenuLayout.anchorGap);
   const spaceAbove = anchor.y - DownloadMenuLayout.anchorGap;
-  const showAbove =
-    spaceBelow < MENU_ESTIMATED_HEIGHT && spaceAbove > spaceBelow;
+  const showAbove = spaceBelow < MENU_ESTIMATED_HEIGHT && spaceAbove > spaceBelow;
 
   const top = showAbove
-    ? Math.max(
-        horizontalPadding,
-        anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
-      )
+    ? Math.max(horizontalPadding, anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT)
     : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, right, width: menuWidth };
@@ -68,12 +53,7 @@ export const LocalePopover = memo(function LocalePopover({
   const position = computeMenuPosition(anchor);
 
   return (
-    <Modal
-      transparent
-      visible
-      animationType="none"
-      onRequestClose={onClose}
-      statusBarTranslucent>
+    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.overlay} pointerEvents="box-none">
         <Pressable
           style={styles.dismissLayer}

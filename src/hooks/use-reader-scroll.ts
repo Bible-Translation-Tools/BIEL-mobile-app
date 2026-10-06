@@ -89,11 +89,7 @@ export function useReaderScroll(
       let initialChapters: ChapterContent[];
 
       if (previous != null) {
-        const currentContent = await getChapterContent(
-          languageCode,
-          bookSlug,
-          initialChapter,
-        );
+        const currentContent = await getChapterContent(languageCode, bookSlug, initialChapter);
 
         let previousContent: ChapterContent | null = null;
         try {
@@ -115,11 +111,7 @@ export function useReaderScroll(
           setInitialScrollIndex(0);
         }
       } else {
-        const currentContent = await getChapterContent(
-          languageCode,
-          bookSlug,
-          initialChapter,
-        );
+        const currentContent = await getChapterContent(languageCode, bookSlug, initialChapter);
         initialChapters = [currentContent];
         setInitialScrollIndex(0);
       }
@@ -231,10 +223,7 @@ export function useReaderScroll(
         return [content, ...prev];
       });
 
-      const chapterBeforePrevious = getPreviousChapterNumber(
-        availableChapters,
-        previousChapter,
-      );
+      const chapterBeforePrevious = getPreviousChapterNumber(availableChapters, previousChapter);
       if (chapterBeforePrevious != null) {
         prefetchChapter(chapterBeforePrevious, 'prev');
       }
@@ -289,4 +278,4 @@ export function useReaderScroll(
     clearInitialScrollIndex,
     refetch: loadInitial,
   };
-};
+}

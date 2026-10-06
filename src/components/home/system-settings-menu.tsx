@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { SETTINGS_ICON_NAME, IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import type { ThemePreference } from '@/constants/appearance';

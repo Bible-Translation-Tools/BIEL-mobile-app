@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MediaPlayerControls } from '@/components/reading/media-player-controls';
@@ -60,11 +60,7 @@ export function MediaPlayerPanel({
         hitSlop={8}
         accessibilityRole="button"
         accessibilityLabel={t('closeAudioPlayer')}>
-        <IconSymbol
-          name={{ ios: 'xmark', android: 'close' }}
-          size={24}
-          color={theme.iconPrimary}
-        />
+        <IconSymbol name={{ ios: 'xmark', android: 'close' }} size={24} color={theme.iconPrimary} />
       </Pressable>
 
       <View style={styles.playBar}>

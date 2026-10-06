@@ -1,5 +1,5 @@
-import { Dimensions, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Dimensions, StyleSheet, View } from 'react-native';
 
 import { BookFillIcon } from '@/components/icons/book-fill-icon';
 import { WaLogo } from '@/components/icons/wa-logo';

@@ -94,12 +94,7 @@ function resolveSymbolName(name: IconSymbolName): SymbolViewProps['name'] {
 export function IconSymbol({ name, size = 24, color, style }: IconSymbolProps) {
   if (Platform.OS === 'ios' && !usesMaterialIconOnIos(name)) {
     return (
-      <SymbolView
-        name={resolveSymbolName(name)}
-        size={size}
-        tintColor={color}
-        style={style}
-      />
+      <SymbolView name={resolveSymbolName(name)} size={size} tintColor={color} style={style} />
     );
   }
 

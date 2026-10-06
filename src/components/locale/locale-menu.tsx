@@ -1,16 +1,12 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import {
-  SUPPORTED_LOCALE_CODES,
-  SUPPORTED_LOCALES,
-  type AppLocale,
-} from '@/constants/locale';
+import { SUPPORTED_LOCALE_CODES, SUPPORTED_LOCALES, type AppLocale } from '@/constants/locale';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useLocale } from '@/contexts/locale-context';
 import { useTheme } from '@/hooks/use-theme';
-import { useTranslation } from 'react-i18next';
 
 type LocaleMenuProps = {
   onSelect?: () => void;

@@ -29,8 +29,5 @@ export function lineHeightForLevel(level: number): number {
 
 export function verseNumberFontSizeForLevel(textSizeLevel: number): number {
   const size = VERSE_NUMBER_FONT_SIZE_DEFAULT + textSizeLevel * VERSE_NUMBER_FONT_SIZE_STEP;
-  return Math.min(
-    VERSE_NUMBER_FONT_SIZE_MAX,
-    Math.max(VERSE_NUMBER_FONT_SIZE_MIN, size),
-  );
+  return Math.min(VERSE_NUMBER_FONT_SIZE_MAX, Math.max(VERSE_NUMBER_FONT_SIZE_MIN, size));
 }

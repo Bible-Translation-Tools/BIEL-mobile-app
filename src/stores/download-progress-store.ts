@@ -1,10 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
 import { buildDownloadTaskId } from '@/domain/downloads';
-import {
-  getDownloadTask,
-  subscribeDownloadTasks,
-} from '@/features/downloads';
+import { getDownloadTask, subscribeDownloadTasks } from '@/features/downloads';
 import type { GlobalDownloadSync } from '@/types/download-progress';
 
 export function useDownloadProgress(sync: GlobalDownloadSync | undefined) {

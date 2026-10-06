@@ -1,11 +1,7 @@
 import type { BookItem, ChapterItem } from '@/types/book';
 import type { ContentTypeIndicator, LibraryContentFilter } from '@/types/content-type';
 
-export const CHAPTER_CONTENT_LEGEND_ORDER: ContentTypeIndicator[] = [
-  'both',
-  'text',
-  'audio',
-];
+export const CHAPTER_CONTENT_LEGEND_ORDER: ContentTypeIndicator[] = ['both', 'text', 'audio'];
 
 export function getBookContentFlags(book: BookItem): { hasText: boolean; hasAudio: boolean } {
   return {
@@ -14,9 +10,7 @@ export function getBookContentFlags(book: BookItem): { hasText: boolean; hasAudi
   };
 }
 
-export function getChapterContentIndicator(
-  chapter: ChapterItem,
-): ContentTypeIndicator | null {
+export function getChapterContentIndicator(chapter: ChapterItem): ContentTypeIndicator | null {
   const hasText = chapter.hasText === true;
   const hasAudio = chapter.hasAudio === true;
   if (hasText && hasAudio) return 'both';

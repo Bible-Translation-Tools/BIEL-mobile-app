@@ -58,15 +58,9 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
     [audioOnly, forceOffline, languageCode],
   );
 
-  const getChapters = useCallback(
-    (bookSlug: string) => chaptersByBook[bookSlug],
-    [chaptersByBook],
-  );
+  const getChapters = useCallback((bookSlug: string) => chaptersByBook[bookSlug], [chaptersByBook]);
 
-  const isLoading = useCallback(
-    (bookSlug: string) => loadingSlug === bookSlug,
-    [loadingSlug],
-  );
+  const isLoading = useCallback((bookSlug: string) => loadingSlug === bookSlug, [loadingSlug]);
 
   function hasError(bookSlug: string) {
     return errorSlug === bookSlug;

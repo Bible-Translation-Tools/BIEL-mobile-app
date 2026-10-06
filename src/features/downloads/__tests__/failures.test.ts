@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-    missingAudioChaptersError,
-    partialDownloadFailure,
-    toDownloadFailure,
+  missingAudioChaptersError,
+  partialDownloadFailure,
+  toDownloadFailure,
 } from '@/features/downloads/failures';
 
 describe('toDownloadFailure', () => {
@@ -30,4 +30,3 @@ describe('partialDownloadFailure', () => {
     expect(partialDownloadFailure(['GEN', 'EXO'])).toEqual({ reason: 'failed-books', count: 2 });
   });
 });
-

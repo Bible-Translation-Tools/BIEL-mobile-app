@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { InterfaceLanguageButton } from '@/components/locale/interface-language-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';

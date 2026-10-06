@@ -91,10 +91,7 @@ export function DownloadsLibraryView() {
             contentFilter={contentFilter}
             onContentFilterChange={setContentFilter}
           />
-          <TestamentTabs
-            activeTestament={activeTestament}
-            onTestamentChange={setActiveTestament}
-          />
+          <TestamentTabs activeTestament={activeTestament} onTestamentChange={setActiveTestament} />
         </SafeAreaView>
       </View>
 

@@ -7,9 +7,16 @@ import {
   DownloadMenuPopover,
   type DownloadMenuAnchor,
 } from '@/components/download/download-menu-popover';
-import { DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import {
+  DOWNLOAD_DONE_ICON_NAME,
+  DOWNLOAD_ICON_NAME,
+  IconSymbol,
+} from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
-import { isFullyDownloaded as isFullyDownloadedRule, resolveDownloadStatus } from '@/domain/downloads';
+import {
+  isFullyDownloaded as isFullyDownloadedRule,
+  resolveDownloadStatus,
+} from '@/domain/downloads';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
@@ -205,17 +212,9 @@ export const LanguageCardRow = memo(function LanguageCardRow({
             {isAnyDownloadActive ? (
               <ActivityIndicator size="small" color={theme.tabActive} />
             ) : isFullyDownloaded ? (
-              <IconSymbol
-                name={DOWNLOAD_DONE_ICON_NAME}
-                size={28}
-                color={theme.iconSuccess}
-              />
+              <IconSymbol name={DOWNLOAD_DONE_ICON_NAME} size={28} color={theme.iconSuccess} />
             ) : (
-              <IconSymbol
-                name={DOWNLOAD_ICON_NAME}
-                size={28}
-                color={theme.iconPrimary}
-              />
+              <IconSymbol name={DOWNLOAD_ICON_NAME} size={28} color={theme.iconPrimary} />
             )}
           </Pressable>
         </View>

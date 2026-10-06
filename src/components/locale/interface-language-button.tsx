@@ -1,14 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  LocalePopover,
-  type LocalePopoverAnchor,
-} from '@/components/locale/locale-popover';
+import { LocalePopover, type LocalePopoverAnchor } from '@/components/locale/locale-popover';
 import { TRANSLATE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
-import { useLocale } from '@/contexts/locale-context';
 import { Typography } from '@/constants/theme';
+import { useLocale } from '@/contexts/locale-context';
 
 type InterfaceLanguageButtonProps = {
   textColor: string;
@@ -61,11 +58,7 @@ export function InterfaceLanguageButton({
           accessibilityLabel={t('changeInterfaceLanguage')}
           accessibilityState={{ expanded: menuVisible }}>
           <View style={styles.languageLabel}>
-            <IconSymbol
-              name={TRANSLATE_ICON_NAME}
-              size={16}
-              color={iconColor}
-            />
+            <IconSymbol name={TRANSLATE_ICON_NAME} size={16} color={iconColor} />
             <Text style={[styles.languageText, { color: textColor }]} numberOfLines={1}>
               {localeLabel}
             </Text>

@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  loadDownloadedLibrary,
-  type DownloadedLibraryLanguage,
-} from '@/features/library';
+import { loadDownloadedLibrary, type DownloadedLibraryLanguage } from '@/features/library';
 
 export function useDownloadsLibrary() {
   const { t } = useTranslation('library');
