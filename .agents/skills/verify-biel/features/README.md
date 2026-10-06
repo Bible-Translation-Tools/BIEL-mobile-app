@@ -9,12 +9,12 @@ Each row is a claim about one commit. Re-verify and update the row (do not add a
 
 | Feature | Flow | Android | iOS |
 |---|---|---|---|
-| [Browse languages](./browse-languages.md) | `browse-languages` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
-| [Browse books](./browse-books.md) | `browse-books` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
-| [Read a chapter](./read-chapter.md) | `read-chapter` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
-| [Chapter audio](./chapter-audio.md) | `chapter-audio`, `audio-panel-gestures` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
-| [Download a book](./downloads.md) | `download-book`, `downloads-library` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
-| [Read offline](./offline-read.md) | `offline-read`, `offline-read-forced` | ✅ `eebc86c` 2026-10-05 (airplane mode) | ✅ `eebc86c` 2026-10-05 (Force Offline Mode, simulated) |
+| [Browse languages](./browse-languages.md) | `browse-languages` | ✅ `41ec62e` 2026-10-06 | ✅ `41ec62e` 2026-10-06 |
+| [Browse books](./browse-books.md) | `browse-books` | ⚠️ last clean pass `d4e0bdc` (#4 base); not re-verified on #5 (harness failures) | ✅ `41ec62e` 2026-10-06 |
+| [Read a chapter](./read-chapter.md) | `read-chapter` | ⚠️ last clean pass `d4e0bdc` (#4 base); not re-verified on #5 (harness failures) | ✅ `41ec62e` 2026-10-06 |
+| [Chapter audio](./chapter-audio.md) | `chapter-audio`, `audio-panel-gestures` | ✅ `41ec62e` 2026-10-06 | ✅ `41ec62e` 2026-10-06 |
+| [Download a book](./downloads.md) | `download-book`, `downloads-library` | ✅ `41ec62e` 2026-10-06 | ✅ `f9a73c9` 2026-10-06 |
+| [Read offline](./offline-read.md) | `offline-read`, `offline-read-forced` | ⚠️ `41ec62e` partial: offline read passed (airplane mode); 3 John control not reached (harness) | ✅ `f9a73c9` 2026-10-06 (Force Offline Mode, simulated) |
 
 Platforms: Android = Pixel_8_Pro_API_33 (API 33) emulator; iOS = iPhone 17 Pro, iOS 26.2 simulator, built with Xcode 27.
 Evidence for a row lives at `.verify/evidence/<sha>/<flow>/` on the machine that ran it.
