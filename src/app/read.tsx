@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -436,6 +436,8 @@ export default function ReadingScreen() {
   ) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {/* The player is always up here; iOS swipe-back would steal volume-slider drags. */}
+        <Stack.Screen options={{ gestureEnabled: false }} />
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <AudioOnlyChapterScreen
           languageCode={ietfCode}
@@ -449,6 +451,8 @@ export default function ReadingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* iOS swipe-back would steal volume-slider drags while the audio player is open. */}
+      <Stack.Screen options={{ gestureEnabled: !isAudioPanelOpen }} />
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
           <ReadingToolbar

@@ -79,7 +79,7 @@ function usesMaterialIconOnIos(name: IconSymbolName): boolean {
 function resolveMaterialName(name: IconSymbolName): MaterialIconName {
   const raw =
     typeof name === 'object'
-      ? Platform.OS === 'ios' && usesMaterialIconOnIos(name)
+      ? Platform.OS === 'ios' && MATERIAL_ICON_NAMES.has(name.ios)
         ? name.ios
         : name.android
       : name;
