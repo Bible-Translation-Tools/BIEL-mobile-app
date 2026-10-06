@@ -1,0 +1,35 @@
+{
+  // This file is JSONC: fallow reads these comments; generic JSON tools may not.
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  // Expo config plugins are referenced by string from app.json "plugins", which fallow does not read.
+  "entry": ["plugins/*.js"],
+  "workspaces": {
+    "patterns": ["."]
+  },
+  "duplicates": {
+    // Hide pair-only clones; focus on widespread copy-paste
+    // worth refactoring. Lower to 2 to report every duplicate pair.
+    "minOccurrences": 3
+    // Common additions (uncomment to enable):
+    // "ignore": [
+    //   "**/lib/**",          // for repos that publish transpiled output to lib/
+    //   "**/legacy/**",       // for repos with legacy-build artifacts
+    //   "**/__generated__/**", // Relay, GraphQL Code Generator
+    //   "**/generated/**"     // OpenAPI, Protobuf codegen
+    // ]
+  },
+  // Used without a JS import, so fallow can't see them:
+  // - expo-dev-client: the development build itself (dev menu, launcher)
+  // - expo-system-ui: required on Android by app.json "userInterfaceStyle": "automatic"
+  // - expo-glass-effect: expo-router's native dependency; must be direct for pnpm autolinking
+  // - react-native-web: the web target (`pnpm web`, *.web.tsx files)
+  "ignoreDependencies": [
+    "expo-dev-client",
+    "expo-system-ui",
+    "expo-glass-effect",
+    "react-native-web"
+  ],
+  "rules": {
+    "unused-dependencies": "warn"
+  }
+}
