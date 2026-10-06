@@ -12,7 +12,7 @@ Each row is a claim about one commit. Re-verify and update the row (do not add a
 | [Browse languages](./browse-languages.md) | `browse-languages` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
 | [Browse books](./browse-books.md) | `browse-books` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
 | [Read a chapter](./read-chapter.md) | `read-chapter` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
-| [Chapter audio](./chapter-audio.md) | `chapter-audio` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
+| [Chapter audio](./chapter-audio.md) | `chapter-audio`, `audio-panel-gestures` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
 | [Download a book](./downloads.md) | `download-book`, `downloads-library` | ✅ `eebc86c` 2026-10-05 | ✅ `eebc86c` 2026-10-05 |
 | [Read offline](./offline-read.md) | `offline-read`, `offline-read-forced` | ✅ `eebc86c` 2026-10-05 (airplane mode) | ✅ `eebc86c` 2026-10-05 (Force Offline Mode, simulated) |
 
@@ -32,6 +32,7 @@ Evidence for a row lives at `.verify/evidence/<sha>/<flow>/` on the machine that
 - Select by visible text or accessibility label from `src/locales/en.json`. Treat quoted handles as literal (regex where shown, e.g. `"Chapter 1.*"`).
 - Several labels are **shared** by two elements: `Close menu` (drawer backdrop + ✕), `Cancel` (dialog backdrop + button), `English`
   (interface-language button + language name). Use the more specific handle given in each recipe.
+- Don't use `hideKeyboard`: on Android it presses Back, which exits the app when the soft keyboard is already hidden (it hides itself once anyone types into the emulator with the Mac keyboard). Search results sit above the keyboard anyway.
 - Wait for content, not time: `extendedWaitUntil` on the text you expect. Add `waitForAnimationToEnd` after opening a popover.
 - Restore state after mutations (delete what you downloaded, `bv net on`). Never delete evidence.
 

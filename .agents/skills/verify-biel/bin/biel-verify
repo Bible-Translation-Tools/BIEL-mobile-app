@@ -45,7 +45,9 @@ start_metro() {
     return
   fi
   log "Starting Metro on :$PORT (log: $RUN_DIR/metro.log)"
-  CI=1 nohup pnpm exec expo start --dev-client --port "$PORT" >"$RUN_DIR/metro.log" 2>&1 &
+  # BIEL_METRO_CLEAR=1 rebuilds Metro's cache (use when the app keeps running code older than the source).
+  # Not CI=1: that disables Metro's file watcher, so source edits would never reach the app.
+  nohup pnpm exec expo start --dev-client --port "$PORT" ${BIEL_METRO_CLEAR:+--clear} </dev/null >"$RUN_DIR/metro.log" 2>&1 &
   echo $! >"$RUN_DIR/metro.pid"
   for _ in $(seq 1 90); do metro_up && return; sleep 1; done
   die "Metro did not answer /status within 90s; see $RUN_DIR/metro.log"
@@ -58,6 +60,9 @@ open_app() {
   if [[ "$platform" == android ]]; then
     adb -s "$(android_serial)" reverse "tcp:$PORT" "tcp:$PORT" >/dev/null
     adb -s "$(android_serial)" shell am force-stop "$APP_ID"
+    # Keep the soft keyboard on even after someone types with the Mac keyboard; otherwise Maestro's
+    # hideKeyboard (a Back press) has nothing to dismiss and exits the app.
+    adb -s "$(android_serial)" shell settings put secure show_ime_with_hard_keyboard 1
     # Pre-grant so the Android 13+ notification prompt never interrupts a flow.
     adb -s "$(android_serial)" shell pm grant "$APP_ID" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
     # Hide Expo's floating dev "Tools" button: it sits on top of the app's Menu button.

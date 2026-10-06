@@ -4,7 +4,6 @@ appId: ${APP_ID}
 - runFlow: _home.yaml
 - tapOn: "Search language here..."
 - inputText: "en"
-- hideKeyboard
 - tapOn: "Open English"
 - extendedWaitUntil:
     visible: "Old Testament"

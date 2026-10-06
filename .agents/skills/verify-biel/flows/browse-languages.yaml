@@ -6,19 +6,16 @@ appId: ${APP_ID}
 - takeScreenshot: 01-catalog
 - tapOn: "Search language here..."
 - inputText: "en"
-- hideKeyboard
 - assertVisible: "Open English"
 - takeScreenshot: 02-search-en
 - tapOn: "Clear search"
 - tapOn: "Search language here..."
 - inputText: "zzqx"
-- hideKeyboard
 - assertVisible: "No languages found"
 - takeScreenshot: 03-empty
 - tapOn: "Clear search"
 - tapOn: "Search language here..."
 - inputText: "en"
-- hideKeyboard
 - tapOn: "Open English"
 - extendedWaitUntil:
     visible: "Old Testament"

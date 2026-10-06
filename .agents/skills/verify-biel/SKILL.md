@@ -45,7 +45,9 @@ opens the app through the dev-client deep link, and waits for Home. **Ready** = 
 
 The helper makes launches deterministic: it pre-grants notification permission, skips the
 dev-menu onboarding sheet (`_ready` also confirms iOS's "Open in BIEL?" deep-link prompt), and hides Expo's floating dev **Tools** button (it covers the app's `Menu`
-button). JS comes from Metro, so source edits apply on the next `bv flow` without rebuilding; native
+button). JS comes from Metro in watch mode, so source edits reach the app on its next load (every flow relaunches it)
+without rebuilding. If the app still runs code older than the source, restart Metro with a clean cache:
+`bv cleanup && BIEL_METRO_CLEAR=1 bv launch <platform>`. Native
 changes (app.json, plugins, native deps) need `pnpm exec expo run:android|ios` again.
 
 Both platforms can run at once against the same Metro. `bv flow <name> <platform>` targets one explicitly; `snapshot`, `db`,
@@ -90,7 +92,7 @@ Recommended order for a full pass (each step's preconditions come from the one b
 
 ```bash
 bv reset
-bv flow browse-languages && bv flow browse-books && bv flow read-chapter && bv flow chapter-audio
+bv flow browse-languages && bv flow browse-books && bv flow read-chapter && bv flow chapter-audio && bv flow audio-panel-gestures
 bv flow download-book && bv files && bv db "select language_code,book_slug,byte_size,content_hash from books"
 bv net off && bv flow offline-read; bv net on          # iOS: bv flow offline-read-forced ios
 bv flow downloads-library && bv files && bv db "select count(*) from books"

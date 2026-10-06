@@ -8,7 +8,6 @@ appId: ${APP_ID}
 - tapOn: "Dismiss"
 - tapOn: "Search language here..."
 - inputText: "en"
-- hideKeyboard
 - tapOn: "Open English"
 - extendedWaitUntil:
     visible: "New Testament"
@@ -16,7 +15,6 @@ appId: ${APP_ID}
 - tapOn: "New Testament"
 - tapOn: "Search book here..."
 - inputText: "2 John"
-- hideKeyboard
 - tapOn: "Expand 2 John"
 - extendedWaitUntil:
     visible: "Chapter 1.*"
@@ -28,11 +26,13 @@ appId: ${APP_ID}
     timeout: 30000
 - assertVisible: "2 John 1"
 - takeScreenshot: 03-2john-read-offline
+- tapOn:                 # the banner sometimes reappears after being dismissed and covers the back arrow
+    text: "Dismiss"
+    optional: true
 - tapOn: "Go back"
 - tapOn: "Clear search"
 - tapOn: "Search book here..."
 - inputText: "3 John"
-- hideKeyboard
 - tapOn: "Expand 3 John"
 - waitForAnimationToEnd
 - takeScreenshot: 04-3john-not-downloaded

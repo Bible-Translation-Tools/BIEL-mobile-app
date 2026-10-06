@@ -10,7 +10,6 @@ appId: ${APP_ID}
 - takeScreenshot: 02-new-testament
 - tapOn: "Search book here..."
 - inputText: "2 John"
-- hideKeyboard
 - assertVisible: "Expand 2 John"
 - assertNotVisible: "Expand Matthew"
 - tapOn: "Expand 2 John"

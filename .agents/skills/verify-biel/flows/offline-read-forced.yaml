@@ -15,7 +15,6 @@ appId: ${APP_ID}
 - tapOn: "Dismiss"
 - tapOn: "Search language here..."
 - inputText: "en"
-- hideKeyboard
 - tapOn: "Open English"
 - extendedWaitUntil:
     visible: "New Testament"
@@ -23,7 +22,6 @@ appId: ${APP_ID}
 - tapOn: "New Testament"
 - tapOn: "Search book here..."
 - inputText: "2 John"
-- hideKeyboard
 - tapOn: "Expand 2 John"
 - extendedWaitUntil:
     visible: "Chapter 1.*"
@@ -33,11 +31,13 @@ appId: ${APP_ID}
     visible: ".*From the elder to the chosen lady.*"
     timeout: 30000
 - takeScreenshot: 02-2john-read-forced-offline
+- tapOn:                 # the banner sometimes reappears after being dismissed and covers the back arrow
+    text: "Dismiss"
+    optional: true
 - tapOn: "Go back"
 - tapOn: "Clear search"
 - tapOn: "Search book here..."
 - inputText: "3 John"
-- hideKeyboard
 - tapOn: "Expand 3 John"
 - waitForAnimationToEnd
 - assertNotVisible: "Chapter 1.*"

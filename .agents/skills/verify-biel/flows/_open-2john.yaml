@@ -5,7 +5,6 @@ appId: ${APP_ID}
 - tapOn: "New Testament"
 - tapOn: "Search book here..."
 - inputText: "2 John"
-- hideKeyboard
 - tapOn: "Expand 2 John"
 - extendedWaitUntil:
     visible: "Chapter 1.*"
