@@ -1,14 +1,7 @@
 export {
-  loadAppearancePreference,
-  saveAppearancePreference,
-} from './appearance-preferences';
-export {
-  clearReadingTextPreferences,
   loadReadingTextPreferences,
   saveReadingTextPreferences,
 } from './reading-text-preferences';
-export type { ReadingTextPreferenceLevels } from './reading-text-preferences';
-export { deletePreference, getPreference, setPreference } from './preferences';
 
 export { initDatabase } from './connection';
 
@@ -18,11 +11,9 @@ export {
   getBookCatalogCountsByLanguage,
   listBookCatalog,
   replaceBookCatalog,
-  upsertBookCatalogEntry,
 } from './book-catalog';
 
 export { loadChapterCatalog, saveChapterCatalog } from './chapter-catalog';
-export type { ChapterCatalogContentType } from './chapter-catalog';
 
 export {
   deleteBook,
@@ -33,7 +24,6 @@ export {
   listDownloadedBooksForLanguage,
   upsertBookWithChapters,
 } from './scripture-books';
-export type { BookDownloadRecord, UpsertBookParams } from './scripture-books';
 
 export {
   deleteScriptureChapter,
@@ -43,7 +33,6 @@ export {
   sumScriptureChapterByteSizeForBook,
   upsertScriptureChapter,
 } from './scripture-chapters';
-export type { ScriptureChapterRecord, UpsertScriptureChapterParams } from './scripture-chapters';
 
 export {
   deleteAudioBook,
@@ -55,14 +44,10 @@ export {
   upsertAudioBookWithChapters,
 } from './audio-books';
 export type {
-  AudioBookDownloadRecord,
   AudioChapterRecord,
-  UpsertAudioBookParams,
 } from './audio-books';
 
 export {
   listLanguagesWithDownloads,
   listLocalContentBooks,
-  listLocalContentBooksForLanguage,
 } from './local-content';
-export type { LocalContentBookRecord } from './local-content';

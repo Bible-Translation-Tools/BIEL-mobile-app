@@ -11,7 +11,6 @@ import { type ChapterDownloadContext } from '@/components/reading/chapter-downlo
 import { MENU_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/hooks/use-theme';
 
-export type { ChapterDownloadContext };
 
 type SettingsToolbarButtonProps = {
   iconSize?: number;

@@ -2,7 +2,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 
 import { normalizeBookSlug } from '@/domain/book-slug';
 
-export const OFFLINE_ROOT_DIR_NAME = 'biel-offline';
+const OFFLINE_ROOT_DIR_NAME = 'biel-offline';
 
 function tempFileFor(file: File): File {
   return new File(file.parentDirectory, `${file.name}.tmp`);
@@ -32,7 +32,7 @@ export function deleteFileAndTemp(file: File): void {
   }
 }
 
-export function getOfflineBookDirectory(languageCode: string, bookSlug: string): Directory {
+function getOfflineBookDirectory(languageCode: string, bookSlug: string): Directory {
   return new Directory(
     Paths.document,
     OFFLINE_ROOT_DIR_NAME,
@@ -43,14 +43,6 @@ export function getOfflineBookDirectory(languageCode: string, bookSlug: string):
 
 export function getWholeJsonFile(languageCode: string, bookSlug: string): File {
   return new File(getOfflineScriptureDirectory(languageCode, bookSlug), 'whole.json');
-}
-
-export function ensureOfflineBookDirectory(languageCode: string, bookSlug: string): Directory {
-  const dir = getOfflineBookDirectory(languageCode, bookSlug);
-  if (!dir.exists) {
-    dir.create({ intermediates: true, idempotent: true });
-  }
-  return dir;
 }
 
 export async function ensureOfflineRootExists(): Promise<void> {
@@ -88,7 +80,7 @@ export function ensureOfflineAudioDirectory(languageCode: string, bookSlug: stri
   return dir;
 }
 
-export function getOfflineScriptureDirectory(languageCode: string, bookSlug: string): Directory {
+function getOfflineScriptureDirectory(languageCode: string, bookSlug: string): Directory {
   return new Directory(getOfflineBookDirectory(languageCode, bookSlug), 'scripture');
 }
 

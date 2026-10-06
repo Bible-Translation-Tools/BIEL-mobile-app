@@ -1,8 +1,6 @@
 import { buildDownloadTaskId } from '@/domain/downloads';
-import type { DownloadFailure } from '@/types/download';
 import type {
   DownloadProgressTask,
-  DownloadTaskStatus,
   GlobalDownloadSync,
 } from '@/types/download-progress';
 
@@ -20,17 +18,8 @@ export function subscribeDownloadTasks(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-/** Stable between changes, so it can back `useSyncExternalStore`. */
-export function getDownloadTaskList(): DownloadProgressTask[] {
-  return taskList;
-}
-
 export function getDownloadTask(id: string): DownloadProgressTask | undefined {
   return tasks.get(id);
-}
-
-export function getDownloadTaskForSync(sync: GlobalDownloadSync): DownloadProgressTask | undefined {
-  return tasks.get(buildDownloadTaskId(sync));
 }
 
 export function isDownloadActive(sync: GlobalDownloadSync): boolean {
@@ -65,23 +54,6 @@ export function updateDownloadTaskProgress(id: string, progress: number) {
   const task = tasks.get(id);
   if (!task || task.status !== 'downloading') return;
   tasks.set(id, { ...task, progress, updatedAt: Date.now() });
-  emit();
-}
-
-export function setDownloadTaskStatus(
-  id: string,
-  status: DownloadTaskStatus,
-  failure?: DownloadFailure,
-) {
-  const task = tasks.get(id);
-  if (!task) return;
-  tasks.set(id, {
-    ...task,
-    status,
-    progress: status === 'completed' ? 1 : task.progress,
-    failure,
-    updatedAt: Date.now(),
-  });
   emit();
 }
 

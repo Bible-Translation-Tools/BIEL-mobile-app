@@ -181,8 +181,3 @@ export function useReadingTextSettingsActions(): ReadingTextSettingsActions {
     [levels.textSizeLevel, levels.lineHeightLevel],
   );
 }
-
-/** @deprecated Prefer useReadingTextStyles or useReadingTextSettingsActions */
-export function useReadingTextSettings(): ReadingTextStyles & ReadingTextSettingsActions {
-  return { ...useReadingTextStyles(), ...useReadingTextSettingsActions() };
-}

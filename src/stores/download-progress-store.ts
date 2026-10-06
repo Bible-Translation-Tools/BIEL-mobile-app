@@ -3,16 +3,9 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { buildDownloadTaskId } from '@/domain/downloads';
 import {
   getDownloadTask,
-  getDownloadTaskList,
   subscribeDownloadTasks,
 } from '@/features/downloads';
-import type { DownloadProgressTask, GlobalDownloadSync } from '@/types/download-progress';
-
-const EMPTY_TASKS: DownloadProgressTask[] = [];
-
-export function useDownloadProgressStore(): DownloadProgressTask[] {
-  return useSyncExternalStore(subscribeDownloadTasks, getDownloadTaskList, () => EMPTY_TASKS);
-}
+import type { GlobalDownloadSync } from '@/types/download-progress';
 
 export function useDownloadProgress(sync: GlobalDownloadSync | undefined) {
   const id = sync ? buildDownloadTaskId(sync) : null;

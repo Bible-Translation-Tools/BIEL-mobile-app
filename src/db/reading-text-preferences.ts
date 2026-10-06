@@ -8,7 +8,7 @@ import {
   TEXT_SIZE_LEVEL_MIN,
 } from '@/constants/reading-text-settings';
 
-import { deletePreference, getPreference, setPreference } from './preferences';
+import { getPreference, setPreference } from './preferences';
 
 export type ReadingTextPreferenceLevels = {
   textSizeLevel: number;
@@ -50,12 +50,5 @@ export async function saveReadingTextPreferences(
   await Promise.all([
     setPreference(PreferenceKeys.textSize, String(textSizeLevel)),
     setPreference(PreferenceKeys.lineHeight, String(lineHeightLevel)),
-  ]);
-}
-
-export async function clearReadingTextPreferences(): Promise<void> {
-  await Promise.all([
-    deletePreference(PreferenceKeys.textSize),
-    deletePreference(PreferenceKeys.lineHeight),
   ]);
 }

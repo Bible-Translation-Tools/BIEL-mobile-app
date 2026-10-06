@@ -33,8 +33,3 @@ export async function setPreference(key: string, value: string): Promise<void> {
     value,
   );
 }
-
-export async function deletePreference(key: string): Promise<void> {
-  const db = await getDb();
-  await db.runAsync('DELETE FROM preferences WHERE "key" = ?', key);
-}

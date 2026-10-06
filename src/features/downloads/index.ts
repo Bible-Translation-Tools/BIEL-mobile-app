@@ -2,8 +2,6 @@
 export { cancelDownload, runDownload } from './job-runner';
 export {
   getDownloadTask,
-  getDownloadTaskList,
-  listActiveDownloadTasks,
   removeDownloadTask,
   subscribeDownloadTasks,
 } from './task-registry';

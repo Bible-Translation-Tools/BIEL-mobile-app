@@ -11,7 +11,6 @@ import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme
 import { stopPlaybackBeforeLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
 
-export type { ChapterDownloadContext };
 
 type ReadingToolbarProps = {
   chapterTitle?: string;

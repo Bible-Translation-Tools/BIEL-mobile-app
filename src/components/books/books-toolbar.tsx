@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { InterfaceLanguageButton } from '@/components/locale/interface-language-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BookLayout, Typography } from '@/constants/theme';
+import { BookLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function BooksToolbar() {

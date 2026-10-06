@@ -59,16 +59,8 @@ export function getChapterPlaybackSnapshot(): ChapterPlaybackSnapshot {
   return snapshot;
 }
 
-export function getSession(): ChapterPlaybackSession | null {
-  return session;
-}
-
 export function setPlaybackCurrentTime(seconds: number) {
   currentTime = seconds;
-}
-
-export function getPlaybackCurrentTime(): number {
-  return currentTime;
 }
 
 export function setSessionContext(params: {
@@ -110,7 +102,7 @@ function isSamePlaybackBook(languageCode: string, bookSlug: string): boolean {
 }
 
 /** True when background playback is already loaded for this book. */
-export function isPlaybackActiveForBook(languageCode: string, bookSlug: string): boolean {
+function isPlaybackActiveForBook(languageCode: string, bookSlug: string): boolean {
   return isSamePlaybackBook(languageCode, bookSlug) && snapshot.audioUrl != null;
 }
 
@@ -184,7 +176,7 @@ export async function stopPlayback(): Promise<void> {
   clearSession();
 }
 
-export async function ensureChapterNumbers(): Promise<void> {
+async function ensureChapterNumbers(): Promise<void> {
   if (!session || session.chapterNumbers.length > 0) return;
 
   const chapters = await getAudioChaptersForBook(session.languageCode, session.bookSlug);

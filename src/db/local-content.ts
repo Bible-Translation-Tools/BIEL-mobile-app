@@ -70,24 +70,6 @@ export async function listLocalContentBooks(): Promise<LocalContentBookRecord[]>
   }
 }
 
-/** Books with any local scripture (whole/chapter) or audio for a language. */
-export async function listLocalContentBooksForLanguage(
-  languageCode: string,
-): Promise<LocalContentBookRecord[]> {
-  try {
-    const db = await getDb();
-    const rows = await db.getAllAsync<LocalContentBookRow>(
-      localContentBooksSql({ filterByLanguage: true }),
-      languageCode,
-      languageCode,
-      languageCode,
-    );
-    return rows.map(mapLocalContentBookRow);
-  } catch {
-    return [];
-  }
-}
-
 /** Languages with local downloads that may not appear in the cached catalog. */
 export async function listLanguagesWithDownloads(): Promise<LanguageItem[]> {
   try {

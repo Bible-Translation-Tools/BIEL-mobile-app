@@ -262,7 +262,7 @@ export async function isBookAudioDownloaded(
 }
 
 /** Compares local files with the server manifest and marks the book complete when they match. */
-export async function syncBookAudioCompletion(
+async function syncBookAudioCompletion(
   languageCode: string,
   bookSlug: string,
   manifest?: Pick<AudioBookManifest, 'chapters'>,

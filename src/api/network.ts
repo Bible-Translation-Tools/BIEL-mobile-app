@@ -7,10 +7,6 @@ export function setNetworkBlocked(blocked: boolean) {
   networkBlocked = blocked;
 }
 
-export function isNetworkBlocked() {
-  return networkBlocked;
-}
-
 /** Throws when remote calls are blocked. */
 export function assertNetworkAvailable() {
   if (networkBlocked) {

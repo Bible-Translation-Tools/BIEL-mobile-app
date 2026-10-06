@@ -77,14 +77,6 @@ export async function listBookCatalog(languageCode: string): Promise<BookItem[]>
   }
 }
 
-export async function upsertBookCatalogEntry(
-  languageCode: string,
-  book: CatalogBook,
-): Promise<void> {
-  const db = await getDb();
-  await upsertBookCatalogRow(db, languageCode, book);
-}
-
 export async function getBookCatalogCountsByLanguage(): Promise<Record<string, number>> {
   try {
     const db = await getDb();

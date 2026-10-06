@@ -62,7 +62,7 @@ export async function getChapterAudioUrl(
   );
 }
 
-export async function fetchChapterTimingUrl(
+async function fetchChapterTimingUrl(
   languageCode: string,
   bookSlug: string,
   chapter: number,

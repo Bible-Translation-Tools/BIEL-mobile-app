@@ -32,7 +32,7 @@ function applyLanguageDownloadStatus(
   });
 }
 
-export async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]> {
+async function withDownloadStatus(items: LanguageItem[]): Promise<LanguageItem[]> {
   const [downloadedCounts, catalogCounts] = await Promise.all([
     getDownloadedBookCountsByLanguage(),
     getBookCatalogCountsByLanguage(),

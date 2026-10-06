@@ -52,7 +52,7 @@ function cacheKey(languageCode: string, bookSlug: string): string {
   return `${languageCode}:${bookSlug.toUpperCase()}`;
 }
 
-export async function fetchBookContent(
+async function fetchBookContent(
   languageCode: string,
   bookSlug: string,
 ): Promise<ResolvedBookContent> {
@@ -105,7 +105,7 @@ export async function isBookDownloaded(
   return getWholeJsonFile(languageCode, bookSlug).exists;
 }
 
-export async function loadWholeBookChapters(
+async function loadWholeBookChapters(
   languageCode: string,
   bookSlug: string,
 ): Promise<Map<number, string>> {
@@ -477,18 +477,6 @@ export async function getLanguageScriptureTotalBytes(languageCode: string): Prom
 
     return total + (remoteBytesBySlug.get(canonicalSlug) ?? 0);
   }, 0);
-}
-
-export async function isLanguageScriptureDownloaded(languageCode: string): Promise<boolean> {
-  const slugs = await getLanguageBookSlugs(languageCode);
-  if (slugs.length === 0) return false;
-
-  for (const bookSlug of slugs) {
-    if (!(await isBookDownloaded(languageCode, bookSlug))) {
-      return false;
-    }
-  }
-  return true;
 }
 
 export async function downloadLanguageScripture(

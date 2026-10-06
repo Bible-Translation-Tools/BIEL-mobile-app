@@ -249,7 +249,7 @@ function parseFootnotes(chapterHtml: string): ScriptureFootnote[] {
   return notes;
 }
 
-export function parseChapterHtml(html: string): ScriptureSection[] {
+function parseChapterHtml(html: string): ScriptureSection[] {
   const chapterMatch = html.match(/class="chapter"[^>]*>([\s\S]*)/i);
   if (!chapterMatch) return [];
 

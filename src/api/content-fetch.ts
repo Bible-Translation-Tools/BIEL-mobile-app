@@ -1,14 +1,12 @@
 import { assertNetworkAvailable } from '@/api/network';
 
-export const BIEL_API_ORIGIN = 'https://api.bibleineverylanguage.org';
-
 /** Headers required for read.bibletranslationtools.org (Cloudflare allows BIEL API referer). */
 // export const CONTENT_FETCH_HEADERS = {
 //   Accept: 'application/json, text/html, */*',
 //   'User-Agent': 'Mozilla/5.0',
 //   Referer: `${BIEL_API_ORIGIN}/`,
 // } as const;
-export const CONTENT_FETCH_HEADERS = {
+const CONTENT_FETCH_HEADERS = {
   Accept: 'application/json, text/html, */*',
   'User-Agent': 'Mozilla/5.0',
   "X-Requested-With": "WA-Tool-biel-mobile"
