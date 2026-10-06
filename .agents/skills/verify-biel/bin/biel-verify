@@ -14,6 +14,9 @@ SIM_NAME="${BIEL_SIM:-iPhone 17 Pro}"   # name (newest installed iOS runtime win
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$HOME/.maestro/bin:$PATH"
 export MAESTRO_CLI_NO_ANALYTICS=1 MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED=true
+# Maestro's on-device driver can take minutes to start on a loaded machine or a slow CI emulator;
+# its default start-up timeout produced spurious failures before the app was ever touched.
+export MAESTRO_DRIVER_STARTUP_TIMEOUT="${MAESTRO_DRIVER_STARTUP_TIMEOUT:-180000}"
 # JDK 17 + Node 24 come from the repo's mise.toml (matches CI).
 if command -v mise >/dev/null; then eval "$(mise env -C "$ROOT" -s bash)"; fi
 
