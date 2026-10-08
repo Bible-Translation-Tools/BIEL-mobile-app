@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -8,12 +8,24 @@ import { HomeHeader } from '@/components/home/home-header';
 import { HomeToolbar } from '@/components/home/home-toolbar';
 import { LanguageList } from '@/components/home/language-list';
 import { HomeLayout } from '@/constants/theme';
+import { checkpointToReadParams } from '@/domain/reading-checkpoint';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
+import { getReadingCheckpointSnapshot } from '@/stores/reading-checkpoint-store';
 import type { LanguageItem } from '@/types/language';
 
-export default function HomeScreen() {
+export default function IndexRoute() {
+  // Reopen the chapter the user was reading when the app was closed.
+  const checkpoint = getReadingCheckpointSnapshot();
+  if (checkpoint != null) {
+    return <Redirect href={{ pathname: '/read', params: checkpointToReadParams(checkpoint) }} />;
+  }
+
+  return <HomeScreen />;
+}
+
+function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colorScheme = useColorScheme();
