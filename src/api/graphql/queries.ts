@@ -20,6 +20,7 @@ export const BOOK_CONTENT_QUERY = `
       book_slug
       rendered_content {
         url
+        hash
         content {
           name
           resource_type
@@ -51,6 +52,7 @@ export const LANGUAGE_SCRIPTURE_FILES_QUERY = `
       book_slug
       rendered_content {
         url
+        hash
         file_size_bytes
         content {
           name
@@ -168,6 +170,7 @@ export const CHAPTER_CONTENT_QUERY = `
       chapter
       rendered_content {
         url
+        hash
         file_size_bytes
         content {
           name

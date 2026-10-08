@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildChapterContentFromHtml } from '@/api/services/reader';
+import { buildChapterContentFromHtml } from '@/api/services/chapter-html-parser';
 
 import { loadChapterHtml } from './test-utils';
 import { allVerses, verseText } from './reader-helpers';

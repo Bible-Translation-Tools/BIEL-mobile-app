@@ -43,7 +43,6 @@ jobs:
           # From `android/gradlew :app:properties` after Expo SDK 55 prebuild.
           # Update these when upgrading Expo / React Native.
           packages: >-
-            tools
             platform-tools
             platforms;android-36
             build-tools;36.0.0

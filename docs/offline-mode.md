@@ -4,7 +4,7 @@ How BIEL Mobile stores and serves scripture and audio without a network connecti
 
 ## Design principles
 
-1. **Network-first reads** — Fresh remote data is tried first; local storage is the fallback when the network is unavailable.
+1. **Local-first reads** — Catalog and downloaded scripture are served from the device first. The network is used when nothing is local, and as a fallback when the cache is empty. GraphQL `rendered_content.hash` is stored with downloads for a later content-update flow.
 2. **Two storage layers** — A local database for metadata and indexes; the file system for content payloads.
 3. **Independent tracks** — Scripture and audio download, store, and delete separately.
 4. **Two granularities** — Whole-book files or per-chapter files; reading and playback use whichever is available.
@@ -91,7 +91,7 @@ The catalog table is not the same as “downloaded books”: it mirrors what was
 |--------|----------|
 | Download whole book | Resolve URL from API → download JSON → parse chapters → save file and database rows |
 | Download one chapter | Resolve chapter URL → save HTML file and database row |
-| Read a chapter | Fetch from the API/CDN; if that fails, use per-chapter HTML or extract from whole-book JSON |
+| Read a chapter | Prefer per-chapter HTML or a whole-book slice; otherwise fetch from the API/CDN |
 | Chapter list | Fetch from the API; if that fails, use local indexes when any scripture or audio exists for the book |
 
 When multiple translation resources exist, the app prefers **ulb**, then **udb**, then **reg**. Whole-book downloads use JSON renderings only.
@@ -104,12 +104,12 @@ Playback is documented in [Chapter audio](./chapter-audio.md). Playback always c
 
 ## Reading experience
 
-| Concern | Network-first behavior |
-|---------|------------------------|
-| Book list | Fetch catalog from the network; if that fails, show merged cached catalog and downloaded books |
+| Concern | Local-first behavior |
+|---------|----------------------|
+| Book list | Show cached catalog immediately; refresh from the network when possible |
 | Chapter list | Fetch from the API; if that fails, use local chapter numbers |
-| Chapter text | Fetch from the CDN; if that fails, use local HTML or a whole-book slice |
-| Chapter audio | See [Chapter audio](./chapter-audio.md) (playback still prefers a local file) |
+| Chapter text | Local HTML or a whole-book slice; otherwise fetch from the CDN |
+| Chapter audio | See [Chapter audio](./chapter-audio.md) (playback prefers a local file) |
 
 **Download UI:** The book card checkmark reflects whole-book scripture only. Audio and single-chapter scripture use separate controls in the download menu or reader.
 
@@ -132,33 +132,34 @@ sequenceDiagram
   App->>Storage: Save file and metadata
 ```
 
-### Read chapter (network-first)
+### Read chapter (local-first)
 
 ```mermaid
 sequenceDiagram
   participant User
   participant App
+  participant Storage
   participant API
   participant CDN
-  participant Storage
 
   User->>App: Open chapter
-  App->>API: Resolve chapter URL
-  alt Network available
+  App->>Storage: Load local HTML or whole-book chapter
+  alt Local file exists
+    Storage-->>App: Chapter content
+    App-->>User: Display
+  else No local file
+    App->>API: Resolve chapter URL
     App->>CDN: Fetch HTML
     CDN-->>App: Chapter content
-  else Network unavailable
-    App->>Storage: Load local HTML or whole-book chapter
-    Storage-->>App: Chapter content
+    App-->>User: Display
   end
-  App-->>User: Display
 ```
 
 ### Book list without network
 
-1. Attempt to fetch the catalog from the network.
-2. If the network fails, load merged catalog and downloaded books from local storage.
-3. Show an error only when the network fails and nothing is stored locally.
+1. Load merged catalog and downloaded books from local storage.
+2. Attempt network refresh in the background.
+3. If the network fails, keep the local list; show an error only when nothing is stored locally.
 
 ## Operations
 

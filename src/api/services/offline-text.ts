@@ -1,11 +1,6 @@
 import { File } from 'expo-file-system';
 
-import { graphqlRequest } from '@/api/graphql/client';
-import {
-  BOOK_CONTENT_QUERY,
-  CHAPTER_CONTENT_QUERY,
-  LANGUAGE_SCRIPTURE_FILES_QUERY,
-} from '@/api/graphql/queries';
+import { catalogApi } from '@/api/catalog';
 import { resolveLanguageBookSlugs } from '@/api/services/books';
 import { fetchRenderedContent } from '@/api/services/content-fetch';
 import { pickRendering } from '@/api/services/resource-selection';
@@ -41,12 +36,10 @@ import {
 } from '@/db';
 import type {
   ApiBookContentRendering,
-  BookContentQueryResult,
   LanguageScriptureFilesQueryResult,
   OfflineBook,
   ResolvedBookContent,
 } from '@/types/offline';
-import type { ChapterContentQueryResult } from '@/types/reading';
 
 const SCRIPTURE_BOOK_DOWNLOAD_CONCURRENCY = 10;
 
@@ -80,10 +73,7 @@ export async function resolveBookContent(
   languageCode: string,
   bookSlug: string,
 ): Promise<ResolvedBookContent> {
-  const data = await graphqlRequest<BookContentQueryResult>(BOOK_CONTENT_QUERY, {
-    languageCode,
-    bookSlug,
-  });
+  const data = await catalogApi.getBookContent(languageCode, bookSlug);
 
   const rendering = pickRendering(data.scriptural_rendering_metadata, { bookSlug });
   if (!rendering?.rendered_content.url) {
@@ -94,6 +84,7 @@ export async function resolveBookContent(
     bookName: rendering.book_name,
     bookSlug: rendering.book_slug,
     url: rendering.rendered_content.url,
+    hash: rendering.rendered_content.hash ?? null,
     resourceType: rendering.rendered_content.content.resource_type,
     contentName: rendering.rendered_content.content.name,
     fileSizeBytes: rendering.rendered_content.file_size_bytes,
@@ -117,10 +108,7 @@ async function fetchLanguageScriptureFiles(
     return inflight;
   }
 
-  const request = graphqlRequest<LanguageScriptureFilesQueryResult>(
-    LANGUAGE_SCRIPTURE_FILES_QUERY,
-    { languageCode },
-  ).finally(() => {
+  const request = catalogApi.getLanguageScriptureFiles(languageCode).finally(() => {
     languageScriptureFilesInflight.delete(key);
   });
   languageScriptureFilesInflight.set(key, request);
@@ -265,11 +253,7 @@ export async function getChapterScriptureFileSizeBytes(
   const record = await getScriptureChapterRecord(languageCode, bookSlug, chapter);
   if (record) return record.byteSize;
 
-  const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
-    languageCode,
-    bookSlug,
-    chapter,
-  });
+  const data = await catalogApi.getChapterContent(languageCode, bookSlug, chapter);
 
   const rendering = pickRendering(data.scriptural_rendering_metadata, {
     bookSlug,
@@ -305,11 +289,7 @@ export async function downloadChapterScripture(
 ): Promise<void> {
   await ensureOfflineRootExists();
 
-  const data = await graphqlRequest<ChapterContentQueryResult>(CHAPTER_CONTENT_QUERY, {
-    languageCode,
-    bookSlug,
-    chapter,
-  });
+  const data = await catalogApi.getChapterContent(languageCode, bookSlug, chapter);
 
   const rendering = pickRendering(data.scriptural_rendering_metadata, {
     bookSlug,
@@ -367,6 +347,7 @@ export async function downloadChapterScripture(
     sourceUrl: rendering.rendered_content.url,
     localPath: htmlFile.uri,
     byteSize,
+    contentHash: rendering.rendered_content.hash ?? null,
   });
 
   options?.onProgress?.(1);
@@ -487,6 +468,7 @@ export async function downloadBookScripture(
       sourceUrl: resolved.url,
       localPath: bookJsonFile.uri,
       byteSize,
+      contentHash: resolved.hash,
       chapterNumbers,
     });
 

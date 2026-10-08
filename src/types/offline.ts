@@ -3,6 +3,7 @@ export type ApiBookContentRendering = {
   book_slug: string;
   rendered_content: {
     url: string;
+    hash: string | null;
     file_size_bytes: number;
     content: {
       name: string;
@@ -23,6 +24,7 @@ export type ResolvedBookContent = {
   bookName: string;
   bookSlug: string;
   url: string;
+  hash: string | null;
   resourceType: string;
   contentName: string;
   fileSizeBytes: number;

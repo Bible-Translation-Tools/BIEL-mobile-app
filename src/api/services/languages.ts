@@ -1,12 +1,6 @@
-import { graphqlRequest } from '@/api/graphql/client';
-import { LANGUAGES_QUERY, LANGUAGES_WITH_CHAPTER_AUDIO_QUERY } from '@/api/graphql/queries';
+import { catalogApi } from '@/api/catalog';
 import { listLanguageCatalog, listLanguagesWithDownloads, replaceLanguageCatalog } from '@/db';
-import type {
-  ApiLanguage,
-  LanguageItem,
-  LanguagesQueryResult,
-  LanguagesWithChapterAudioQueryResult,
-} from '@/types/language';
+import type { ApiLanguage, LanguageItem } from '@/types/language';
 
 /** Resource types that represent readable scripture / text content */
 const TEXT_RESOURCE_TYPES = new Set([
@@ -39,16 +33,14 @@ export function mapApiLanguageToItem(language: ApiLanguage, hasAudio = false): L
 }
 
 async function fetchLanguageCodesWithChapterAudio(): Promise<Set<string>> {
-  const data = await graphqlRequest<LanguagesWithChapterAudioQueryResult>(
-    LANGUAGES_WITH_CHAPTER_AUDIO_QUERY,
-  );
+  const data = await catalogApi.getLanguagesWithChapterAudio();
 
   return new Set(data.language.map((language) => language.ietf_code.toUpperCase()));
 }
 
 export async function fetchLanguages(): Promise<LanguageItem[]> {
   const [data, audioLanguageCodes] = await Promise.all([
-    graphqlRequest<LanguagesQueryResult>(LANGUAGES_QUERY),
+    catalogApi.getLanguages(),
     fetchLanguageCodesWithChapterAudio().catch(() => new Set<string>()),
   ]);
 

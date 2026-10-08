@@ -108,29 +108,33 @@ export function useBooks(languageCode: string | undefined) {
     setLoading(true);
     setError(null);
 
+    let offlineItems: BookItem[] = [];
+    try {
+      offlineItems = await fetchBooksForLanguageOffline(languageCode);
+    } catch {
+      offlineItems = [];
+    }
+
+    if (offlineItems.length > 0) {
+      try {
+        const withStatus = await applyDownloadStatus(offlineItems, languageCode);
+        setBooks(withStatus);
+        setError(null);
+      } catch {
+        setBooks(offlineItems);
+        setError(null);
+      }
+    }
+
     try {
       const items = await fetchBooksForLanguage(languageCode);
       const withStatus = await applyDownloadStatus(items, languageCode);
-      setBooks(withStatus);
+      if (items.length > 0 || offlineItems.length === 0) {
+        setBooks(withStatus);
+      }
       setError(null);
     } catch (err) {
-      let offlineItems: BookItem[] = [];
-      try {
-        offlineItems = await fetchBooksForLanguageOffline(languageCode);
-      } catch {
-        offlineItems = [];
-      }
-
-      if (offlineItems.length > 0) {
-        try {
-          const withStatus = await applyDownloadStatus(offlineItems, languageCode);
-          setBooks(withStatus);
-          setError(null);
-        } catch {
-          setBooks(offlineItems);
-          setError(null);
-        }
-      } else {
+      if (offlineItems.length === 0) {
         setBooks([]);
         setError(err instanceof Error ? err.message : t('failedToLoadBooks'));
       }
