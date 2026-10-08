@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import { fetchOfflineChaptersForBook } from '@/api/services/chapters';
+import { loadDownloadedChaptersForBook } from '@/features/library';
 import type { ChapterItem } from '@/types/book';
 
 function chapterKey(languageCode: string, bookSlug: string) {
@@ -29,7 +29,7 @@ export function useLibraryChapters() {
     setLoadingKey(key);
 
     try {
-      const chapters = await fetchOfflineChaptersForBook(languageCode, bookSlug);
+      const chapters = await loadDownloadedChaptersForBook(languageCode, bookSlug);
       cacheRef.current[key] = chapters;
       setChaptersByKey((prev) => ({ ...prev, [key]: chapters }));
     } catch {

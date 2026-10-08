@@ -1,7 +1,7 @@
 import {
   getActivePlaybackReadRoute,
   markNotificationResume,
-} from '@/services/track-player/chapter-playback';
+} from '@/features/playback';
 
 const APP_SCHEME = 'bielmobileapp';
 

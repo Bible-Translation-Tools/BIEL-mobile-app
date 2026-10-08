@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import {
   deleteBookAudio,
   downloadBookAudio,
-  getBookAudioTotalBytes,
-  getDownloadedBookAudioByteSize,
+  fetchBookAudioTotalBytes,
+  loadDownloadedBookAudioByteSize,
   isBookAudioDownloaded,
-} from '@/api/services/offline-audio';
+} from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
 
 type UseBookAudioDownloadOptions = {
@@ -46,14 +46,14 @@ export function useBookAudioDownload({
     onDeleteComplete,
     download: (options) => downloadBookAudio(languageCode, bookSlug, options),
     deleteContent: () => deleteBookAudio(languageCode, bookSlug),
-    getDownloadedBytes: () => getDownloadedBookAudioByteSize(languageCode, bookSlug),
-    getTotalBytes: () => getBookAudioTotalBytes(languageCode, bookSlug),
+    getDownloadedBytes: () => loadDownloadedBookAudioByteSize(languageCode, bookSlug),
+    getTotalBytes: () => fetchBookAudioTotalBytes(languageCode, bookSlug),
     getIsDownloaded: () => isBookAudioDownloaded(languageCode, bookSlug),
     getCanDownload: async () => {
-      const remoteBytes = await getBookAudioTotalBytes(languageCode, bookSlug).catch(() => 0);
+      const remoteBytes = await fetchBookAudioTotalBytes(languageCode, bookSlug).catch(() => 0);
       if (remoteBytes > 0) return true;
 
-      const downloadedBytes = await getDownloadedBookAudioByteSize(languageCode, bookSlug);
+      const downloadedBytes = await loadDownloadedBookAudioByteSize(languageCode, bookSlug);
       return downloadedBytes != null && downloadedBytes > 0;
     },
   });

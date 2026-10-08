@@ -41,21 +41,3 @@ export type ScriptureFootnote = {
   label: string;
   text: string;
 };
-
-export type ApiChapterRendering = {
-  book_name: string;
-  chapter: number | null;
-  rendered_content: {
-    url: string;
-    hash: string | null;
-    file_size_bytes: number | null;
-    content: {
-      name: string;
-      resource_type: string;
-    };
-  };
-};
-
-export type ChapterContentQueryResult = {
-  scriptural_rendering_metadata: ApiChapterRendering[];
-};

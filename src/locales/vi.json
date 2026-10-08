@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "Không thể tải xuống ngôn ngữ",
     "couldNotDownloadScripture": "Không thể tải xuống văn bản",
     "couldNotRemoveScripture": "Không thể xóa văn bản đã tải xuống",
+    "missingAudioChapters_one": "Không thể tải xuống âm thanh của chương {{chapters}}",
+    "missingAudioChapters_other": "Không thể tải xuống âm thanh của {{count}} chương: {{chapters}}",
+    "failedBooks_one": "Không thể tải xuống {{count}} sách",
+    "failedBooks_other": "Không thể tải xuống {{count}} sách",
     "notification": {
       "channelName": "Bản tải xuống sách",
       "downloadingScripture": "Đang tải xuống {{name}}",

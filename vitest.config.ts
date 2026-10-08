@@ -8,12 +8,6 @@ export default defineConfig({
     testTimeout: 30_000,
   },
   resolve: {
-    alias: [
-      {
-        find: '@/api/services/offline-text',
-        replacement: path.resolve(__dirname, './src/api/services/__tests__/mocks/offline-text.ts'),
-      },
-      { find: '@', replacement: path.resolve(__dirname, './src') },
-    ],
+    alias: [{ find: '@', replacement: path.resolve(__dirname, './src') }],
   },
 });

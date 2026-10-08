@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "Não foi possível baixar o idioma",
     "couldNotDownloadScripture": "Não foi possível baixar o texto",
     "couldNotRemoveScripture": "Não foi possível remover o texto baixado",
+    "missingAudioChapters_one": "Não foi possível baixar o áudio do capítulo {{chapters}}",
+    "missingAudioChapters_other": "Não foi possível baixar o áudio de {{count}} capítulos: {{chapters}}",
+    "failedBooks_one": "Não foi possível baixar {{count}} livro",
+    "failedBooks_other": "Não foi possível baixar {{count}} livros",
     "notification": {
       "channelName": "Downloads de livros",
       "downloadingScripture": "Baixando {{name}}",

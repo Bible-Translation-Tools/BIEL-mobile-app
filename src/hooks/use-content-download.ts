@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { buildDownloadTaskId } from '@/domain/downloads';
+import { formatByteSize } from '@/domain/whole-book-parser';
+import {
+    cancelDownload as cancelDownloadTask,
+    partialDownloadFailure,
+    removeDownloadTask,
+    runDownload,
+    toDownloadFailure,
+} from '@/features/downloads';
+import { useDownloadProgress } from '@/stores/download-progress-store';
+import type { DownloadFailure } from '@/types/download';
+import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
+import { isAbortError } from '@/utils/run-with-concurrency';
+import { scheduleIdleTask } from '@/utils/yield-to-ui';
+
 const PROGRESS_MIN_DELTA = 0.05;
 const PROGRESS_MIN_INTERVAL_MS = 200;
-
-import { formatByteSize } from '@/api/services/whole-book-parser';
-import {
-    cancelGlobalBookDownload,
-    runGlobalBookDownload,
-} from '@/services/book-download-runner';
-import {
-    removeDownloadTask,
-    useDownloadProgress,
-} from '@/stores/download-progress-store';
-import {
-    buildDownloadTaskId,
-    type GlobalDownloadSync,
-} from '@/types/download-progress';
-import { scheduleIdleTask } from '@/utils/yield-to-ui';
 
 export type ContentDownloadError = {
   title: string;
@@ -25,10 +25,7 @@ export type ContentDownloadError = {
 };
 
 export type ContentDownloadHandlers = {
-  download: (options: {
-    signal: AbortSignal;
-    onProgress: (progress: number) => void;
-  }) => Promise<void>;
+  download: DownloadJob;
   deleteContent: () => Promise<void>;
   getDownloadedBytes: () => Promise<number | null>;
   getTotalBytes: () => Promise<number>;
@@ -73,10 +70,6 @@ function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-function isAbortError(err: unknown): boolean {
-  return err instanceof Error && err.name === 'AbortError';
-}
-
 export function useContentDownload({
   enabled = true,
   partialSizeLabel = false,
@@ -100,6 +93,25 @@ export function useContentDownload({
     downloadFailedMessage ?? t('downloadFailedMessage');
   const resolvedDeleteFailedTitle = deleteFailedTitle ?? t('deleteFailedTitle');
   const resolvedDeleteFailedMessage = deleteFailedMessage ?? t('deleteFailedMessage');
+
+  const describeFailure = useCallback(
+    (failure: DownloadFailure): string => {
+      switch (failure.reason) {
+        case 'missing-audio-chapters':
+          return failure.chapters.length > 0
+            ? t('missingAudioChapters', {
+                count: failure.chapters.length,
+                chapters: failure.chapters.join(', '),
+              })
+            : t('couldNotDownloadAudio');
+        case 'failed-books':
+          return t('failedBooks', { count: failure.count });
+        case 'error':
+          return failure.message ?? resolvedDownloadFailedMessage;
+      }
+    },
+    [resolvedDownloadFailedMessage, t],
+  );
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -237,7 +249,7 @@ export function useContentDownload({
 
   const cancelDownload = useCallback(() => {
     if (usesGlobalSync && globalSync) {
-      cancelGlobalBookDownload(globalSync);
+      cancelDownloadTask(globalSync);
       return;
     }
 
@@ -256,10 +268,9 @@ export function useContentDownload({
     clearError();
 
     if (usesGlobalSync && globalSync) {
-      await runGlobalBookDownload({
+      await runDownload({
         sync: globalSync,
         download,
-        errorFallback: resolvedDownloadFailedMessage,
         onSuccess: async () => {
           if (enabled) {
             await refresh();
@@ -268,10 +279,10 @@ export function useContentDownload({
           }
           await notifyCompleteIfDownloaded();
         },
-        onError: (message) => {
+        onError: (failure) => {
           setError({
             title: resolvedDownloadFailedTitle,
-            message,
+            message: describeFailure(failure),
           });
         },
       });
@@ -285,10 +296,26 @@ export function useContentDownload({
     progressSampleRef.current = { value: -1, at: 0 };
 
     try {
-      await download({
+      const outcome = await download({
         signal: controller.signal,
         onProgress: reportProgress,
       });
+      if (outcome.status === 'cancelled') {
+        if (enabled) {
+          await refresh();
+        }
+        return;
+      }
+      if (outcome.status === 'partial') {
+        setError({
+          title: resolvedDownloadFailedTitle,
+          message: describeFailure(partialDownloadFailure(outcome.failedBookSlugs)),
+        });
+        if (enabled) {
+          await refresh();
+        }
+        return;
+      }
       if (enabled) {
         await refresh();
       } else if (getIsDownloaded) {
@@ -303,7 +330,7 @@ export function useContentDownload({
       } else {
         setError({
           title: resolvedDownloadFailedTitle,
-          message: toErrorMessage(err, resolvedDownloadFailedMessage),
+          message: describeFailure(toDownloadFailure(err)),
         });
       }
     } finally {
@@ -314,6 +341,7 @@ export function useContentDownload({
   }, [
     canDownload,
     clearError,
+    describeFailure,
     download,
     enabled,
     getIsDownloaded,
@@ -324,7 +352,6 @@ export function useContentDownload({
     onComplete,
     refresh,
     reportProgress,
-    resolvedDownloadFailedMessage,
     resolvedDownloadFailedTitle,
     usesGlobalSync,
   ]);
@@ -334,16 +361,17 @@ export function useContentDownload({
     : isDownloading;
   const resolvedProgress = usesGlobalSync ? (globalTask?.progress ?? 0) : progress;
   const resolvedError = useMemo(() => {
-    if (usesGlobalSync && globalTask?.status === 'failed' && globalTask.errorMessage) {
+    if (usesGlobalSync && globalTask?.status === 'failed' && globalTask.failure) {
       return {
         title: resolvedDownloadFailedTitle,
-        message: globalTask.errorMessage,
+        message: describeFailure(globalTask.failure),
       };
     }
     return error;
   }, [
+    describeFailure,
     error,
-    globalTask?.errorMessage,
+    globalTask?.failure,
     globalTask?.status,
     resolvedDownloadFailedTitle,
     usesGlobalSync,

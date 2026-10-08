@@ -9,14 +9,14 @@ import {
 import { ChapterGrid } from '@/components/books/chapter-grid';
 import { DELETE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
+import { getBookContentFlags } from '@/domain/content-type';
+import { resolveDownloadStatus } from '@/domain/downloads';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
-import { getBookContentFlags } from '@/types/content-type';
-import { resolveDownloadStatus } from '@/types/download';
 
 type DownloadsLibraryBookRowProps = {
   book: BookItem;

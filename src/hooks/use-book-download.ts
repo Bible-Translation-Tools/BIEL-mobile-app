@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import {
   deleteBookScripture,
   downloadBookScripture,
-  getBookScriptureFileSizeBytes,
-  getDownloadedBookByteSize,
+  fetchBookScriptureFileSizeBytes,
+  loadDownloadedBookByteSize,
   isBookDownloaded,
-} from '@/api/services/offline-text';
+} from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
 
 type UseBookDownloadOptions = {
@@ -45,8 +45,8 @@ export function useBookDownload({
     partialSizeLabel: true,
     download: (options) => downloadBookScripture(languageCode, bookSlug, options),
     deleteContent: () => deleteBookScripture(languageCode, bookSlug),
-    getDownloadedBytes: () => getDownloadedBookByteSize(languageCode, bookSlug),
-    getTotalBytes: () => getBookScriptureFileSizeBytes(languageCode, bookSlug),
+    getDownloadedBytes: () => loadDownloadedBookByteSize(languageCode, bookSlug),
+    getTotalBytes: () => fetchBookScriptureFileSizeBytes(languageCode, bookSlug),
     getIsDownloaded: () => isBookDownloaded(languageCode, bookSlug),
   });
 

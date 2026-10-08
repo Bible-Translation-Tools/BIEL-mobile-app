@@ -109,6 +109,10 @@
     "couldNotDownloadLanguage": "无法下载语言",
     "couldNotDownloadScripture": "无法下载文本",
     "couldNotRemoveScripture": "无法移除已下载的文本",
+    "missingAudioChapters_one": "无法下载第 {{chapters}} 章的音频",
+    "missingAudioChapters_other": "无法下载 {{count}} 章的音频：{{chapters}}",
+    "failedBooks_one": "{{count}} 卷书无法下载",
+    "failedBooks_other": "{{count}} 卷书无法下载",
     "notification": {
       "channelName": "书籍下载",
       "downloadingScripture": "正在下载 {{name}}",

@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { fetchAudioChaptersForBook } from '@/api/services/chapters';
+import { getAudioChaptersForBook, requestChapterLoad } from '@/features/playback';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
-import { requestChapterLoad } from '@/services/track-player/chapter-playback';
 import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
@@ -63,7 +62,7 @@ export function useAudioChapterReader(
     setLoading(true);
     setError(null);
 
-    fetchAudioChaptersForBook(languageCode, bookSlug)
+    getAudioChaptersForBook(languageCode, bookSlug)
       .then((chapters) => {
         if (cancelled) return;
         const numbers = chapters.map((item) => item.number).sort((a, b) => a - b);
@@ -197,7 +196,7 @@ export function useAudioChapterReader(
     setLoading(true);
     setError(null);
     try {
-      const chapters = await fetchAudioChaptersForBook(languageCode, bookSlug);
+      const chapters = await getAudioChaptersForBook(languageCode, bookSlug);
       const numbers = chapters.map((item) => item.number).sort((a, b) => a - b);
       setChapterNumbers(numbers);
       if (numbers.length === 0) {
