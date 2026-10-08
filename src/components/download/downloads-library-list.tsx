@@ -131,8 +131,7 @@ function LanguageAccordion({
       {expanded
         ? item.books.map((book) => {
             const isBookExpanded =
-              expandedBook?.languageCode === item.language.code &&
-              expandedBook.bookId === book.id;
+              expandedBook?.languageCode === item.language.code && expandedBook.bookId === book.id;
 
             return (
               <DownloadsLibraryBookRow

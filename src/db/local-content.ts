@@ -20,9 +20,7 @@ type LocalContentBookRow = {
 
 function localContentBooksSql(options: { filterByLanguage: boolean }): string {
   const where = options.filterByLanguage ? 'WHERE language_code = ?' : '';
-  const orderBy = options.filterByLanguage
-    ? 'book_slug ASC'
-    : 'language_code ASC, book_slug ASC';
+  const orderBy = options.filterByLanguage ? 'book_slug ASC' : 'language_code ASC, book_slug ASC';
 
   return `SELECT
          language_code,
@@ -63,24 +61,6 @@ export async function listLocalContentBooks(): Promise<LocalContentBookRecord[]>
     const db = await getDb();
     const rows = await db.getAllAsync<LocalContentBookRow>(
       localContentBooksSql({ filterByLanguage: false }),
-    );
-    return rows.map(mapLocalContentBookRow);
-  } catch {
-    return [];
-  }
-}
-
-/** Books with any local scripture (whole/chapter) or audio for a language. */
-export async function listLocalContentBooksForLanguage(
-  languageCode: string,
-): Promise<LocalContentBookRecord[]> {
-  try {
-    const db = await getDb();
-    const rows = await db.getAllAsync<LocalContentBookRow>(
-      localContentBooksSql({ filterByLanguage: true }),
-      languageCode,
-      languageCode,
-      languageCode,
     );
     return rows.map(mapLocalContentBookRow);
   } catch {

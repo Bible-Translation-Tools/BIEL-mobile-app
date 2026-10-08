@@ -5,7 +5,11 @@ import {
   loadAudioVolumePreference,
   saveAudioVolumePreference,
 } from '@/db/audio-volume-preferences';
-import { getSystemVolume, isSystemVolumeAvailable, setSystemVolume } from '@/services/system-audio-volume';
+import {
+  getSystemVolume,
+  isSystemVolumeAvailable,
+  setSystemVolume,
+} from '@/services/system-audio-volume';
 
 const PERSIST_DEBOUNCE_MS = 300;
 
@@ -56,7 +60,7 @@ function applyVolume(next: number, options?: { persist?: boolean; syncSystem?: b
 }
 
 /** User moved the in-app slider or we restored a saved level on web. */
-export function setAudioVolume(next: number) {
+function setAudioVolume(next: number) {
   applyVolume(next);
 }
 

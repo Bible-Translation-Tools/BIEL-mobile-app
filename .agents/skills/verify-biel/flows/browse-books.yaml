@@ -1,0 +1,26 @@
+# Books: testament tabs, book search, expand a book to its chapter grid, open a chapter.
+appId: ${APP_ID}
+---
+- runFlow: _open-english.yaml
+- assertVisible: "Expand Genesis"
+- takeScreenshot: 01-old-testament
+- tapOn: "New Testament"
+- assertVisible: "Expand Matthew"
+- assertNotVisible: "Expand Genesis"
+- takeScreenshot: 02-new-testament
+- tapOn: "Search book here..."
+- inputText: "2 John"
+- assertVisible: "Expand 2 John"
+- assertNotVisible: "Expand Matthew"
+- tapOn: "Expand 2 John"
+- extendedWaitUntil:
+    visible: "Chapter 1.*"
+    timeout: 30000
+- assertVisible: "Collapse 2 John"
+- takeScreenshot: 03-2john-chapters
+- tapOn: "Chapter 1.*"
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 30000
+- assertVisible: "2 John 1"
+- takeScreenshot: 04-reader

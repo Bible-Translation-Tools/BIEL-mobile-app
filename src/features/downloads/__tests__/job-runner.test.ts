@@ -62,7 +62,12 @@ describe('runDownload', () => {
     const onSuccess = vi.fn();
     const onError = vi.fn();
 
-    await runDownload({ sync, download: resolvesWith({ status: 'completed' }), onSuccess, onError });
+    await runDownload({
+      sync,
+      download: resolvesWith({ status: 'completed' }),
+      onSuccess,
+      onError,
+    });
 
     expect(getDownloadTask(taskId)).toMatchObject({ status: 'completed', progress: 1 });
     expect(onSuccess).toHaveBeenCalledOnce();
@@ -91,7 +96,12 @@ describe('runDownload', () => {
     const onSuccess = vi.fn();
     const onError = vi.fn();
 
-    await runDownload({ sync, download: resolvesWith({ status: 'cancelled' }), onSuccess, onError });
+    await runDownload({
+      sync,
+      download: resolvesWith({ status: 'cancelled' }),
+      onSuccess,
+      onError,
+    });
 
     expect(getDownloadTask(taskId)).toBeUndefined();
     expect(onSuccess).not.toHaveBeenCalled();

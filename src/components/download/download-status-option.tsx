@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Pressable,
@@ -7,9 +8,13 @@ import {
   View,
   type DimensionValue,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
 
-import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import {
+  DELETE_ICON_NAME,
+  DOWNLOAD_DONE_ICON_NAME,
+  DOWNLOAD_ICON_NAME,
+  IconSymbol,
+} from '@/components/ui/icon-symbol';
 import { DownloadMenuLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { DownloadStatus } from '@/types/download';
@@ -45,13 +50,11 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
   const isUnavailable = disabled && !isChecking;
   const isMuted = isUnavailable || isChecking;
   const showProgress = isDownloading || isDownloaded || (isPartial && progress > 0);
-  const progressWidth = `${Math.min(Math.max(isDownloaded ? 1 : progress, 0), 1) * 100}%` as DimensionValue;
+  const progressWidth =
+    `${Math.min(Math.max(isDownloaded ? 1 : progress, 0), 1) * 100}%` as DimensionValue;
   const showDelete = allowDelete && (isDownloaded || isPartial);
   const canPress =
-    Boolean(onActionPress) &&
-    !isChecking &&
-    !isUnavailable &&
-    (allowDelete || !isDownloaded);
+    Boolean(onActionPress) && !isChecking && !isUnavailable && (allowDelete || !isDownloaded);
 
   const titleColor = isMuted ? theme.textSecondary : theme.text;
   const metaColor = isMuted ? theme.iconTertiary : theme.textSecondary;
@@ -68,9 +71,9 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
           ? allowDelete
             ? t('accessibility.delete', { title })
             : t('accessibility.download', { title })
-        : isUnavailable
-          ? t('accessibility.unavailable', { title })
-          : t('accessibility.download', { title });
+          : isUnavailable
+            ? t('accessibility.unavailable', { title })
+            : t('accessibility.download', { title });
 
   return (
     <Pressable
@@ -151,11 +154,7 @@ export const DownloadStatusOption = memo(function DownloadStatusOption({
           />
         ) : isUnavailable ? null : (
           <IconSymbol
-            name={
-              isDownloading
-                ? { ios: 'xmark', android: 'close' }
-                : DOWNLOAD_ICON_NAME
-            }
+            name={isDownloading ? { ios: 'xmark', android: 'close' } : DOWNLOAD_ICON_NAME}
             size={DownloadMenuLayout.iconSize}
             color={isMuted ? theme.iconTertiary : theme.iconPrimary}
           />

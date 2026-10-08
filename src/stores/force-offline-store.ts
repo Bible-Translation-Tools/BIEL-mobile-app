@@ -15,7 +15,7 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-export function isForceOffline() {
+function isForceOffline() {
   return forceOffline;
 }
 

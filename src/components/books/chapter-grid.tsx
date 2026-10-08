@@ -1,12 +1,6 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookLayout, Typography, type ThemeColor } from '@/constants/theme';
 import { CHAPTER_CONTENT_LEGEND_ORDER, getChapterContentIndicator } from '@/domain/content-type';
@@ -156,8 +150,7 @@ export function ChapterGrid({ chapters, loading = false, onChapterPress }: Chapt
         <View style={styles.legend}>
           {legendIndicators.map((indicator) => {
             const colors = CONTENT_TYPE_COLORS[indicator];
-            const label =
-              indicator === 'both' ? tl('legend.both') : tl(`content.${indicator}`);
+            const label = indicator === 'both' ? tl('legend.both') : tl(`content.${indicator}`);
 
             return (
               <View key={indicator} style={styles.legendItem}>

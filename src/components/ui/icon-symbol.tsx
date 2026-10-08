@@ -79,7 +79,7 @@ function usesMaterialIconOnIos(name: IconSymbolName): boolean {
 function resolveMaterialName(name: IconSymbolName): MaterialIconName {
   const raw =
     typeof name === 'object'
-      ? Platform.OS === 'ios' && usesMaterialIconOnIos(name)
+      ? Platform.OS === 'ios' && MATERIAL_ICON_NAMES.has(name.ios)
         ? name.ios
         : name.android
       : name;
@@ -94,12 +94,7 @@ function resolveSymbolName(name: IconSymbolName): SymbolViewProps['name'] {
 export function IconSymbol({ name, size = 24, color, style }: IconSymbolProps) {
   if (Platform.OS === 'ios' && !usesMaterialIconOnIos(name)) {
     return (
-      <SymbolView
-        name={resolveSymbolName(name)}
-        size={size}
-        tintColor={color}
-        style={style}
-      />
+      <SymbolView name={resolveSymbolName(name)} size={size} tintColor={color} style={style} />
     );
   }
 

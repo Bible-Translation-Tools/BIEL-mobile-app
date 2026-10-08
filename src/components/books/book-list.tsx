@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,12 +12,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
 
 import { BookLayout } from '@/constants/theme';
 import { useBookChapters } from '@/hooks/use-book-chapters';
-import { useTheme } from '@/hooks/use-theme';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
+import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
 
 import { BookCardRow } from './book-card-row';
@@ -94,7 +94,10 @@ export function BookList({
 }: BookListProps) {
   const theme = useTheme();
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
-  const { loadChapters, getChapters, isLoading, clearCache } = useBookChapters(languageCode, audioOnly);
+  const { loadChapters, getChapters, isLoading, clearCache } = useBookChapters(
+    languageCode,
+    audioOnly,
+  );
 
   const expandedBook = books.find((book) => book.id === expandedBookId);
 

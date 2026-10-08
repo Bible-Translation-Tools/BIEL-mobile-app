@@ -21,5 +21,3 @@ export const localeResources = {
   vi,
   ru,
 } as const;
-
-export type LocaleResourceBundle = (typeof localeResources)[keyof typeof localeResources];

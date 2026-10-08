@@ -1,9 +1,4 @@
-import type {
-  AudioFile,
-  CatalogBook,
-  CatalogLanguage,
-  ScriptureRendering,
-} from '@/types/catalog';
+import type { AudioFile, CatalogBook, CatalogLanguage, ScriptureRendering } from '@/types/catalog';
 
 export type ChapterAudioFileType = 'mp3' | 'cue';
 

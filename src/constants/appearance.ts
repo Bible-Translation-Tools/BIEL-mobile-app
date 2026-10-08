@@ -1,4 +1,4 @@
-export const ThemePreferences = ['system', 'light', 'dark'] as const;
+const ThemePreferences = ['system', 'light', 'dark'] as const;
 
 export type ThemePreference = (typeof ThemePreferences)[number];
 

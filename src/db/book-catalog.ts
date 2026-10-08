@@ -34,12 +34,7 @@ export async function replaceBookCatalog(
     if (books.length === 0) return;
 
     const placeholders = books.map(() => '(?, ?, ?, ?)').join(', ');
-    const values = books.flatMap((book) => [
-      languageCode,
-      book.slug,
-      book.name,
-      book.testament,
-    ]);
+    const values = books.flatMap((book) => [languageCode, book.slug, book.name, book.testament]);
     await db.runAsync(
       `INSERT INTO book_catalog (language_code, book_slug, book_name, testament)
        VALUES ${placeholders}`,
@@ -75,14 +70,6 @@ export async function listBookCatalog(languageCode: string): Promise<BookItem[]>
   } catch {
     return [];
   }
-}
-
-export async function upsertBookCatalogEntry(
-  languageCode: string,
-  book: CatalogBook,
-): Promise<void> {
-  const db = await getDb();
-  await upsertBookCatalogRow(db, languageCode, book);
 }
 
 export async function getBookCatalogCountsByLanguage(): Promise<Record<string, number>> {

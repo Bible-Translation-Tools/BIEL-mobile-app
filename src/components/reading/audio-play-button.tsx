@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MediaPlayerPanel } from '@/components/reading/media-player-panel';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MediaPlayerLayout, Typography } from '@/constants/theme';
+import { getChapterPlaybackSnapshot, requestChapterLoad } from '@/features/playback';
 import { useChapterAudio } from '@/hooks/use-chapter-audio';
 import { useSystemVolumeSync } from '@/hooks/use-system-volume-sync';
 import { useTheme } from '@/hooks/use-theme';
-import {
-  getChapterPlaybackSnapshot,
-  requestChapterLoad,
-} from '@/features/playback';
 import { formatAudioPassageLabel } from '@/utils/format-audio-passage-label';
 
 type SeekTarget = {
@@ -262,7 +259,14 @@ export function AudioPlayButton({
 
       changeChapter(chapter, verse, audio.isPlaying);
     },
-    [activeChapter, audio.isPlaying, audio.seekToVerse, audio.togglePlay, changeChapter, isPanelOpen],
+    [
+      activeChapter,
+      audio.isPlaying,
+      audio.seekToVerse,
+      audio.togglePlay,
+      changeChapter,
+      isPanelOpen,
+    ],
   );
 
   useEffect(() => {
@@ -285,13 +289,7 @@ export function AudioPlayButton({
     if (nextChapter == null) return;
 
     changeChapter(nextChapter, 'start', audio.isPlaying);
-  }, [
-    activeChapter,
-    audio.isPlaying,
-    audio.seekToNextVerse,
-    changeChapter,
-    getNextChapter,
-  ]);
+  }, [activeChapter, audio.isPlaying, audio.seekToNextVerse, changeChapter, getNextChapter]);
 
   const handlePreviousVerse = useCallback(async () => {
     if (audio.seekToPreviousVerse()) return;
@@ -368,9 +366,7 @@ export function AudioPlayButton({
       onLayout={(event) => onPanelHeightChange?.(event.nativeEvent.layout.height)}
       accessibilityRole="toolbar"
       accessibilityLabel={t('audioPlayer')}>
-      <Text
-        style={[styles.collapsedPassage, { color: theme.textHeading }]}
-        numberOfLines={1}>
+      <Text style={[styles.collapsedPassage, { color: theme.textHeading }]} numberOfLines={1}>
         {collapsedPassage}
       </Text>
       <Pressable

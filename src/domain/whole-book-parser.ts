@@ -21,20 +21,12 @@ function extractHtmlFromChapterValue(value: unknown): string | null {
   return null;
 }
 
-function addChapter(
-  chapters: Map<number, OfflineChapter>,
-  chapterNumber: number,
-  html: string,
-) {
+function addChapter(chapters: Map<number, OfflineChapter>, chapterNumber: number, html: string) {
   if (!Number.isFinite(chapterNumber) || chapterNumber < 1) return;
   chapters.set(chapterNumber, { number: chapterNumber, html });
 }
 
-function parseChapterRecord(
-  chapters: Map<number, OfflineChapter>,
-  key: string,
-  value: unknown,
-) {
+function parseChapterRecord(chapters: Map<number, OfflineChapter>, key: string, value: unknown) {
   const chapterNumber = Number.parseInt(key, 10);
   if (!Number.isNaN(chapterNumber) && /^\d+$/.test(key.trim())) {
     const html = extractHtmlFromChapterValue(value);

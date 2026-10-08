@@ -1,23 +1,15 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-  type LayoutRectangle,
-} from 'react-native';
+import { Dimensions, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { LibraryFilterMenu } from '@/components/download/library-filter-menu';
 import { DownloadMenuLayout, DownloadsLibraryLayout } from '@/constants/theme';
+import type { MenuAnchor } from '@/hooks/use-anchored-menu';
 import type { LibraryContentFilter } from '@/types/content-type';
-
-export type LibraryFilterAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
 
 type LibraryFilterPopoverProps = {
   visible: boolean;
-  anchor: LibraryFilterAnchor | null;
+  anchor: MenuAnchor | null;
   value: LibraryContentFilter;
   onSelect: (value: LibraryContentFilter) => void;
   onClose: () => void;
@@ -50,12 +42,7 @@ export const LibraryFilterPopover = memo(function LibraryFilterPopover({
     : anchor.y + anchor.height + DownloadMenuLayout.anchorGap;
 
   return (
-    <Modal
-      transparent
-      visible
-      animationType="none"
-      onRequestClose={onClose}
-      statusBarTranslucent>
+    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.overlay} pointerEvents="box-none">
         <Pressable
           style={styles.dismissLayer}

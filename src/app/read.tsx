@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -18,13 +18,13 @@ import { ChapterItem } from '@/components/reading/chapter-item';
 import { ChapterUnavailablePlaceholder } from '@/components/reading/chapter-unavailable-placeholder';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
 import { ReadingLayout } from '@/constants/theme';
+import { getResumedPlaybackChapter } from '@/features/playback';
 import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
 import { useStopPlaybackOnLeave } from '@/hooks/use-stop-playback-on-leave';
 import { useTheme } from '@/hooks/use-theme';
-import { getResumedPlaybackChapter } from '@/features/playback';
 import { useReadingTextStyles } from '@/stores/reading-text-settings-store';
 import type { ChapterContent } from '@/types/reading';
 import { normalizeRouteParam } from '@/utils/route-params';
@@ -32,15 +32,21 @@ import { normalizeRouteParam } from '@/utils/route-params';
 export default function ReadingScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const { languageCode, bookSlug, bookName, chapter, audioOnly: audioOnlyParam, openAudio: openAudioParam } =
-    useLocalSearchParams<{
-      languageCode: string;
-      bookSlug: string;
-      bookName?: string;
-      chapter: string;
-      audioOnly?: string;
-      openAudio?: string;
-    }>();
+  const {
+    languageCode,
+    bookSlug,
+    bookName,
+    chapter,
+    audioOnly: audioOnlyParam,
+    openAudio: openAudioParam,
+  } = useLocalSearchParams<{
+    languageCode: string;
+    bookSlug: string;
+    bookName?: string;
+    chapter: string;
+    audioOnly?: string;
+    openAudio?: string;
+  }>();
 
   const ietfCode = normalizeRouteParam(languageCode) ?? '';
   const resolvedBookSlug = normalizeRouteParam(bookSlug) ?? '';
@@ -81,11 +87,15 @@ export default function ReadingScreen() {
     bookName ??
     bookSlug;
 
-  const { toolbarChapterTitle, visibleChapter, updateScrollY, onViewableItemsChanged, viewabilityConfig } =
-    useReaderToolbar(displayBookName);
+  const {
+    toolbarChapterTitle,
+    visibleChapter,
+    updateScrollY,
+    onViewableItemsChanged,
+    viewabilityConfig,
+  } = useReaderToolbar(displayBookName);
 
-  const currentAudioChapter =
-    visibleChapter ?? effectiveChapterNumber;
+  const currentAudioChapter = visibleChapter ?? effectiveChapterNumber;
   const currentChapterHasAudio = useChapterHasAudio({
     languageCode,
     bookSlug,
@@ -338,9 +348,7 @@ export default function ReadingScreen() {
 
   const getCurrentChapterForAudio = useCallback(
     () =>
-      (openAudio ? resumedPlaybackChapter : undefined) ??
-      visibleChapter ??
-      effectiveChapterNumber,
+      (openAudio ? resumedPlaybackChapter : undefined) ?? visibleChapter ?? effectiveChapterNumber,
     [effectiveChapterNumber, openAudio, resumedPlaybackChapter, visibleChapter],
   );
 
@@ -420,13 +428,14 @@ export default function ReadingScreen() {
 
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
 
-  const ListFooter = failedNextChapter != null ? (
-    <ChapterUnavailablePlaceholder />
-  ) : loadingMore ? (
-    <View style={styles.footerLoader}>
-      <ActivityIndicator size="small" color={theme.iconPrimary} />
-    </View>
-  ) : null;
+  const ListFooter =
+    failedNextChapter != null ? (
+      <ChapterUnavailablePlaceholder />
+    ) : loadingMore ? (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={theme.iconPrimary} />
+      </View>
+    ) : null;
 
   if (
     (audioOnly || audioOnlyFallback) &&
@@ -436,6 +445,8 @@ export default function ReadingScreen() {
   ) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {/* The player is always up here; iOS swipe-back would steal volume-slider drags. */}
+        <Stack.Screen options={{ gestureEnabled: false }} />
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <AudioOnlyChapterScreen
           languageCode={ietfCode}
@@ -449,21 +460,23 @@ export default function ReadingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* iOS swipe-back would steal volume-slider drags while the audio player is open. */}
+      <Stack.Screen options={{ gestureEnabled: !isAudioPanelOpen }} />
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
-          <ReadingToolbar
-            chapterTitle={toolbarChapterTitle}
-            downloadContext={
-              ietfCode && resolvedBookSlug && Number.isFinite(chapterNumber)
-                ? {
-                    languageCode: ietfCode,
-                    bookSlug: resolvedBookSlug,
-                    bookName: resolvedBookName,
-                    chapter: visibleChapter ?? chapterNumber,
-                  }
-                : undefined
-            }
-          />
+        <ReadingToolbar
+          chapterTitle={toolbarChapterTitle}
+          downloadContext={
+            ietfCode && resolvedBookSlug && Number.isFinite(chapterNumber)
+              ? {
+                  languageCode: ietfCode,
+                  bookSlug: resolvedBookSlug,
+                  bookName: resolvedBookName,
+                  chapter: visibleChapter ?? chapterNumber,
+                }
+              : undefined
+          }
+        />
 
         {loading ? (
           <View style={styles.centered}>

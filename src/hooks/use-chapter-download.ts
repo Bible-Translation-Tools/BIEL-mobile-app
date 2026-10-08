@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { resolveDownloadStatus } from '@/domain/downloads';
 import {
   deleteChapterAudio,
   deleteChapterScripture,
@@ -15,7 +16,6 @@ import {
   loadDownloadedChapterScriptureByteSize,
 } from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
-import { resolveDownloadStatus } from '@/domain/downloads';
 
 type UseChapterDownloadOptions = {
   languageCode: string;
@@ -23,11 +23,7 @@ type UseChapterDownloadOptions = {
   chapter: number;
 };
 
-export function useChapterDownload({
-  languageCode,
-  bookSlug,
-  chapter,
-}: UseChapterDownloadOptions) {
+export function useChapterDownload({ languageCode, bookSlug, chapter }: UseChapterDownloadOptions) {
   const { t } = useTranslation('download');
   const [scriptureStandalone, setScriptureStandalone] = useState(false);
 
@@ -46,8 +42,7 @@ export function useChapterDownload({
     downloadFailedMessage: t('couldNotDownloadChapter'),
     deleteFailedMessage: t('couldNotRemoveChapter'),
     onComplete: refreshStandalone,
-    download: (options) =>
-      downloadChapterScripture(languageCode, bookSlug, chapter, options),
+    download: (options) => downloadChapterScripture(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterScripture(languageCode, bookSlug, chapter),
     getDownloadedBytes: () =>
       loadDownloadedChapterScriptureByteSize(languageCode, bookSlug, chapter),
@@ -60,8 +55,7 @@ export function useChapterDownload({
     deleteFailedMessage: t('couldNotRemoveAudio'),
     download: (options) => downloadChapterAudio(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterAudio(languageCode, bookSlug, chapter),
-    getDownloadedBytes: () =>
-      loadDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
+    getDownloadedBytes: () => loadDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
     getTotalBytes: () => getChapterAudioTotalBytes(languageCode, bookSlug, chapter),
     getIsDownloaded: () => isChapterAudioDownloaded(languageCode, bookSlug, chapter),
     getCanDownload: async () => {
@@ -91,11 +85,7 @@ export function useChapterDownload({
     scriptureError: scripture.error,
     clearScriptureError: scripture.clearError,
     audioFileSizeLabel: audio.fileSizeLabel,
-    audioStatus: resolveDownloadStatus(
-      audio.isDownloading,
-      audio.isDownloaded,
-      audio.isChecking,
-    ),
+    audioStatus: resolveDownloadStatus(audio.isDownloading, audio.isDownloaded, audio.isChecking),
     audioProgress: audio.progress,
     hasAudio: audio.canDownload,
     startAudioDownload: audio.startDownload,

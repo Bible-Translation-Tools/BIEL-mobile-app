@@ -21,4 +21,3 @@ export function toDownloadFailure(err: unknown): DownloadFailure {
 export function partialDownloadFailure(failedBookSlugs: readonly string[]): DownloadFailure {
   return { reason: 'failed-books', count: failedBookSlugs.length };
 }
-

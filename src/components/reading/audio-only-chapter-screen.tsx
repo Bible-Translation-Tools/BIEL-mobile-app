@@ -1,5 +1,5 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioOnlyToolbar } from '@/components/reading/audio-only-toolbar';
@@ -41,7 +41,9 @@ export function AudioOnlyChapterScreen({
   useSystemVolumeSync(showPlayer);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['left', 'right']}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+      edges={['left', 'right']}>
       <AudioOnlyToolbar
         languageCode={languageCode}
         bookSlug={bookSlug}

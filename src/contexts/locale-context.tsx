@@ -1,15 +1,8 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
 import { SUPPORTED_LOCALES, type AppLocale } from '@/constants/locale';
-import { i18n } from '@/i18n';
 import { saveLocalePreference } from '@/db/locale-preferences';
+import { i18n } from '@/i18n';
 
 type LocaleContextValue = {
   uiLocale: AppLocale;

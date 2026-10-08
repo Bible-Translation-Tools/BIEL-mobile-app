@@ -1,0 +1,46 @@
+# Audio panel: volume icons render (no "?" glyph from an unknown Material icon name), and on iOS
+# dragging the volume slider must not trigger swipe-back (iOS 26 can pop from anywhere on screen,
+# not just the edge). Once the player is closed, swipe-back works again.
+# Android: the edge swipe is the system back gesture, which the app cannot disable, so the
+# gesture steps are iOS-only.
+appId: ${APP_ID}
+---
+- runFlow: _open-2john.yaml
+- tapOn: "Chapter 1.*"
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 30000
+- tapOn: "Play"
+- extendedWaitUntil:
+    visible: "Pause"
+    timeout: 45000
+- tapOn: "Pause"
+- assertVisible: "2 John 1:1"
+- assertNotVisible: "\\?"               # missing-glyph placeholder Material draws for an unknown icon name
+- takeScreenshot: 01-panel-volume-icons
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:                           # drag along the volume slider, left to right
+          start: "25%, 92%"
+          end: "90%, 92%"
+          duration: 600
+      - waitForAnimationToEnd
+      - assertVisible: "Close audio player"   # still on the reader, panel still open
+      - takeScreenshot: 02-after-slider-drag
+      - swipe:                           # edge swipe while the player is open
+          start: "1%, 60%"
+          end: "85%, 60%"
+          duration: 400
+      - waitForAnimationToEnd
+      - assertVisible: "Close audio player"
+      - tapOn: "Close audio player"
+      - waitForAnimationToEnd
+      - swipe:
+          start: "1%, 50%"
+          end: "85%, 50%"
+          duration: 400
+      - waitForAnimationToEnd
+      - assertVisible: "Collapse 2 John"    # swipe-back works again once the player is closed
+      - takeScreenshot: 03-swipe-back-after-close

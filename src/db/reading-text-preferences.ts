@@ -8,7 +8,7 @@ import {
   TEXT_SIZE_LEVEL_MIN,
 } from '@/constants/reading-text-settings';
 
-import { deletePreference, getPreference, setPreference } from './preferences';
+import { getPreference, setPreference } from './preferences';
 
 export type ReadingTextPreferenceLevels = {
   textSizeLevel: number;
@@ -19,12 +19,7 @@ function clampLevel(level: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, level));
 }
 
-function parseLevel(
-  raw: string | null,
-  min: number,
-  max: number,
-  fallback: number,
-): number {
+function parseLevel(raw: string | null, min: number, max: number, fallback: number): number {
   if (raw == null) return fallback;
   const parsed = Number.parseInt(raw, 10);
   if (!Number.isFinite(parsed)) return fallback;
@@ -38,8 +33,18 @@ export async function loadReadingTextPreferences(): Promise<ReadingTextPreferenc
   ]);
 
   return {
-    textSizeLevel: parseLevel(textSizeRaw, TEXT_SIZE_LEVEL_MIN, TEXT_SIZE_LEVEL_MAX, TEXT_SIZE_LEVEL_DEFAULT),
-    lineHeightLevel: parseLevel(lineHeightRaw, LINE_HEIGHT_LEVEL_MIN, LINE_HEIGHT_LEVEL_MAX, LINE_HEIGHT_LEVEL_DEFAULT),
+    textSizeLevel: parseLevel(
+      textSizeRaw,
+      TEXT_SIZE_LEVEL_MIN,
+      TEXT_SIZE_LEVEL_MAX,
+      TEXT_SIZE_LEVEL_DEFAULT,
+    ),
+    lineHeightLevel: parseLevel(
+      lineHeightRaw,
+      LINE_HEIGHT_LEVEL_MIN,
+      LINE_HEIGHT_LEVEL_MAX,
+      LINE_HEIGHT_LEVEL_DEFAULT,
+    ),
   };
 }
 
@@ -50,12 +55,5 @@ export async function saveReadingTextPreferences(
   await Promise.all([
     setPreference(PreferenceKeys.textSize, String(textSizeLevel)),
     setPreference(PreferenceKeys.lineHeight, String(lineHeightLevel)),
-  ]);
-}
-
-export async function clearReadingTextPreferences(): Promise<void> {
-  await Promise.all([
-    deletePreference(PreferenceKeys.textSize),
-    deletePreference(PreferenceKeys.lineHeight),
   ]);
 }

@@ -1,5 +1,5 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { VolumeSlider } from '@/components/reading/volume-slider';
 import { IconSymbol } from '@/components/ui/icon-symbol';

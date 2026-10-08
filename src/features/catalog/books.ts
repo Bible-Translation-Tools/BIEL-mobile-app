@@ -23,7 +23,8 @@ function mapCatalogBookToItem(book: CatalogBook): BookItem | null {
 
 export function sortBooks(books: BookItem[]): BookItem[] {
   return [...books].sort(
-    (a, b) => (BOOK_SLUG_ORDER.get(a.slug as never) ?? 999) - (BOOK_SLUG_ORDER.get(b.slug as never) ?? 999),
+    (a, b) =>
+      (BOOK_SLUG_ORDER.get(a.slug as never) ?? 999) - (BOOK_SLUG_ORDER.get(b.slug as never) ?? 999),
   );
 }
 
@@ -43,10 +44,7 @@ export async function fetchBooksForLanguage(languageCode: string): Promise<BookI
   return sorted;
 }
 
-function downloadedRecordToBookItem(record: {
-  bookSlug: string;
-  bookName: string;
-}): BookItem {
+function downloadedRecordToBookItem(record: { bookSlug: string; bookName: string }): BookItem {
   const slug = record.bookSlug;
   return {
     id: slug,

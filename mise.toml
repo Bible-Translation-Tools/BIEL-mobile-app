@@ -1,0 +1,6 @@
+# Matches .github/workflows/android.yml. RN 0.83's Gradle plugin requests a JDK 17
+# toolchain; without one, Gradle 9 tries to auto-download via foojay 0.5.0 and crashes
+# with "JvmVendorSpec does not have member field IBM_SEMERU".
+[tools]
+java = "temurin-17"
+node = "24"

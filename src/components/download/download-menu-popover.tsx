@@ -1,23 +1,15 @@
 import { memo, type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-  type LayoutRectangle,
-} from 'react-native';
+import { Dimensions, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { DownloadMenuLayout } from '@/constants/theme';
+import type { MenuAnchor } from '@/hooks/use-anchored-menu';
 
 import { DownloadMenu } from './download-menu';
 
-export type DownloadMenuAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
-
 type DownloadMenuPopoverProps = {
   visible: boolean;
-  anchor: DownloadMenuAnchor | null;
+  anchor: MenuAnchor | null;
   onClose: () => void;
   menuProps?: ComponentProps<typeof DownloadMenu>;
   /** Shifts the menu toward the right edge of the screen. */
@@ -32,27 +24,19 @@ type MenuPosition = {
   width: number;
 };
 
-function computeMenuPosition(anchor: DownloadMenuAnchor, rightOffset = 0): MenuPosition {
+function computeMenuPosition(anchor: MenuAnchor, rightOffset = 0): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
-  const menuWidth = Math.min(
-    DownloadMenuLayout.menuMaxWidth,
-    screenWidth - horizontalPadding * 2,
-  );
+  const menuWidth = Math.min(DownloadMenuLayout.menuMaxWidth, screenWidth - horizontalPadding * 2);
   const anchorRight = anchor.x + anchor.width;
   const right = Math.max(horizontalPadding, screenWidth - anchorRight - rightOffset);
 
-  const spaceBelow =
-    screenHeight - (anchor.y + anchor.height + DownloadMenuLayout.anchorGap);
+  const spaceBelow = screenHeight - (anchor.y + anchor.height + DownloadMenuLayout.anchorGap);
   const spaceAbove = anchor.y - DownloadMenuLayout.anchorGap;
-  const showAbove =
-    spaceBelow < MENU_ESTIMATED_HEIGHT && spaceAbove > spaceBelow;
+  const showAbove = spaceBelow < MENU_ESTIMATED_HEIGHT && spaceAbove > spaceBelow;
 
   const top = showAbove
-    ? Math.max(
-        horizontalPadding,
-        anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT,
-      )
+    ? Math.max(horizontalPadding, anchor.y - DownloadMenuLayout.anchorGap - MENU_ESTIMATED_HEIGHT)
     : anchor.y + anchor.height + DownloadMenuLayout.anchorGap + DownloadMenuLayout.menuTopOffset;
 
   return { top, right, width: menuWidth };
@@ -74,12 +58,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
   const position = computeMenuPosition(anchor, rightOffset);
 
   return (
-    <Modal
-      transparent
-      visible
-      animationType="none"
-      onRequestClose={onClose}
-      statusBarTranslucent>
+    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.overlay} pointerEvents="box-none">
         <Pressable
           style={styles.dismissLayer}

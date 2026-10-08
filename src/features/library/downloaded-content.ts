@@ -4,14 +4,8 @@ import {
   listDownloadedBookSlugs,
   listLanguagesWithDownloads,
   listLocalContentBooks,
-  listLocalContentBooksForLanguage,
 } from '@/db';
 import { sortBooks } from '@/features/catalog/books';
-import {
-  LANGUAGE_CATALOG_LOAD_FAILED,
-  withDownloadStatus,
-  type LanguageCatalogSnapshot,
-} from '@/features/catalog/language-cache';
 import { loadOfflineAudioChapterNumbers } from '@/features/downloads/offline-audio';
 import { loadOfflineChapterNumbers } from '@/features/downloads/offline-scripture';
 import type { BookItem, ChapterItem } from '@/types/book';
@@ -60,32 +54,6 @@ export async function loadDownloadedLibrary(): Promise<DownloadedLibraryLanguage
     if (!books || books.length === 0) return [];
     return [{ language, books: sortBooks(books) }];
   });
-}
-
-/** Languages that have local scripture and/or audio (Downloads Library). */
-export async function loadDownloadedLanguages(): Promise<LanguageCatalogSnapshot> {
-  try {
-    const items = await listLanguagesWithDownloads();
-    try {
-      return {
-        languages: await withDownloadStatus(items),
-        error: null,
-      };
-    } catch {
-      return { languages: items, error: null };
-    }
-  } catch (err) {
-    return {
-      languages: [],
-      error: err instanceof Error ? err.message : LANGUAGE_CATALOG_LOAD_FAILED,
-    };
-  }
-}
-
-/** Books that have local scripture and/or audio — Downloads Library / offline-only list. */
-export async function loadDownloadedBooksForLanguage(languageCode: string): Promise<BookItem[]> {
-  const records = await listLocalContentBooksForLanguage(languageCode);
-  return sortBooks(records.map(localRecordToBookItem));
 }
 
 /** Slugs of books with downloaded scripture and audio. Local DB only; failures yield empty lists. */

@@ -1,0 +1,29 @@
+# Reader: chapter text renders; Text Settings change size and reset; back returns to books.
+appId: ${APP_ID}
+---
+- runFlow: _open-2john.yaml
+- tapOn: "Chapter 1.*"
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 30000
+- assertVisible: "2 John 1"
+- takeScreenshot: 01-reader-default
+- tapOn: "Menu"
+- tapOn: "Text Settings"
+- assertVisible: "Text Size"
+- assertVisible: "Line Height"
+- tapOn: "Increase text size"
+- tapOn: "Increase text size"
+- tapOn: "Increase line height"
+- takeScreenshot: 02-text-settings-bigger
+- tapOn:   # dimmed backdrop left of the drawer (backdrop and ✕ share the label "Close menu")
+    point: "10%,50%"
+- takeScreenshot: 03-reader-bigger
+- tapOn: "Menu"
+- tapOn: "Text Settings"
+- tapOn: "Reset text settings"
+- tapOn:   # dimmed backdrop left of the drawer (backdrop and ✕ share the label "Close menu")
+    point: "10%,50%"
+- takeScreenshot: 04-reader-reset
+- tapOn: "Go back"
+- assertVisible: "Collapse 2 John"

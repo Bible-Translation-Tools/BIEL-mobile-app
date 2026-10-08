@@ -3,7 +3,7 @@ import TrackPlayer, { AppKilledPlaybackBehavior, Capability } from 'react-native
 
 let setupPromise: Promise<void> | null = null;
 
-export function isTrackPlayerAvailable(): boolean {
+function isTrackPlayerAvailable(): boolean {
   return Platform.OS === 'ios' || Platform.OS === 'android';
 }
 
@@ -17,8 +17,7 @@ export function setupTrackPlayer(): Promise<void> {
       capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
       compactCapabilities: [Capability.Play, Capability.Pause],
       android: {
-        appKilledPlaybackBehavior:
-          AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
       },
     });
   })();

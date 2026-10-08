@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  fetchBooksForLanguage,
-  loadBooksForLanguage,
-} from '@/features/catalog';
+import { fetchBooksForLanguage, loadBooksForLanguage } from '@/features/catalog';
 import { fetchLanguageAudioBooks } from '@/features/downloads';
 import { loadDownloadedBookSlugsByKind } from '@/features/library';
 import { useForceOffline } from '@/stores/force-offline-store';
@@ -50,10 +47,7 @@ function mapBooksWithDownloadStatus(
   });
 }
 
-async function applyDownloadStatus(
-  items: BookItem[],
-  languageCode: string,
-): Promise<BookItem[]> {
+async function applyDownloadStatus(items: BookItem[], languageCode: string): Promise<BookItem[]> {
   const { downloadedSet, audioDownloadedSet, audioAvailableSet } =
     await getDownloadStatusSets(languageCode);
   return mapBooksWithDownloadStatus(items, downloadedSet, audioDownloadedSet, audioAvailableSet);

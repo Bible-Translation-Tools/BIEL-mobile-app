@@ -34,9 +34,7 @@ export function isFullyDownloaded(params: {
   hasAudio: boolean;
   audioDownloaded: boolean;
 }): boolean {
-  return (
-    (!params.hasText || params.textDownloaded) && (!params.hasAudio || params.audioDownloaded)
-  );
+  return (!params.hasText || params.textDownloaded) && (!params.hasAudio || params.audioDownloaded);
 }
 
 /** Whether every chapter in the manifest is available locally. An empty manifest is never complete. */
@@ -75,7 +73,10 @@ export function sumChapterBytes(
 export function sumManifestBytes(
   chapters: readonly { mp3ByteSize: number; cueByteSize?: number }[],
 ): number {
-  return chapters.reduce((sum, chapter) => sum + chapter.mp3ByteSize + (chapter.cueByteSize ?? 0), 0);
+  return chapters.reduce(
+    (sum, chapter) => sum + chapter.mp3ByteSize + (chapter.cueByteSize ?? 0),
+    0,
+  );
 }
 
 /** Merges chapter records by number, `saved` winning over `existing`, sorted by chapter. */

@@ -1,15 +1,20 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { DownloadMenuPopover } from '@/components/download/download-menu-popover';
 import {
-  DownloadMenuPopover,
-  type DownloadMenuAnchor,
-} from '@/components/download/download-menu-popover';
-import { DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+  DOWNLOAD_DONE_ICON_NAME,
+  DOWNLOAD_ICON_NAME,
+  IconSymbol,
+} from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
-import { isFullyDownloaded as isFullyDownloadedRule, resolveDownloadStatus } from '@/domain/downloads';
+import {
+  isFullyDownloaded as isFullyDownloadedRule,
+  resolveDownloadStatus,
+} from '@/domain/downloads';
+import { useAnchoredMenu } from '@/hooks/use-anchored-menu';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useLanguageAudioDownload } from '@/hooks/use-language-audio-download';
 import { useLanguageDownload } from '@/hooks/use-language-download';
@@ -34,9 +39,13 @@ export const LanguageCardRow = memo(function LanguageCardRow({
   const canDownloadText = language.hasText;
   const canDownloadAudio = language.hasAudio;
   const canDownload = canDownloadText || canDownloadAudio;
-  const downloadAnchorRef = useRef<View>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const {
+    anchorRef: downloadAnchorRef,
+    visible: menuVisible,
+    anchor: menuAnchor,
+    open: openDownloadMenu,
+    close: closeDownloadMenu,
+  } = useAnchoredMenu();
   const [downloadSessionActive, setDownloadSessionActive] = useState(false);
 
   const {
@@ -94,18 +103,6 @@ export const LanguageCardRow = memo(function LanguageCardRow({
     audioDownloaded: isAudioDownloaded,
   });
   const isAnyDownloadActive = isDownloading || isAudioDownloading;
-
-  const openDownloadMenu = useCallback(() => {
-    downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setMenuAnchor({ x, y, width, height });
-      setMenuVisible(true);
-    });
-  }, []);
-
-  const closeDownloadMenu = useCallback(() => {
-    setMenuVisible(false);
-    setMenuAnchor(null);
-  }, []);
 
   const handleScripturePress = useCallback(async () => {
     if (isDownloading) {
@@ -205,17 +202,9 @@ export const LanguageCardRow = memo(function LanguageCardRow({
             {isAnyDownloadActive ? (
               <ActivityIndicator size="small" color={theme.tabActive} />
             ) : isFullyDownloaded ? (
-              <IconSymbol
-                name={DOWNLOAD_DONE_ICON_NAME}
-                size={28}
-                color={theme.iconSuccess}
-              />
+              <IconSymbol name={DOWNLOAD_DONE_ICON_NAME} size={28} color={theme.iconSuccess} />
             ) : (
-              <IconSymbol
-                name={DOWNLOAD_ICON_NAME}
-                size={28}
-                color={theme.iconPrimary}
-              />
+              <IconSymbol name={DOWNLOAD_ICON_NAME} size={28} color={theme.iconPrimary} />
             )}
           </Pressable>
         </View>

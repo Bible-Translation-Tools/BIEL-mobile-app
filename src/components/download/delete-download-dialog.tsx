@@ -1,5 +1,5 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DELETE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { ConfirmDialogLayout, Typography } from '@/constants/theme';
@@ -11,11 +11,7 @@ type DeleteDownloadDialogProps = {
   onConfirm: () => void;
 };
 
-export function DeleteDownloadDialog({
-  visible,
-  onCancel,
-  onConfirm,
-}: DeleteDownloadDialogProps) {
+export function DeleteDownloadDialog({ visible, onCancel, onConfirm }: DeleteDownloadDialogProps) {
   const theme = useTheme();
   const { t } = useTranslation('download');
 

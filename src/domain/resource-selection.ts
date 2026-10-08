@@ -2,8 +2,8 @@ import type { ScriptureRendering } from '@/types/catalog';
 
 import { normalizeBookSlug } from './book-slug';
 
-export const RESOURCE_PRIORITY = ['ulb', 'udb', 'reg'] as const;
-export const EXCLUDED_RESOURCE_TYPES = new Set(['tq', 'tn']);
+const RESOURCE_PRIORITY = ['ulb', 'udb', 'reg'] as const;
+const EXCLUDED_RESOURCE_TYPES = new Set(['tq', 'tn']);
 
 type SelectableRendering = Pick<ScriptureRendering, 'resourceType' | 'bookSlug' | 'chapter'>;
 

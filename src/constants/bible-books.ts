@@ -1,5 +1,5 @@
 /** Canonical Protestant Bible book order (USFM slugs). */
-export const BIBLE_BOOK_SLUGS = [
+const BIBLE_BOOK_SLUGS = [
   'GEN',
   'EXO',
   'LEV',
@@ -68,13 +68,11 @@ export const BIBLE_BOOK_SLUGS = [
   'REV',
 ] as const;
 
-export type BibleBookSlug = (typeof BIBLE_BOOK_SLUGS)[number];
+type BibleBookSlug = (typeof BIBLE_BOOK_SLUGS)[number];
 
 const OLD_TESTAMENT_COUNT = 39;
 
-export const OLD_TESTAMENT_SLUGS = new Set<BibleBookSlug>(
-  BIBLE_BOOK_SLUGS.slice(0, OLD_TESTAMENT_COUNT),
-);
+const OLD_TESTAMENT_SLUGS = new Set<BibleBookSlug>(BIBLE_BOOK_SLUGS.slice(0, OLD_TESTAMENT_COUNT));
 
 export const BOOK_SLUG_ORDER = new Map<BibleBookSlug, number>(
   BIBLE_BOOK_SLUGS.map((slug, index) => [slug, index]),
@@ -85,7 +83,7 @@ export function isOldTestament(slug: string): boolean {
 }
 
 /** Protestant canon chapter counts, used to render a full book grid offline. */
-export const BIBLE_BOOK_CHAPTER_COUNTS: Record<BibleBookSlug, number> = {
+const BIBLE_BOOK_CHAPTER_COUNTS: Record<BibleBookSlug, number> = {
   GEN: 50,
   EXO: 40,
   LEV: 27,

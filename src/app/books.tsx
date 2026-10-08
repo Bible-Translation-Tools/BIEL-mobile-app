@@ -10,10 +10,10 @@ import { BooksHeader } from '@/components/books/books-header';
 import { BooksToolbar } from '@/components/books/books-toolbar';
 import { TestamentTabs } from '@/components/books/testament-tabs';
 import { BookLayout } from '@/constants/theme';
+import { stopPlayback } from '@/features/playback';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-import { stopPlayback } from '@/features/playback';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
 import { normalizeRouteParam } from '@/utils/route-params';
 
@@ -84,10 +84,7 @@ export default function BookSelectionScreen() {
     () => (
       <View style={styles.listHeader}>
         <BooksHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-        <TestamentTabs
-          activeTestament={activeTestament}
-          onTestamentChange={setActiveTestament}
-        />
+        <TestamentTabs activeTestament={activeTestament} onTestamentChange={setActiveTestament} />
       </View>
     ),
     [searchQuery, activeTestament],

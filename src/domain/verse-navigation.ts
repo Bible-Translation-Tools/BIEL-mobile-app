@@ -1,9 +1,9 @@
 import type { VerseTiming } from '@/types/audio';
 
 /** Seconds back into the current verse before "previous" restarts it instead of stepping back. */
-export const PREVIOUS_VERSE_RESTART_THRESHOLD = 3;
+const PREVIOUS_VERSE_RESTART_THRESHOLD = 3;
 /** Small tolerance so we don't get stuck on the current marker when tapping "next". */
-export const VERSE_BOUNDARY_EPSILON = 0.1;
+const VERSE_BOUNDARY_EPSILON = 0.1;
 
 /** Index of the last verse that has started at `position`, or -1 before the first verse. */
 function findCurrentVerseIndex(verseTimings: VerseTiming[], position: number): number {

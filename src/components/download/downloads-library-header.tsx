@@ -1,13 +1,11 @@
-import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import {
-  LibraryFilterPopover,
-  type LibraryFilterAnchor,
-} from '@/components/download/library-filter-popover';
+import { LibraryFilterPopover } from '@/components/download/library-filter-popover';
 import { FILTER_LIST_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { DownloadsLibraryLayout, HomeLayout, Typography } from '@/constants/theme';
+import { useAnchoredMenu } from '@/hooks/use-anchored-menu';
 import { useTheme } from '@/hooks/use-theme';
 import type { LibraryContentFilter } from '@/types/content-type';
 
@@ -26,18 +24,15 @@ export function DownloadsLibraryHeader({
 }: DownloadsLibraryHeaderProps) {
   const theme = useTheme();
   const searchInputRef = useRef<TextInput>(null);
-  const filterAnchorRef = useRef<View>(null);
   const { t } = useTranslation('library');
   const { t: tc } = useTranslation('common');
-  const [filterVisible, setFilterVisible] = useState(false);
-  const [filterAnchor, setFilterAnchor] = useState<LibraryFilterAnchor | null>(null);
-
-  const openFilter = () => {
-    filterAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setFilterAnchor({ x, y, width, height });
-      setFilterVisible(true);
-    });
-  };
+  const {
+    anchorRef: filterAnchorRef,
+    visible: filterVisible,
+    anchor: filterAnchor,
+    open: openFilter,
+    close: closeFilter,
+  } = useAnchoredMenu();
 
   return (
     <View style={styles.header}>
@@ -115,7 +110,7 @@ export function DownloadsLibraryHeader({
         anchor={filterAnchor}
         value={contentFilter}
         onSelect={onContentFilterChange}
-        onClose={() => setFilterVisible(false)}
+        onClose={closeFilter}
       />
     </View>
   );

@@ -6,10 +6,10 @@ import { isAbortError } from '@/utils/run-with-concurrency';
 import { partialDownloadFailure, toDownloadFailure } from './failures';
 import { showDownloadFinishedNotification, syncDownloadNotification } from './notifications';
 import {
-    isDownloadActive,
-    removeDownloadTask,
-    updateDownloadTaskProgress,
-    upsertDownloadTask,
+  isDownloadActive,
+  removeDownloadTask,
+  updateDownloadTaskProgress,
+  upsertDownloadTask,
 } from './task-registry';
 
 type ActiveJob = {

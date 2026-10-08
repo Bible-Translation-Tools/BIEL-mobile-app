@@ -1,14 +1,11 @@
-import { useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  LocalePopover,
-  type LocalePopoverAnchor,
-} from '@/components/locale/locale-popover';
+import { LocalePopover } from '@/components/locale/locale-popover';
 import { TRANSLATE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
-import { useLocale } from '@/contexts/locale-context';
 import { Typography } from '@/constants/theme';
+import { useLocale } from '@/contexts/locale-context';
+import { useAnchoredMenu } from '@/hooks/use-anchored-menu';
 
 type InterfaceLanguageButtonProps = {
   textColor: string;
@@ -27,21 +24,13 @@ export function InterfaceLanguageButton({
 }: InterfaceLanguageButtonProps) {
   const { localeLabel } = useLocale();
   const { t } = useTranslation('locale');
-  const anchorRef = useRef<View>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<LocalePopoverAnchor | null>(null);
-
-  const openMenu = useCallback(() => {
-    anchorRef.current?.measureInWindow((x, y, width, height) => {
-      setMenuAnchor({ x, y, width, height });
-      setMenuVisible(true);
-    });
-  }, []);
-
-  const closeMenu = useCallback(() => {
-    setMenuVisible(false);
-    setMenuAnchor(null);
-  }, []);
+  const {
+    anchorRef,
+    visible: menuVisible,
+    anchor: menuAnchor,
+    open: openMenu,
+    close: closeMenu,
+  } = useAnchoredMenu();
 
   return (
     <>
@@ -61,11 +50,7 @@ export function InterfaceLanguageButton({
           accessibilityLabel={t('changeInterfaceLanguage')}
           accessibilityState={{ expanded: menuVisible }}>
           <View style={styles.languageLabel}>
-            <IconSymbol
-              name={TRANSLATE_ICON_NAME}
-              size={16}
-              color={iconColor}
-            />
+            <IconSymbol name={TRANSLATE_ICON_NAME} size={16} color={iconColor} />
             <Text style={[styles.languageText, { color: textColor }]} numberOfLines={1}>
               {localeLabel}
             </Text>

@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "singleQuote": true,
+  "bracketSameLine": true,
+  "trailingComma": "all",
+  "sortPackageJson": false,
+  "sortImports": {
+    "groups": [
+      ["builtin", "external"],
+      ["internal", "subpath"],
+      ["parent", "sibling", "index"],
+      "unknown"
+    ],
+    "ignoreCase": false
+  },
+  "ignorePatterns": [
+    "android/**",
+    "ios/**",
+    ".verify/**",
+    "pnpm-lock.yaml",
+    "**/*.md",
+    "**/*.yml",
+    "**/*.yaml",
+    "**/*.html"
+  ]
+}

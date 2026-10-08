@@ -14,6 +14,8 @@ function clampVolume(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
+const THUMB_SIZE = 14;
+
 export function VolumeSlider({ value, onValueChange, accessibilityLabel }: VolumeSliderProps) {
   const theme = useTheme();
   const trackWidthRef = useRef(0);
@@ -75,6 +77,11 @@ export function VolumeSlider({ value, onValueChange, accessibilityLabel }: Volum
             style={[styles.volumeFill, { backgroundColor: theme.tabActive, width: fillWidth }]}
           />
         </View>
+        {/* pointerEvents none: touches must land on the hit area so locationX stays track-relative. */}
+        <View
+          pointerEvents="none"
+          style={[styles.volumeThumb, { backgroundColor: theme.tabActive, left: fillWidth }]}
+        />
       </View>
       <IconSymbol
         name={{ ios: 'speaker.wave.3.fill', android: 'volume-up' }}
@@ -105,5 +112,12 @@ const styles = StyleSheet.create({
   volumeFill: {
     height: '100%',
     borderRadius: 5,
+  },
+  volumeThumb: {
+    position: 'absolute',
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    marginLeft: -THUMB_SIZE / 2,
+    borderRadius: THUMB_SIZE / 2,
   },
 });

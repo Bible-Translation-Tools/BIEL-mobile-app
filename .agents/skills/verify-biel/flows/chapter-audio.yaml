@@ -1,0 +1,25 @@
+# Audio: play a chapter from the reader's mini player, expand the panel, pause.
+appId: ${APP_ID}
+---
+- runFlow: _open-2john.yaml
+- tapOn: "Chapter 1.*"
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 30000
+- assertVisible: "Audio player"
+- tapOn: "Play"
+- extendedWaitUntil:
+    visible: "Pause"
+    timeout: 45000
+- takeScreenshot: 01-playing
+- assertVisible: "2 John 1:1"
+- tapOn: "Next verse"
+- extendedWaitUntil:
+    visible: "2 John 1:2"
+    timeout: 10000
+- takeScreenshot: 02-after-next-verse
+- tapOn: "Pause"
+- assertVisible: "Play"
+- takeScreenshot: 03-paused
+- tapOn: "Close audio player"
+- assertVisible: "Open audio player|Audio player"

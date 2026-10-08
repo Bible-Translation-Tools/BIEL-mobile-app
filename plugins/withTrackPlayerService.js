@@ -1,4 +1,4 @@
-const { withAndroidManifest } = require('@expo/config-plugins');
+const { withAndroidManifest } = require('expo/config-plugins');
 
 const TRACK_PLAYER_SERVICE = 'com.doublesymmetry.trackplayer.service.MusicService';
 

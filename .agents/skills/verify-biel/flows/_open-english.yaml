@@ -1,0 +1,10 @@
+# Home → English books screen (fixture language: has text + audio).
+appId: ${APP_ID}
+---
+- runFlow: _home.yaml
+- tapOn: "Search language here..."
+- inputText: "en"
+- tapOn: "Open English"
+- extendedWaitUntil:
+    visible: "Old Testament"
+    timeout: 30000

@@ -1,16 +1,14 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  DownloadMenuPopover,
-  type DownloadMenuAnchor,
-} from '@/components/download/download-menu-popover';
 import { ChapterGrid } from '@/components/books/chapter-grid';
+import { DownloadMenuPopover } from '@/components/download/download-menu-popover';
 import { DELETE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { getBookContentFlags } from '@/domain/content-type';
 import { resolveDownloadStatus } from '@/domain/downloads';
+import { useAnchoredMenu } from '@/hooks/use-anchored-menu';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
@@ -63,9 +61,13 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
   const { t } = useTranslation('books');
   const { t: tc } = useTranslation('common');
   const { hasText, hasAudio: bookHasAudio } = getBookContentFlags(book);
-  const downloadAnchorRef = useRef<View>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const {
+    anchorRef: downloadAnchorRef,
+    visible: menuVisible,
+    anchor: menuAnchor,
+    open: openDownloadMenu,
+    close: closeDownloadMenu,
+  } = useAnchoredMenu({ dismissKeyboard: true });
   const [downloadSessionActive, setDownloadSessionActive] = useState(false);
 
   const {
@@ -125,19 +127,6 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
 
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);
-
-  const openDownloadMenu = useCallback(() => {
-    Keyboard.dismiss();
-    downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setMenuAnchor({ x, y, width, height });
-      setMenuVisible(true);
-    });
-  }, []);
-
-  const closeDownloadMenu = useCallback(() => {
-    setMenuVisible(false);
-    setMenuAnchor(null);
-  }, []);
 
   const handleScripturePress = useCallback(async () => {
     if (isScriptureDownloading) {
@@ -256,11 +245,7 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
 
       <View ref={downloadAnchorRef} collapsable={false}>
         <Pressable
-          style={({ pressed }) => [
-            cardStyle,
-            styles.downloadCard,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
+          style={({ pressed }) => [cardStyle, styles.downloadCard, { opacity: pressed ? 0.9 : 1 }]}
           onPress={openDownloadMenu}
           accessibilityRole="button"
           accessibilityLabel={

@@ -1,22 +1,22 @@
 import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  Dimensions,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 
 import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
-import { ChapterDownloadMenu, type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
+import {
+  ChapterDownloadMenu,
+  type ChapterDownloadContext,
+} from '@/components/reading/chapter-download-menu';
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
-import { IconSymbol, DOWNLOAD_ICON_NAME, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
+import {
+  IconSymbol,
+  DOWNLOAD_ICON_NAME,
+  SETTINGS_ICON_NAME,
+  type IconSymbolName,
+} from '@/components/ui/icon-symbol';
 import { MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 

@@ -1,20 +1,27 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { DownloadMenuPopover } from '@/components/download/download-menu-popover';
 import {
-  DownloadMenuPopover,
-  type DownloadMenuAnchor,
-} from '@/components/download/download-menu-popover';
-import { DELETE_ICON_NAME, DOWNLOAD_DONE_ICON_NAME, DOWNLOAD_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+  DELETE_ICON_NAME,
+  DOWNLOAD_DONE_ICON_NAME,
+  DOWNLOAD_ICON_NAME,
+  IconSymbol,
+} from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
-import { isFullyDownloaded as isFullyDownloadedRule, resolveDownloadStatus } from '@/domain/downloads';
+import {
+  isFullyDownloaded as isFullyDownloadedRule,
+  resolveDownloadStatus,
+} from '@/domain/downloads';
+import { useAnchoredMenu } from '@/hooks/use-anchored-menu';
 import { useBookAudioDownload } from '@/hooks/use-book-audio-download';
 import { useBookDownload } from '@/hooks/use-book-download';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useDownloadErrorAlert } from '@/hooks/use-download-error-alert';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem } from '@/types/book';
+
 import { ChapterGrid } from './chapter-grid';
 
 type BookCardRowProps = {
@@ -29,10 +36,7 @@ type BookCardRowProps = {
   onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
 };
 
-function areBookCardRowPropsEqual(
-  prev: BookCardRowProps,
-  next: BookCardRowProps,
-): boolean {
+function areBookCardRowPropsEqual(prev: BookCardRowProps, next: BookCardRowProps): boolean {
   return (
     prev.book.id === next.book.id &&
     prev.book.name === next.book.name &&
@@ -66,9 +70,13 @@ export const BookCardRow = memo(function BookCardRow({
   const { t: tc } = useTranslation('common');
   const isScriptureDownloaded = book.downloadStatus === 'downloaded';
   const isAudioDownloadedInList = book.audioDownloadStatus === 'downloaded';
-  const downloadAnchorRef = useRef<View>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<DownloadMenuAnchor | null>(null);
+  const {
+    anchorRef: downloadAnchorRef,
+    visible: menuVisible,
+    anchor: menuAnchor,
+    open: openDownloadMenu,
+    close: closeDownloadMenu,
+  } = useAnchoredMenu({ dismissKeyboard: true });
   const [downloadSessionActive, setDownloadSessionActive] = useState(false);
 
   const {
@@ -135,19 +143,6 @@ export const BookCardRow = memo(function BookCardRow({
     hasAudio: audioOnly || bookHasAudio,
     audioDownloaded: isAudioDownloadedInList,
   });
-
-  const openDownloadMenu = useCallback(() => {
-    Keyboard.dismiss();
-    downloadAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setMenuAnchor({ x, y, width, height });
-      setMenuVisible(true);
-    });
-  }, []);
-
-  const closeDownloadMenu = useCallback(() => {
-    setMenuVisible(false);
-    setMenuAnchor(null);
-  }, []);
 
   const handleScripturePress = useCallback(async () => {
     if (isScriptureDownloading) {
@@ -217,11 +212,7 @@ export const BookCardRow = memo(function BookCardRow({
     <View style={styles.header}>
       <View style={styles.titleGroup}>
         {isFullyDownloaded ? (
-          <IconSymbol
-            name={DOWNLOAD_DONE_ICON_NAME}
-            size={28}
-            color={theme.iconSuccess}
-          />
+          <IconSymbol name={DOWNLOAD_DONE_ICON_NAME} size={28} color={theme.iconSuccess} />
         ) : null}
         <Text style={[styles.bookName, { color: theme.text }]} numberOfLines={1}>
           {book.name}
@@ -253,10 +244,7 @@ export const BookCardRow = memo(function BookCardRow({
       {isExpanded ? (
         <View style={[cardStyle, styles.bookCard]}>
           <Pressable
-            style={({ pressed }) => [
-              styles.headerHitArea,
-              { opacity: pressed ? 0.9 : 1 },
-            ]}
+            style={({ pressed }) => [styles.headerHitArea, { opacity: pressed ? 0.9 : 1 }]}
             {...toggleProps}>
             {header}
           </Pressable>
@@ -281,11 +269,7 @@ export const BookCardRow = memo(function BookCardRow({
 
       <View ref={downloadAnchorRef} collapsable={false}>
         <Pressable
-          style={({ pressed }) => [
-            cardStyle,
-            styles.downloadCard,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
+          style={({ pressed }) => [cardStyle, styles.downloadCard, { opacity: pressed ? 0.9 : 1 }]}
           onPress={handleDownloadButtonPress}
           accessibilityRole="button"
           accessibilityLabel={
@@ -298,17 +282,9 @@ export const BookCardRow = memo(function BookCardRow({
           {isAnyDownloadActive ? (
             <ActivityIndicator size="small" color={theme.tabActive} />
           ) : isFullyDownloaded ? (
-            <IconSymbol
-              name={DELETE_ICON_NAME}
-              size={24}
-              color={theme.iconDanger}
-            />
+            <IconSymbol name={DELETE_ICON_NAME} size={24} color={theme.iconDanger} />
           ) : (
-            <IconSymbol
-              name={DOWNLOAD_ICON_NAME}
-              size={28}
-              color={theme.iconPrimary}
-            />
+            <IconSymbol name={DOWNLOAD_ICON_NAME} size={28} color={theme.iconPrimary} />
           )}
         </Pressable>
       </View>
