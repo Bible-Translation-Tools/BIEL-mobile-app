@@ -1,15 +1,14 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Modal, Pressable, StyleSheet, View, type LayoutRectangle } from 'react-native';
+import { Dimensions, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { LocaleMenu } from '@/components/locale/locale-menu';
 import { DownloadMenuLayout, SystemSettingsLayout } from '@/constants/theme';
-
-export type LocalePopoverAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
+import type { MenuAnchor } from '@/hooks/use-anchored-menu';
 
 type LocalePopoverProps = {
   visible: boolean;
-  anchor: LocalePopoverAnchor | null;
+  anchor: MenuAnchor | null;
   onClose: () => void;
 };
 
@@ -21,7 +20,7 @@ type MenuPosition = {
   width: number;
 };
 
-function computeMenuPosition(anchor: LocalePopoverAnchor): MenuPosition {
+function computeMenuPosition(anchor: MenuAnchor): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
   const menuWidth = Math.min(SystemSettingsLayout.menuWidth, screenWidth - horizontalPadding * 2);

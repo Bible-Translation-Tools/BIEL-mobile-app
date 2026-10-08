@@ -1,16 +1,15 @@
 import { memo, type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Modal, Pressable, StyleSheet, View, type LayoutRectangle } from 'react-native';
+import { Dimensions, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { DownloadMenuLayout } from '@/constants/theme';
+import type { MenuAnchor } from '@/hooks/use-anchored-menu';
 
 import { DownloadMenu } from './download-menu';
 
-export type DownloadMenuAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
-
 type DownloadMenuPopoverProps = {
   visible: boolean;
-  anchor: DownloadMenuAnchor | null;
+  anchor: MenuAnchor | null;
   onClose: () => void;
   menuProps?: ComponentProps<typeof DownloadMenu>;
   /** Shifts the menu toward the right edge of the screen. */
@@ -25,7 +24,7 @@ type MenuPosition = {
   width: number;
 };
 
-function computeMenuPosition(anchor: DownloadMenuAnchor, rightOffset = 0): MenuPosition {
+function computeMenuPosition(anchor: MenuAnchor, rightOffset = 0): MenuPosition {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const horizontalPadding = DownloadMenuLayout.screenPadding;
   const menuWidth = Math.min(DownloadMenuLayout.menuMaxWidth, screenWidth - horizontalPadding * 2);
