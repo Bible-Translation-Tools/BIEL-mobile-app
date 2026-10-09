@@ -1,0 +1,44 @@
+# Reader checkpoint: relaunching while in the reader reopens that chapter; Back from the restored
+# reader (no screens behind it) goes to the books list, then Home; after that, launch shows Home.
+appId: ${APP_ID}
+---
+- runFlow: _open-2john.yaml
+- tapOn: "Chapter 1.*"
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 30000
+- waitForAnimationToEnd   # the checkpoint write is debounced (200 ms); stopApp kills without a background flush
+- takeScreenshot: 01-reader-before-relaunch
+- launchApp:
+    stopApp: true
+    clearState: false
+- tapOn:
+    text: "Open"          # iOS dev-client deep-link prompt (see _ready.yaml)
+    optional: true
+- extendedWaitUntil:
+    visible: ".*From the elder to the chosen lady.*"
+    timeout: 120000
+- assertVisible: "2 John 1"
+- assertNotVisible: "Browse the Bible"
+- takeScreenshot: 02-reader-restored
+- tapOn: "Go back"
+- extendedWaitUntil:
+    visible: "Old Testament"
+    timeout: 30000
+- assertVisible: "Search book here..."
+- takeScreenshot: 03-books-after-back
+- tapOn: "Go back"        # books has no history either: falls back to Home
+- extendedWaitUntil:
+    visible: "Browse the Bible"
+    timeout: 30000
+- launchApp:
+    stopApp: true
+    clearState: false
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible: "Browse the Bible"
+    timeout: 120000
+- assertNotVisible: ".*From the elder to the chosen lady.*"
+- takeScreenshot: 04-home-after-relaunch

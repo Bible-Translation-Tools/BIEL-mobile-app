@@ -92,7 +92,7 @@ Recommended order for a full pass (each step's preconditions come from the one b
 
 ```bash
 bv reset
-bv flow browse-languages && bv flow browse-books && bv flow read-chapter && bv flow chapter-audio && bv flow audio-panel-gestures
+bv flow browse-languages && bv flow browse-books && bv flow read-chapter && bv flow reader-checkpoint && bv flow chapter-audio && bv flow audio-panel-gestures
 bv flow download-book && bv files && bv db "select language_code,book_slug,byte_size,content_hash from books"
 bv net off && bv flow offline-read; bv net on          # iOS: bv flow offline-read-forced ios
 bv flow downloads-library && bv files && bv db "select count(*) from books"
