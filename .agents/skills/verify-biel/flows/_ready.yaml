@@ -14,9 +14,6 @@ appId: ${APP_ID}
 - tapOn:
     text: "Continue"
     optional: true
-- extendedWaitUntil:
-    visible: "Browse the Bible|Go back"
-    timeout: 120000
 - runFlow:
     when:
       visible: "Go back"
@@ -28,4 +25,4 @@ appId: ${APP_ID}
       - tapOn: "Go back"
 - extendedWaitUntil:
     visible: "Browse the Bible"
-    timeout: 30000
+    timeout: 120000
