@@ -6,6 +6,7 @@ appId: ${APP_ID}
 - tapOn: "Menu"
 - tapOn: "System Settings"
 - tapOn: "Force Offline Mode"
+- waitForAnimationToEnd   # a backdrop tap during the drawer/toggle animation is lost
 - tapOn:   # dimmed backdrop left of the drawer
     point: "10%,50%"
 - extendedWaitUntil:

@@ -25,8 +25,8 @@ mkdir -p "$OUT"
 adb install -r "$APK"
 adb shell pm grant "$APP_ID" android.permission.POST_NOTIFICATIONS || true
 
-# First launch boots past splash before any flow runs.
-maestro test -e APP_ID="$APP_ID" "$FLOWS_DIR/_ready.yaml" || true
+# First launch boots past splash before any flow runs (_ready alone does not launch the app).
+maestro test -e APP_ID="$APP_ID" "$FLOWS_DIR/_home.yaml" || true
 
 failed=()
 for flow in "${FLOWS[@]}"; do
