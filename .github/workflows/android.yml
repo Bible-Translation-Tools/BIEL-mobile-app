@@ -100,3 +100,59 @@ jobs:
           name: biel-android-release-${{ github.run_number }}
           path: release/*.apk
           if-no-files-found: error
+
+  e2e:
+    name: Maestro flows (Android emulator)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download APK
+        uses: actions/download-artifact@v5
+        with:
+          name: biel-android-release-${{ github.run_number }}
+          path: release
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run flows
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          # Same API level as the verify-biel ledger (Pixel_8_Pro_API_33).
+          api-level: 33
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash .github/scripts/run-maestro-flows.sh "$(ls release/*.apk | head -n 1)" maestro-results
+
+      - name: Upload Maestro results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: maestro-results-${{ github.run_number }}
+          path: maestro-results
+          if-no-files-found: ignore
