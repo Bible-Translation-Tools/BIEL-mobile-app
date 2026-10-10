@@ -1,6 +1,8 @@
 # Wait until the app has booted past splash (DB, i18n, catalog) and shows Home.
 # "Open" confirms iOS's "Open in BIEL?" prompt for the dev-client deep link (simctl openurl).
 # "Allow"/"Continue" are fallbacks; biel-verify normally prevents those prompts.
+# A flow that ended inside the reader leaves a reading checkpoint, so launch reopens that chapter;
+# backing out of it (reader → books → Home) clears the checkpoint.
 appId: ${APP_ID}
 ---
 - tapOn:
@@ -12,6 +14,15 @@ appId: ${APP_ID}
 - tapOn:
     text: "Continue"
     optional: true
+- runFlow:
+    when:
+      visible: "Go back"
+    commands:
+      - tapOn: "Go back"
+      - extendedWaitUntil:
+          visible: "Old Testament"
+          timeout: 30000
+      - tapOn: "Go back"
 - extendedWaitUntil:
     visible: "Browse the Bible"
     timeout: 120000

@@ -12,6 +12,7 @@ Each row is a claim about one commit. Re-verify and update the row (do not add a
 | [Browse languages](./browse-languages.md) | `browse-languages` | ✅ `41ec62e` 2026-10-06 | ✅ `41ec62e` 2026-10-06 |
 | [Browse books](./browse-books.md) | `browse-books` | ⚠️ last clean pass `d4e0bdc` (#4 base); not re-verified on #5 (harness failures) | ✅ `41ec62e` 2026-10-06 |
 | [Read a chapter](./read-chapter.md) | `read-chapter` | ⚠️ last clean pass `d4e0bdc` (#4 base); not re-verified on #5 (harness failures) | ✅ `41ec62e` 2026-10-06 |
+| [Reader checkpoint](./reader-checkpoint.md) | `reader-checkpoint` | — not yet run | — not yet run |
 | [Chapter audio](./chapter-audio.md) | `chapter-audio`, `audio-panel-gestures` | ✅ `41ec62e` 2026-10-06 | ✅ `41ec62e` 2026-10-06 |
 | [Download a book](./downloads.md) | `download-book`, `downloads-library` | ✅ `41ec62e` 2026-10-06 | ✅ `f9a73c9` 2026-10-06 |
 | [Read offline](./offline-read.md) | `offline-read`, `offline-read-forced` | ⚠️ `41ec62e` partial: offline read passed (airplane mode); 3 John control not reached (harness) | ✅ `f9a73c9` 2026-10-06 (Force Offline Mode, simulated) |

@@ -17,7 +17,11 @@ export function BooksToolbar() {
     <View style={styles.toolbar}>
       <Pressable
         style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
-        onPress={() => router.back()}
+        onPress={() => {
+          // A reader restored at launch can replace itself with this screen, leaving no history.
+          if (router.canGoBack()) router.back();
+          else router.replace('/');
+        }}
         accessibilityRole="button"
         accessibilityLabel={t('goBack')}>
         <IconSymbol

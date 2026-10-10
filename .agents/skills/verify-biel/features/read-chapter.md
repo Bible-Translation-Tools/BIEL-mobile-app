@@ -31,6 +31,6 @@ Preconditions:
 
 ## Gotchas
 
-- `Close menu` labels both the drawer's ✕ and the full-screen backdrop; tapping by label hits the backdrop's centre, which is **under** the drawer, and nothing happens. Dismiss by tapping the backdrop at `point: "10%,50%"`.
+- `Close menu` labels both the drawer's ✕ and the full-screen backdrop; tapping by label hits the backdrop's centre, which is **under** the drawer, and nothing happens. Tapping the backdrop at a point is unreliable on the CI emulator. Tap the ✕ with `text: "Close menu"` + `rightOf: "<drawer title>"`.
 - In a dev build, Expo's floating Tools button sits on top of `Menu`. `bv launch` hides it. If `Menu` taps open the Expo dev menu, relaunch with `bv launch`.
 - Text settings persist across launches; reset them so later screenshots are comparable.

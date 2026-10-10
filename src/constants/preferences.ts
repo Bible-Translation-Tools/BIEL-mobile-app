@@ -4,4 +4,5 @@ export const PreferenceKeys = {
   audioVolume: 'audio_volume',
   theme: 'theme',
   uiLocale: 'ui_locale',
+  readingCheckpoint: 'reading_checkpoint',
 } as const;
