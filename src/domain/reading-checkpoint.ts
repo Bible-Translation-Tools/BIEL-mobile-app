@@ -91,7 +91,7 @@ export function checkpointToReadParams(checkpoint: ReadingCheckpoint): ReadingCh
   };
 }
 
-/** Where Back goes from a reader that was restored with no history behind it. */
+/** The screen the reader was opened from; restored under the reader after a restart. */
 export function getReadingParentHref(options: {
   languageCode: string;
   audioOnly: boolean;

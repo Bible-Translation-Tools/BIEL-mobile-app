@@ -1,6 +1,6 @@
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,7 +8,7 @@ import { HomeHeader } from '@/components/home/home-header';
 import { HomeToolbar } from '@/components/home/home-toolbar';
 import { LanguageList } from '@/components/home/language-list';
 import { HomeLayout } from '@/constants/theme';
-import { checkpointToReadParams } from '@/domain/reading-checkpoint';
+import { checkpointToReadParams, getReadingParentHref } from '@/domain/reading-checkpoint';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,11 +26,17 @@ function takeLaunchCheckpoint(): ReadingCheckpoint | null {
 }
 
 export default function IndexRoute() {
-  // Reopen the chapter the user was reading when the app was closed.
+  const router = useRouter();
   const [checkpoint] = useState(takeLaunchCheckpoint);
-  if (checkpoint != null) {
-    return <Redirect href={{ pathname: '/read', params: checkpointToReadParams(checkpoint) }} />;
-  }
+  const restoredRef = useRef(false);
+
+  // Reopen the chapter the user was reading with the screens behind it, so Back walks up the stack.
+  useEffect(() => {
+    if (checkpoint == null || restoredRef.current) return;
+    restoredRef.current = true;
+    router.push(getReadingParentHref(checkpoint));
+    router.push({ pathname: '/read', params: checkpointToReadParams(checkpoint) });
+  }, [checkpoint, router]);
 
   return <HomeScreen />;
 }

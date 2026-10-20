@@ -11,7 +11,6 @@ import { BooksToolbar } from '@/components/books/books-toolbar';
 import { TestamentTabs } from '@/components/books/testament-tabs';
 import { BookLayout } from '@/constants/theme';
 import { stopPlayback } from '@/features/playback';
-import { useBackToHomeWithoutHistory } from '@/hooks/use-back-to-home-without-history';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -38,8 +37,6 @@ export default function BookSelectionScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [listKey, setListKey] = useState(0);
   const { books, loading, error, refetch, refreshDownloadStatus } = useBooks(ietfCode);
-
-  useBackToHomeWithoutHistory();
 
   useFocusEffect(
     useCallback(() => {
