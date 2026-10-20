@@ -20,6 +20,7 @@ import { i18n, initI18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
+import { initReadingCheckpointStore } from '@/stores/reading-checkpoint-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
@@ -66,6 +67,7 @@ export default function RootLayout() {
         await Promise.all([
           initReadingTextSettingsStore(),
           initAudioVolumeStore(),
+          initReadingCheckpointStore(),
           initDownloadNotifications(),
           Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
         ]);

@@ -9,6 +9,7 @@ import { DownloadsLibraryHeader } from '@/components/download/downloads-library-
 import { DownloadsLibraryList } from '@/components/download/downloads-library-list';
 import { DownloadsLibraryToolbar } from '@/components/download/downloads-library-toolbar';
 import { bookMatchesContentFilter, getBookContentFlags } from '@/domain/content-type';
+import { DOWNLOADS_LIBRARY_FROM_PARAM } from '@/domain/reading-checkpoint';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDownloadsLibrary } from '@/hooks/use-downloads-library';
 import { useTheme } from '@/hooks/use-theme';
@@ -65,6 +66,7 @@ export function DownloadsLibraryView() {
           bookSlug: book.slug,
           bookName: book.name,
           chapter: String(chapter.number),
+          from: DOWNLOADS_LIBRARY_FROM_PARAM,
           ...(hasText ? {} : { audioOnly: '1' }),
         },
       });

@@ -18,9 +18,11 @@ import { ChapterItem } from '@/components/reading/chapter-item';
 import { ChapterUnavailablePlaceholder } from '@/components/reading/chapter-unavailable-placeholder';
 import { ReadingToolbar } from '@/components/reading/reading-toolbar';
 import { ReadingLayout } from '@/constants/theme';
+import { resolveReadingCheckpointSource } from '@/domain/reading-checkpoint';
 import { getResumedPlaybackChapter } from '@/features/playback';
 import { useChapterHasAudio } from '@/hooks/use-chapter-audio';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePersistReadingCheckpoint } from '@/hooks/use-persist-reading-checkpoint';
 import { useReaderScroll } from '@/hooks/use-reader-scroll';
 import { useReaderToolbar } from '@/hooks/use-reader-toolbar';
 import { useStopPlaybackOnLeave } from '@/hooks/use-stop-playback-on-leave';
@@ -39,6 +41,7 @@ export default function ReadingScreen() {
     chapter,
     audioOnly: audioOnlyParam,
     openAudio: openAudioParam,
+    from: fromParam,
   } = useLocalSearchParams<{
     languageCode: string;
     bookSlug: string;
@@ -46,6 +49,7 @@ export default function ReadingScreen() {
     chapter: string;
     audioOnly?: string;
     openAudio?: string;
+    from?: string;
   }>();
 
   const ietfCode = normalizeRouteParam(languageCode) ?? '';
@@ -116,6 +120,7 @@ export default function ReadingScreen() {
   const [currentPlayingVerse, setCurrentPlayingVerse] = useState<number | null>(null);
   const [currentPlayingChapter, setCurrentPlayingChapter] = useState<number | null>(null);
   const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(openAudio);
+  const [audioOnlyChapter, setAudioOnlyChapter] = useState<number | null>(null);
   const isAudioPanelOpenRef = useRef(openAudio);
   const playVerseAtRef = useRef<((chapter: number, verse: number) => void) | undefined>(undefined);
   const currentPlayingVerseRef = useRef(currentPlayingVerse);
@@ -426,6 +431,35 @@ export default function ReadingScreen() {
     ],
   );
 
+  const showAudioOnly =
+    (audioOnly || audioOnlyFallback) &&
+    !!ietfCode &&
+    !!resolvedBookSlug &&
+    effectiveChapterNumber != null;
+
+  // The chapter to reopen after a restart: the one playing, else the one on screen.
+  const checkpointChapter = showAudioOnly
+    ? (audioOnlyChapter ?? effectiveChapterNumber)
+    : isAudioPanelOpen && currentPlayingChapter != null
+      ? currentPlayingChapter
+      : (visibleChapter ?? effectiveChapterNumber);
+  const checkpointSource = resolveReadingCheckpointSource(normalizeRouteParam(fromParam));
+  const checkpointBookName = resolvedBookName ?? displayBookName ?? resolvedBookSlug;
+
+  const readingCheckpoint =
+    ietfCode && resolvedBookSlug && checkpointChapter != null
+      ? {
+          languageCode: ietfCode,
+          bookSlug: resolvedBookSlug,
+          bookName: checkpointBookName,
+          chapter: checkpointChapter,
+          audioOnly: audioOnly || audioOnlyFallback,
+          source: checkpointSource,
+        }
+      : null;
+
+  usePersistReadingCheckpoint(readingCheckpoint);
+
   const keyExtractor = useCallback((item: ChapterContent) => String(item.chapter), []);
 
   const ListFooter =
@@ -437,12 +471,7 @@ export default function ReadingScreen() {
       </View>
     ) : null;
 
-  if (
-    (audioOnly || audioOnlyFallback) &&
-    ietfCode &&
-    resolvedBookSlug &&
-    effectiveChapterNumber != null
-  ) {
+  if (showAudioOnly && effectiveChapterNumber != null) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         {/* The player is always up here; iOS swipe-back would steal volume-slider drags. */}
@@ -453,6 +482,7 @@ export default function ReadingScreen() {
           bookSlug={resolvedBookSlug}
           bookName={resolvedBookName}
           chapter={effectiveChapterNumber}
+          onChapterChange={setAudioOnlyChapter}
         />
       </View>
     );

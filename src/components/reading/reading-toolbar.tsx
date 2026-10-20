@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +14,7 @@ import { type ChapterDownloadContext } from '@/components/reading/chapter-downlo
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
-import { stopPlaybackBeforeLeave } from '@/hooks/use-stop-playback-on-leave';
+import { useLeaveReadingScreen } from '@/hooks/use-leave-reading-screen';
 import { useTheme } from '@/hooks/use-theme';
 
 type ReadingToolbarProps = {
@@ -25,7 +24,7 @@ type ReadingToolbarProps = {
 
 export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbarProps) {
   const theme = useTheme();
-  const router = useRouter();
+  const leaveReadingScreen = useLeaveReadingScreen();
   const { t } = useTranslation('reading');
   const insets = useSafeAreaInsets();
   const isElevated = chapterTitle != null;
@@ -52,10 +51,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
         <View style={styles.leading}>
           <Pressable
             style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.7 : 1 }]}
-            onPress={() => {
-              stopPlaybackBeforeLeave();
-              router.back();
-            }}
+            onPress={() => leaveReadingScreen()}
             accessibilityRole="button"
             accessibilityLabel={t('goBack')}>
             <IconSymbol
