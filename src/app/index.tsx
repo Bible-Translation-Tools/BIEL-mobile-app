@@ -14,10 +14,20 @@ import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
 import { getReadingCheckpointSnapshot } from '@/stores/reading-checkpoint-store';
 import type { LanguageItem } from '@/types/language';
+import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
+
+// Only the first mount after launch may restore; the store's snapshot changes while a reader is open.
+let launchRestoreHandled = false;
+
+function takeLaunchCheckpoint(): ReadingCheckpoint | null {
+  if (launchRestoreHandled) return null;
+  launchRestoreHandled = true;
+  return getReadingCheckpointSnapshot();
+}
 
 export default function IndexRoute() {
   // Reopen the chapter the user was reading when the app was closed.
-  const checkpoint = getReadingCheckpointSnapshot();
+  const [checkpoint] = useState(takeLaunchCheckpoint);
   if (checkpoint != null) {
     return <Redirect href={{ pathname: '/read', params: checkpointToReadParams(checkpoint) }} />;
   }
