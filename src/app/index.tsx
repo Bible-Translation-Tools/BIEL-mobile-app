@@ -104,20 +104,14 @@ function HomeScreen() {
     [router],
   );
 
-  const listHeader = useMemo(
-    () => (
-      <View style={styles.listHeader}>
-        <HomeHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-      </View>
-    ),
-    [searchQuery],
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <HomeToolbar />
+        <View style={styles.stickyHeader}>
+          <HomeHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+        </View>
         <LanguageList
           key={listKey}
           languages={filteredLanguages}
@@ -128,8 +122,6 @@ function HomeScreen() {
           refreshing={refreshing}
           onLanguagePress={handleLanguagePress}
           onDownloadStatusChange={refreshDownloadStatus}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.listContent}
         />
       </SafeAreaView>
     </View>
@@ -143,11 +135,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  listContent: {
+  stickyHeader: {
+    paddingHorizontal: HomeLayout.padding,
     paddingTop: HomeLayout.padding,
-  },
-  listHeader: {
-    gap: HomeLayout.contentGap,
     paddingBottom: HomeLayout.contentGap,
   },
 });

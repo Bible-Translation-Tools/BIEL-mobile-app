@@ -9,8 +9,6 @@ import {
   Text,
   type ListRenderItem,
   View,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
 
 import { BookLayout } from '@/constants/theme';
@@ -32,9 +30,7 @@ type BookListProps = {
   onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
-  ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
   ListFooterComponent?: React.ComponentType | React.ReactElement | null;
-  contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type BookListEmptyProps = {
@@ -88,9 +84,7 @@ export function BookList({
   onDownloadStatusChange,
   onRefresh,
   refreshing = false,
-  ListHeaderComponent,
   ListFooterComponent,
-  contentContainerStyle,
 }: BookListProps) {
   const theme = useTheme();
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
@@ -168,7 +162,6 @@ export function BookList({
     ],
   );
 
-  const listHeader = ListHeaderComponent;
   const isEmpty = books.length === 0;
 
   return (
@@ -179,7 +172,6 @@ export function BookList({
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       extraData={expandedBookId}
-      ListHeaderComponent={listHeader}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
         <View style={styles.emptyFill}>
@@ -202,7 +194,7 @@ export function BookList({
         ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
-      contentContainerStyle={[styles.content, contentContainerStyle]}
+      contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       initialNumToRender={12}
