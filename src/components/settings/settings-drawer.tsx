@@ -6,28 +6,17 @@ import Animated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
-import {
-  ChapterDownloadMenu,
-  type ChapterDownloadContext,
-} from '@/components/reading/chapter-download-menu';
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
-import {
-  IconSymbol,
-  DOWNLOAD_ICON_NAME,
-  SETTINGS_ICON_NAME,
-  type IconSymbolName,
-} from '@/components/ui/icon-symbol';
+import { IconSymbol, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-type DrawerView = 'menu' | 'system-settings' | 'text-settings' | 'chapter-download';
+type DrawerView = 'menu' | 'system-settings' | 'text-settings';
 
 type SettingsDrawerProps = {
   visible: boolean;
   onClose: () => void;
   showTextSettings?: boolean;
-  downloadContext?: ChapterDownloadContext;
-  audioOnlyDownload?: boolean;
 };
 
 type DrawerHeaderProps = {
@@ -136,8 +125,6 @@ export function SettingsDrawer({
   visible,
   onClose,
   showTextSettings = false,
-  downloadContext,
-  audioOnlyDownload = false,
 }: SettingsDrawerProps) {
   const { t } = useTranslation('settings');
   const theme = useTheme();
@@ -213,14 +200,6 @@ export function SettingsDrawer({
           {view === 'menu' ? (
             <>
               <DrawerHeader title={t('menu.title')} onClose={handleClose} />
-              {downloadContext ? (
-                <DrawerMenuItem
-                  label={t('menu.download')}
-                  icon={DOWNLOAD_ICON_NAME}
-                  iconSize={MenuDrawerLayout.downloadsIconSize}
-                  onPress={() => setView('chapter-download')}
-                />
-              ) : null}
               <DrawerMenuItem
                 label={t('menu.downloadsLibrary')}
                 icon={DOWNLOADS_LIBRARY_ICON}
@@ -246,13 +225,7 @@ export function SettingsDrawer({
           ) : (
             <>
               <DrawerHeader
-                title={
-                  view === 'text-settings'
-                    ? t('menu.textSettings')
-                    : view === 'chapter-download'
-                      ? t('menu.download')
-                      : t('title')
-                }
+                title={view === 'text-settings' ? t('menu.textSettings') : t('title')}
                 onClose={handleClose}
                 onBack={() => setView('menu')}
               />
@@ -262,16 +235,6 @@ export function SettingsDrawer({
                 keyboardShouldPersistTaps="handled">
                 {view === 'text-settings' ? (
                   <TextSettingsMenu embedded />
-                ) : view === 'chapter-download' && downloadContext ? (
-                  <ChapterDownloadMenu
-                    key={`${downloadContext.languageCode}:${downloadContext.bookSlug}:${downloadContext.chapter}`}
-                    embedded
-                    audioOnly={audioOnlyDownload}
-                    languageCode={downloadContext.languageCode}
-                    bookSlug={downloadContext.bookSlug}
-                    bookName={downloadContext.bookName}
-                    chapter={downloadContext.chapter}
-                  />
                 ) : (
                   <SystemSettingsMenu embedded />
                 )}
