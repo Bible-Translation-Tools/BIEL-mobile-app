@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ChapterDownloadToolbarButton } from '@/components/reading/chapter-download-toolbar-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout } from '@/constants/theme';
@@ -47,12 +48,14 @@ export function AudioOnlyToolbar({
           <Text style={[styles.backText, { color: theme.textHeading }]}>{tc('back')}</Text>
         </Pressable>
 
-        <SettingsToolbarButton
-          iconSize={28}
-          hitSize={28}
-          downloadContext={{ languageCode, bookSlug, bookName, chapter }}
-          audioOnlyDownload
-        />
+        <View style={styles.trailing}>
+          <ChapterDownloadToolbarButton
+            downloadContext={{ languageCode, bookSlug, bookName, chapter }}
+            iconSize={28}
+            audioOnly
+          />
+          <SettingsToolbarButton iconSize={28} hitSize={28} />
+        </View>
       </View>
     </View>
   );
@@ -75,6 +78,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     borderRadius: 8,
+  },
+  trailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ReadingLayout.toolbarTrailingGap,
   },
   backText: {
     fontSize: 20,
