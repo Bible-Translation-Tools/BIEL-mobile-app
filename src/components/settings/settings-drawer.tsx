@@ -6,12 +6,18 @@ import Animated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
+import { LocaleMenu } from '@/components/locale/locale-menu';
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
-import { IconSymbol, SETTINGS_ICON_NAME, type IconSymbolName } from '@/components/ui/icon-symbol';
+import {
+  IconSymbol,
+  SETTINGS_ICON_NAME,
+  TRANSLATE_ICON_NAME,
+  type IconSymbolName,
+} from '@/components/ui/icon-symbol';
 import { MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-type DrawerView = 'menu' | 'system-settings' | 'text-settings';
+type DrawerView = 'menu' | 'app-language' | 'system-settings' | 'text-settings';
 
 type SettingsDrawerProps = {
   visible: boolean;
@@ -201,6 +207,12 @@ export function SettingsDrawer({
             <>
               <DrawerHeader title={t('menu.title')} onClose={handleClose} />
               <DrawerMenuItem
+                label={t('menu.appLanguage')}
+                icon={TRANSLATE_ICON_NAME}
+                iconSize={MenuDrawerLayout.appLanguageIconSize}
+                onPress={() => setView('app-language')}
+              />
+              <DrawerMenuItem
                 label={t('menu.downloadsLibrary')}
                 icon={DOWNLOADS_LIBRARY_ICON}
                 iconSize={MenuDrawerLayout.downloadsIconSize}
@@ -225,7 +237,13 @@ export function SettingsDrawer({
           ) : (
             <>
               <DrawerHeader
-                title={view === 'text-settings' ? t('menu.textSettings') : t('title')}
+                title={
+                  view === 'app-language'
+                    ? t('menu.appLanguage')
+                    : view === 'text-settings'
+                      ? t('menu.textSettings')
+                      : t('title')
+                }
                 onClose={handleClose}
                 onBack={() => setView('menu')}
               />
@@ -233,7 +251,9 @@ export function SettingsDrawer({
                 style={styles.settingsContent}
                 contentContainerStyle={styles.settingsContentInner}
                 keyboardShouldPersistTaps="handled">
-                {view === 'text-settings' ? (
+                {view === 'app-language' ? (
+                  <LocaleMenu embedded />
+                ) : view === 'text-settings' ? (
                   <TextSettingsMenu embedded />
                 ) : (
                   <SystemSettingsMenu embedded />

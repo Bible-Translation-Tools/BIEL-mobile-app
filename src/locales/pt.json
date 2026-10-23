@@ -165,6 +165,7 @@
     "menu": {
       "title": "Menu",
       "close": "Fechar menu",
+      "appLanguage": "Idioma do aplicativo",
       "downloadsLibrary": "Biblioteca de downloads",
       "download": "Baixar",
       "systemSettings": "Configurações do sistema",

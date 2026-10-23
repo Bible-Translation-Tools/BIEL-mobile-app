@@ -169,6 +169,7 @@
     "menu": {
       "title": "Меню",
       "close": "Закрыть меню",
+      "appLanguage": "Язык приложения",
       "downloadsLibrary": "Библиотека загрузок",
       "download": "Загрузить",
       "systemSettings": "Системные настройки",

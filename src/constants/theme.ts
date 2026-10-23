@@ -170,6 +170,7 @@ export const MenuDrawerLayout = {
   itemPadding: 16,
   itemSectionGap: 11,
   itemRowGap: 9,
+  appLanguageIconSize: 24,
   downloadsIconSize: 28,
   settingsIconSize: 24,
   textSettingsIconSize: 28,
