@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   FlatList,
   Keyboard,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -13,8 +12,8 @@ import {
 } from 'react-native';
 
 import { DownloadsLibraryBookRow } from '@/components/download/downloads-library-book-row';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { DownloadsLibraryLayout, HomeLayout } from '@/constants/theme';
+import { AccordionGroupHeader } from '@/components/ui/accordion-group-header';
+import { AccordionLayout, DownloadsLibraryLayout, HomeLayout } from '@/constants/theme';
 import type { DownloadedLibraryLanguage } from '@/features/library';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useLibraryChapters } from '@/hooks/use-library-chapters';
@@ -100,33 +99,11 @@ function LanguageAccordion({
   onChapterPress: (languageCode: string, book: BookItem, chapter: ChapterItem) => void;
   onDownloadStatusChange: (change?: BookDownloadStatusChange) => void;
 }) {
-  const theme = useTheme();
-  const { t } = useTranslation('books');
   const languageName = item.language.nationalName || item.language.name;
 
   return (
     <View style={styles.accordion}>
-      <Pressable
-        style={({ pressed }) => [styles.languageHeader, { opacity: pressed ? 0.7 : 1 }]}
-        onPress={onToggleLanguage}
-        accessibilityRole="button"
-        accessibilityLabel={
-          expanded
-            ? t('accessibility.collapse', { name: languageName })
-            : t('accessibility.expand', { name: languageName })
-        }
-        accessibilityState={{ expanded }}>
-        <Text style={[styles.languageTitle, { color: theme.text }]}>{languageName}</Text>
-        <IconSymbol
-          name={
-            expanded
-              ? { ios: 'chevron.up', android: 'keyboard_arrow_up' }
-              : { ios: 'chevron.down', android: 'keyboard_arrow_down' }
-          }
-          size={28}
-          color={theme.iconTertiary}
-        />
-      </Pressable>
+      <AccordionGroupHeader title={languageName} expanded={expanded} onPress={onToggleLanguage} />
 
       {expanded
         ? item.books.map((book) => {
@@ -316,20 +293,8 @@ const styles = StyleSheet.create({
   accordion: {
     gap: HomeLayout.listGap,
   },
-  languageHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: HomeLayout.rowGap,
-  },
-  languageTitle: {
-    fontSize: DownloadsLibraryLayout.languageTitleSize,
-    lineHeight: DownloadsLibraryLayout.languageTitleLineHeight,
-    fontWeight: '700',
-    flex: 1,
-  },
   separator: {
-    height: DownloadsLibraryLayout.accordionGap,
+    height: AccordionLayout.groupGap,
   },
   centered: {
     paddingVertical: 48,

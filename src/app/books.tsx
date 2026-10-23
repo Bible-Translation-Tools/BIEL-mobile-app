@@ -8,14 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BookList } from '@/components/books/book-list';
 import { BooksHeader } from '@/components/books/books-header';
 import { BooksToolbar } from '@/components/books/books-toolbar';
-import { TestamentTabs } from '@/components/books/testament-tabs';
 import { BookLayout } from '@/constants/theme';
 import { stopPlayback } from '@/features/playback';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePersistReadingCheckpoint } from '@/hooks/use-persist-reading-checkpoint';
 import { useTheme } from '@/hooks/use-theme';
-import type { BookItem, ChapterItem, Testament } from '@/types/book';
+import type { BookItem, ChapterItem } from '@/types/book';
 import { normalizeRouteParam } from '@/utils/route-params';
 
 export default function BookSelectionScreen() {
@@ -34,7 +33,6 @@ export default function BookSelectionScreen() {
     normalizeRouteParam(hasTextParam) !== '0' && normalizeRouteParam(hasTextParam) !== 'false';
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTestament, setActiveTestament] = useState<Testament>('old');
   const [refreshing, setRefreshing] = useState(false);
   const [listKey, setListKey] = useState(0);
   const { books, loading, error, refetch, refreshDownloadStatus } = useBooks(ietfCode);
@@ -78,12 +76,9 @@ export default function BookSelectionScreen() {
   const filteredBooks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return books.filter((book) => {
-      if (book.testament !== activeTestament) return false;
-      if (!query) return true;
-      return book.name.toLowerCase().includes(query);
-    });
-  }, [books, searchQuery, activeTestament]);
+    if (!query) return books;
+    return books.filter((book) => book.name.toLowerCase().includes(query));
+  }, [books, searchQuery]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -94,13 +89,9 @@ export default function BookSelectionScreen() {
           <>
             <View style={styles.stickyHeader}>
               <BooksHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-              <TestamentTabs
-                activeTestament={activeTestament}
-                onTestamentChange={setActiveTestament}
-              />
             </View>
             <BookList
-              key={`${listKey}-${activeTestament}`}
+              key={listKey}
               books={filteredBooks}
               languageCode={ietfCode}
               audioOnly={!hasText}
@@ -111,6 +102,7 @@ export default function BookSelectionScreen() {
               refreshing={refreshing}
               onChapterPress={handleChapterPress}
               onDownloadStatusChange={refreshDownloadStatus}
+              expandAllGroups={searchQuery.trim().length > 0}
             />
           </>
         ) : (
