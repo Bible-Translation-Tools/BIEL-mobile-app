@@ -224,16 +224,20 @@ export const ReadingLayout = {
   padding: 16,
   contentGap: 24,
   sectionGap: 8,
-  toolbarHeight: 48,
-  toolbarPaddingH: 16,
+  toolbarHeight: 56,
+  /** Edge inset minus the hit-box slack, so icons still sit 16pt from the screen edge. */
+  toolbarPaddingH: 6,
   toolbarPaddingTop: 4,
-  toolbarPaddingV: 10,
+  toolbarPaddingV: 8,
   /** Subtract from the status-bar safe inset so toolbar controls sit closer to the top. */
   toolbarStatusBarInsetReduction: 8,
+  /** Tappable square around each toolbar icon. */
+  toolbarHitSize: 44,
   toolbarIconSize: 24,
-  toolbarSettingsIconSize: 22,
-  toolbarTrailingGap: 16,
-  toolbarLeadingGap: 8,
+  /** Download icon in the reader headers. */
+  toolbarActionIconSize: 28,
+  toolbarTrailingGap: 0,
+  toolbarLeadingGap: 0,
   toolbarTitleScrollThreshold: 32,
   playButtonSize: 54,
   playButtonBottom: 20,

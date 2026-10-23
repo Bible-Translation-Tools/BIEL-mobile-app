@@ -72,12 +72,13 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
           {downloadContext ? (
             <ChapterDownloadToolbarButton
               downloadContext={downloadContext}
-              iconSize={ReadingLayout.toolbarIconSize}
+              iconSize={ReadingLayout.toolbarActionIconSize}
+              hitSize={ReadingLayout.toolbarHitSize}
             />
           ) : null}
           <SettingsToolbarButton
-            iconSize={ReadingLayout.toolbarSettingsIconSize}
-            hitSize={ReadingLayout.toolbarIconSize}
+            iconSize={28}
+            hitSize={ReadingLayout.toolbarHitSize}
             showTextSettings
           />
         </View>
@@ -123,8 +124,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   iconButton: {
-    width: ReadingLayout.toolbarIconSize,
-    height: ReadingLayout.toolbarIconSize,
+    width: ReadingLayout.toolbarHitSize,
+    height: ReadingLayout.toolbarHitSize,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 4,

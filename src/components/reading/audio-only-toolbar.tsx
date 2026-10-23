@@ -51,10 +51,11 @@ export function AudioOnlyToolbar({
         <View style={styles.trailing}>
           <ChapterDownloadToolbarButton
             downloadContext={{ languageCode, bookSlug, bookName, chapter }}
-            iconSize={28}
+            iconSize={ReadingLayout.toolbarActionIconSize}
+            hitSize={ReadingLayout.toolbarHitSize}
             audioOnly
           />
-          <SettingsToolbarButton iconSize={28} hitSize={28} />
+          <SettingsToolbarButton iconSize={28} hitSize={ReadingLayout.toolbarHitSize} />
         </View>
       </View>
     </View>
@@ -69,7 +70,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: ReadingLayout.padding,
+    height: ReadingLayout.toolbarHeight,
+    paddingHorizontal: ReadingLayout.toolbarPaddingH,
     paddingTop: ReadingLayout.toolbarPaddingTop,
     paddingBottom: ReadingLayout.toolbarPaddingV,
   },
@@ -77,6 +79,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    minHeight: ReadingLayout.toolbarHitSize,
+    paddingHorizontal: ReadingLayout.padding - ReadingLayout.toolbarPaddingH,
     borderRadius: 8,
   },
   trailing: {
