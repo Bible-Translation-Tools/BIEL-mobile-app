@@ -165,6 +165,7 @@
     "menu": {
       "title": "Menü",
       "close": "Menü schließen",
+      "appLanguage": "App-Sprache",
       "downloadsLibrary": "Download-Bibliothek",
       "download": "Herunterladen",
       "systemSettings": "Systemeinstellungen",

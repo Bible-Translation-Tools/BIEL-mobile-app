@@ -165,6 +165,7 @@
     "menu": {
       "title": "Menu",
       "close": "Đóng menu",
+      "appLanguage": "Ngôn ngữ ứng dụng",
       "downloadsLibrary": "Thư viện tải xuống",
       "download": "Tải xuống",
       "systemSettings": "Cài đặt hệ thống",

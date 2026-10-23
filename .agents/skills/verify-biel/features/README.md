@@ -55,7 +55,7 @@ name user paths, stable handles, required state, commands, and observable proof.
 Real user surfaces with no recipe yet (sources cited so the next pass can add them):
 
 - System settings: theme Automatic/Light/Dark, Force Offline Mode. `src/components/home/system-settings-menu.tsx`
-- Interface language picker (10 locales). `src/components/locale/locale-popover.tsx`
+- Interface language picker (10 locales), Menu → App Language. `src/components/locale/locale-menu.tsx`
 - Whole-language download from the Home card (text and audio). `src/components/home/language-card-row.tsx`
 - Single-chapter download from the reader header Download button. `src/components/reading/chapter-download-menu.tsx`
 - Audio-only languages/chapters. `src/components/reading/audio-only-chapter-screen.tsx`
