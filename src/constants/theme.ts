@@ -165,8 +165,9 @@ export const SystemSettingsLayout = {
 export const MenuDrawerLayout = {
   widthRatio: 312 / 412,
   maxWidth: 312,
-  headerHeight: 64,
+  headerHeight: 52,
   headerPadding: 16,
+  headerPaddingV: 10,
   itemPadding: 16,
   itemSectionGap: 11,
   itemRowGap: 9,
