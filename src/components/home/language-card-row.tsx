@@ -1,4 +1,3 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -8,6 +7,8 @@ import {
   DOWNLOAD_DONE_ICON_NAME,
   DOWNLOAD_ICON_NAME,
   IconSymbol,
+  VOLUME_OFF_ICON_NAME,
+  VOLUME_UP_ICON_NAME,
 } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import {
@@ -154,8 +155,8 @@ export const LanguageCardRow = memo(function LanguageCardRow({
               {language.nationalName}
             </Text>
             <View style={styles.mediaIcons}>
-              <MaterialIcons
-                name="volume-up"
+              <IconSymbol
+                name={language.hasAudio ? VOLUME_UP_ICON_NAME : VOLUME_OFF_ICON_NAME}
                 size={18}
                 color={theme.text}
                 style={language.hasAudio ? undefined : styles.mediaIconUnavailable}
