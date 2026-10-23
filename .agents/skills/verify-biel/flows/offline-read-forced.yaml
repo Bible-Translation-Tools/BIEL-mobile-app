@@ -12,7 +12,9 @@ appId: ${APP_ID}
     visible: "You are in offline mode."
     timeout: 10000
 - takeScreenshot: 01-home-forced-offline
-- tapOn: "Dismiss"
+- tapOn:                 # the toast hides itself after 6 s, so it may already be gone
+    text: "Dismiss"
+    optional: true
 - tapOn: "Search language here..."
 - inputText: "en"
 - tapOn: "Open English"
@@ -31,7 +33,7 @@ appId: ${APP_ID}
     visible: ".*From the elder to the chosen lady.*"
     timeout: 30000
 - takeScreenshot: 02-2john-read-forced-offline
-- tapOn:                 # the banner sometimes reappears after being dismissed and covers the back arrow
+- tapOn:                 # the toast reappears if the connection flaps; it sits at the bottom, clear of the back arrow
     text: "Dismiss"
     optional: true
 - tapOn: "Go back"

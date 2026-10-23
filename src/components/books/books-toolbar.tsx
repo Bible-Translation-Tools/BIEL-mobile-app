@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { InterfaceLanguageButton } from '@/components/locale/interface-language-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout } from '@/constants/theme';
@@ -29,14 +28,6 @@ export function BooksToolbar() {
       </Pressable>
 
       <View style={styles.trailing}>
-        <InterfaceLanguageButton
-          textColor={theme.textHeading}
-          iconColor={theme.textHeading}
-          backgroundColor={theme.backgroundElement}
-          borderColor={theme.borderSecondary}
-          borderRadius={BookLayout.cardRadius}
-        />
-
         <SettingsToolbarButton iconSize={28} hitSize={28} />
       </View>
     </View>

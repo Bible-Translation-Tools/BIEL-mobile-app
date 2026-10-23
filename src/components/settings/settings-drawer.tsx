@@ -6,28 +6,23 @@ import Animated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
-import {
-  ChapterDownloadMenu,
-  type ChapterDownloadContext,
-} from '@/components/reading/chapter-download-menu';
+import { LocaleMenu } from '@/components/locale/locale-menu';
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
 import {
   IconSymbol,
-  DOWNLOAD_ICON_NAME,
   SETTINGS_ICON_NAME,
+  TRANSLATE_ICON_NAME,
   type IconSymbolName,
 } from '@/components/ui/icon-symbol';
-import { MenuDrawerLayout, Typography } from '@/constants/theme';
+import { getToolbarTopInset, MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-type DrawerView = 'menu' | 'system-settings' | 'text-settings' | 'chapter-download';
+type DrawerView = 'menu' | 'app-language' | 'system-settings' | 'text-settings';
 
 type SettingsDrawerProps = {
   visible: boolean;
   onClose: () => void;
   showTextSettings?: boolean;
-  downloadContext?: ChapterDownloadContext;
-  audioOnlyDownload?: boolean;
 };
 
 type DrawerHeaderProps = {
@@ -136,8 +131,6 @@ export function SettingsDrawer({
   visible,
   onClose,
   showTextSettings = false,
-  downloadContext,
-  audioOnlyDownload = false,
 }: SettingsDrawerProps) {
   const { t } = useTranslation('settings');
   const theme = useTheme();
@@ -186,8 +179,11 @@ export function SettingsDrawer({
       visible
       animationType="fade"
       onRequestClose={handleClose}
-      statusBarTranslucent>
-      <View style={styles.overlay}>
+      statusBarTranslucent
+      // Without this the Android modal window stops above the navigation bar, leaving a gap below the drawer.
+      navigationBarTranslucent>
+      {/* Android lays out modal content without the system bars even when it draws under them; size to the full screen. */}
+      <View style={[styles.overlay, { height: Dimensions.get('screen').height }]}>
         <Pressable
           style={[
             styles.dismissLayer,
@@ -206,21 +202,21 @@ export function SettingsDrawer({
             {
               width: drawerWidth,
               backgroundColor: theme.backgroundElement,
-              paddingTop: insets.top,
+              // Same top inset as the screen toolbars, so the ✕ lands where the Menu button was.
+              paddingTop: getToolbarTopInset(insets.top),
+              paddingBottom: insets.bottom,
             },
             styles.drawerShadow,
           ]}>
           {view === 'menu' ? (
             <>
               <DrawerHeader title={t('menu.title')} onClose={handleClose} />
-              {downloadContext ? (
-                <DrawerMenuItem
-                  label={t('menu.download')}
-                  icon={DOWNLOAD_ICON_NAME}
-                  iconSize={MenuDrawerLayout.downloadsIconSize}
-                  onPress={() => setView('chapter-download')}
-                />
-              ) : null}
+              <DrawerMenuItem
+                label={t('menu.appLanguage')}
+                icon={TRANSLATE_ICON_NAME}
+                iconSize={MenuDrawerLayout.appLanguageIconSize}
+                onPress={() => setView('app-language')}
+              />
               <DrawerMenuItem
                 label={t('menu.downloadsLibrary')}
                 icon={DOWNLOADS_LIBRARY_ICON}
@@ -247,10 +243,10 @@ export function SettingsDrawer({
             <>
               <DrawerHeader
                 title={
-                  view === 'text-settings'
-                    ? t('menu.textSettings')
-                    : view === 'chapter-download'
-                      ? t('menu.download')
+                  view === 'app-language'
+                    ? t('menu.appLanguage')
+                    : view === 'text-settings'
+                      ? t('menu.textSettings')
                       : t('title')
                 }
                 onClose={handleClose}
@@ -260,18 +256,10 @@ export function SettingsDrawer({
                 style={styles.settingsContent}
                 contentContainerStyle={styles.settingsContentInner}
                 keyboardShouldPersistTaps="handled">
-                {view === 'text-settings' ? (
+                {view === 'app-language' ? (
+                  <LocaleMenu embedded />
+                ) : view === 'text-settings' ? (
                   <TextSettingsMenu embedded />
-                ) : view === 'chapter-download' && downloadContext ? (
-                  <ChapterDownloadMenu
-                    key={`${downloadContext.languageCode}:${downloadContext.bookSlug}:${downloadContext.chapter}`}
-                    embedded
-                    audioOnly={audioOnlyDownload}
-                    languageCode={downloadContext.languageCode}
-                    bookSlug={downloadContext.bookSlug}
-                    bookName={downloadContext.bookName}
-                    chapter={downloadContext.chapter}
-                  />
                 ) : (
                   <SystemSettingsMenu embedded />
                 )}
@@ -286,7 +274,6 @@ export function SettingsDrawer({
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
@@ -308,7 +295,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: MenuDrawerLayout.headerHeight,
-    padding: MenuDrawerLayout.headerPadding,
+    paddingHorizontal: MenuDrawerLayout.headerPadding,
+    paddingVertical: MenuDrawerLayout.headerPaddingV,
     gap: 8,
   },
   headerTitle: {

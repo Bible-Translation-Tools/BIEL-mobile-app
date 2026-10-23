@@ -165,11 +165,13 @@ export const SystemSettingsLayout = {
 export const MenuDrawerLayout = {
   widthRatio: 312 / 412,
   maxWidth: 312,
-  headerHeight: 64,
+  headerHeight: 52,
   headerPadding: 16,
+  headerPaddingV: 10,
   itemPadding: 16,
   itemSectionGap: 11,
   itemRowGap: 9,
+  appLanguageIconSize: 24,
   downloadsIconSize: 28,
   settingsIconSize: 24,
   textSettingsIconSize: 28,
@@ -197,10 +199,15 @@ export const DownloadsLibraryLayout = {
   filterOptionGap: 9,
   filterMenuWidth: 220,
   filterMenuEstimatedHeight: 200,
-  languageTitleSize: 20,
-  languageTitleLineHeight: 24,
   countGap: 20,
-  accordionGap: 20,
+} as const;
+
+/** Collapsible groups of rows: languages in the Downloads Library, testaments on the Books screen. */
+export const AccordionLayout = {
+  titleSize: 20,
+  titleLineHeight: 24,
+  /** Space between one group and the next header. */
+  groupGap: 20,
 } as const;
 
 export const BookLayout = {
@@ -224,16 +231,20 @@ export const ReadingLayout = {
   padding: 16,
   contentGap: 24,
   sectionGap: 8,
-  toolbarHeight: 48,
-  toolbarPaddingH: 16,
+  toolbarHeight: 56,
+  /** Edge inset minus the hit-box slack, so icons still sit 16pt from the screen edge. */
+  toolbarPaddingH: 6,
   toolbarPaddingTop: 4,
-  toolbarPaddingV: 10,
+  toolbarPaddingV: 8,
   /** Subtract from the status-bar safe inset so toolbar controls sit closer to the top. */
   toolbarStatusBarInsetReduction: 8,
+  /** Tappable square around each toolbar icon. */
+  toolbarHitSize: 44,
   toolbarIconSize: 24,
-  toolbarSettingsIconSize: 22,
-  toolbarTrailingGap: 16,
-  toolbarLeadingGap: 8,
+  /** Download icon in the reader headers. */
+  toolbarActionIconSize: 28,
+  toolbarTrailingGap: 0,
+  toolbarLeadingGap: 0,
   toolbarTitleScrollThreshold: 32,
   playButtonSize: 54,
   playButtonBottom: 20,

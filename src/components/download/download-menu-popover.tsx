@@ -1,4 +1,4 @@
-import { memo, type ComponentProps } from 'react';
+import { memo, type ComponentProps, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, Modal, Pressable, StyleSheet, View } from 'react-native';
 
@@ -12,6 +12,8 @@ type DownloadMenuPopoverProps = {
   anchor: MenuAnchor | null;
   onClose: () => void;
   menuProps?: ComponentProps<typeof DownloadMenu>;
+  /** Custom menu content; replaces the `DownloadMenu` built from `menuProps`. */
+  children?: ReactNode;
   /** Shifts the menu toward the right edge of the screen. */
   rightOffset?: number;
 };
@@ -47,6 +49,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
   anchor,
   onClose,
   menuProps,
+  children,
   rightOffset = 0,
 }: DownloadMenuPopoverProps) {
   const { t } = useTranslation('download');
@@ -75,7 +78,7 @@ export const DownloadMenuPopover = memo(function DownloadMenuPopover({
               width: position.width,
             },
           ]}>
-          <DownloadMenu {...menuProps} />
+          {children ?? <DownloadMenu {...menuProps} />}
         </View>
       </View>
     </Modal>

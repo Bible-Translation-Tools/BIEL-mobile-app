@@ -9,8 +9,6 @@ import {
   Text,
   View,
   type ListRenderItem,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
 
 import { HomeLayout } from '@/constants/theme';
@@ -33,8 +31,6 @@ type LanguageListProps = {
   onDownloadStatusChange?: () => void;
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
-  ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
-  contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type LanguageListEmptyProps = {
@@ -76,8 +72,6 @@ export function LanguageList({
   onDownloadStatusChange,
   onRefresh,
   refreshing = false,
-  ListHeaderComponent,
-  contentContainerStyle,
 }: LanguageListProps) {
   const theme = useTheme();
 
@@ -111,7 +105,6 @@ export function LanguageList({
       renderItem={renderItem}
       keyExtractor={(item) => item.code}
       getItemLayout={getItemLayout}
-      ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={
         <LanguageListEmpty
           loading={loading}
@@ -131,7 +124,7 @@ export function LanguageList({
         ) : undefined
       }
       ItemSeparatorComponent={ItemSeparator}
-      contentContainerStyle={[styles.content, contentContainerStyle]}
+      contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews

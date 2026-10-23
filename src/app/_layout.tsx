@@ -6,7 +6,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { ensureOfflineRootExists } from '@/api/offline-storage';
-import { OfflineBanner } from '@/components/offline-banner';
+import { OfflineToast } from '@/components/offline-toast';
 import { SplashScreenView } from '@/components/splash-screen';
 import { resolveAppLocale, type AppLocale } from '@/constants/locale';
 import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-context';
@@ -37,7 +37,7 @@ function RootNavigation() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <View style={styles.root}>
         <Stack screenOptions={{ headerShown: false }} />
-        <OfflineBanner />
+        <OfflineToast />
       </View>
     </ThemeProvider>
   );

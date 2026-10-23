@@ -10,7 +10,7 @@ narrow it by typing a language code or name, and opens a language's book list.
 - `lang-empty` shows `No languages found` for a query with no matches.
 - `lang-clear` restores the full list.
 - `lang-open` opens `/books` for the chosen language.
-- `lang-offline` serves the cached catalog with an offline banner when the network is down (see [Read offline](./offline-read.md)).
+- `lang-offline` serves the cached catalog with an offline toast when the network is down (see [Read offline](./offline-read.md)).
 
 ## How to get to it (user POV)
 

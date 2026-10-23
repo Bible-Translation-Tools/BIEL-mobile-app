@@ -5,7 +5,7 @@ whose text was downloaded, from local storage. Undownloaded content is unavailab
 
 ## Sub-features
 
-- `off-boot` cold start without network reaches Home with the banner `You are in offline mode.` (`Dismiss`).
+- `off-boot` cold start without network reaches Home with the toast `You are in offline mode.` (`Dismiss`); it hides itself after 6 s.
 - `off-catalog` language list and book list come from the local catalog cache.
 - `off-read` a downloaded book's chapter renders its verse text locally.
 - `off-missing` a book with nothing downloaded expands to an empty card (no chapters, no message).
@@ -21,8 +21,8 @@ Preconditions:
 
 - `bv flow download-book` passed (2 John text on disk). Then `bv net off`; `bv net` prints `airplane-mode: 1`.
 
-- **Offline boot.** Run `bv flow offline-read`. Home shows `You are in offline mode.` above the catalog (`01-home-offline.png`).
-- **Cached catalog.** The flow dismisses the banner, opens `Open English` → `New Testament` → `Expand 2 John`; `Chapter 1.*` is listed (`02-2john-offline-chapters.png`).
+- **Offline boot.** Run `bv flow offline-read`. Home shows the `You are in offline mode.` toast at the bottom (`01-home-offline.png`).
+- **Cached catalog.** The flow dismisses the toast if it is still up, opens `Open English` → `New Testament` → `Expand 2 John`; `Chapter 1.*` is listed (`02-2john-offline-chapters.png`).
 - **Local read.** The flow taps `Chapter 1.*`; verse text `From the elder to the chosen lady…` renders with the network off (`03-2john-read-offline.png`).
 - **Not downloaded.** The flow expands `3 John`; no chapter buttons appear (`04-3john-not-downloaded.png`).
 - **Restore.** Run `bv net on` (cleanup also does this).
@@ -32,7 +32,7 @@ Preconditions:
 ## Gotchas
 
 - Offline cold start shows a black screen for ~20 s before Home; `_ready` waits up to 120 s. Don't misread it as a crash.
-- The offline banner overlaps the top bar (interface-language button and `Menu`) until dismissed.
+- The offline toast floats at the bottom for 6 s, over the list or the reader's play button. Assert it right after launch; it is gone a few steps later.
 - Force Offline Mode lives in memory. `bv reset`, `_home` (relaunch) or any app restart turns it off silently. Prefer `bv net off` on Android.
 - `bv net off` does not break Metro (adb reverse), but it does break anything else that needs the network, including the language catalog on a fresh `bv reset`. Download fixtures before going offline.
 - iOS simulators share the Mac's network. Use Force Offline Mode there and report it as simulated.

@@ -14,7 +14,7 @@ The reader renders one chapter's scripture with verse numbers and lets the user 
 ## How to get to it (user POV)
 
 - Home → language → book → chapter number.
-- (Not mapped yet: Menu → Download in the reader, for single-chapter download.)
+- (Not mapped yet: the header `Download` button in the reader, for single-chapter download.)
 
 ## Driving it with biel-verify
 
