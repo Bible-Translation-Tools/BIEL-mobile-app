@@ -48,6 +48,7 @@ export const TRANSLATE_ICON_NAME = 'translate';
 export const FILTER_LIST_ICON_NAME = 'filter-list';
 export const SUBJECT_ICON_NAME = 'subject';
 export const VOLUME_UP_ICON_NAME = 'volume-up';
+export const VOLUME_OFF_ICON_NAME = 'volume-off';
 
 const MATERIAL_ICON_NAMES = new Set<string>([
   DOWNLOAD_ICON_NAME,
@@ -59,6 +60,7 @@ const MATERIAL_ICON_NAMES = new Set<string>([
   FILTER_LIST_ICON_NAME,
   SUBJECT_ICON_NAME,
   VOLUME_UP_ICON_NAME,
+  VOLUME_OFF_ICON_NAME,
 ]);
 
 type IconSymbolProps = {
