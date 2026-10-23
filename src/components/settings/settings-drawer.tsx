@@ -14,7 +14,7 @@ import {
   TRANSLATE_ICON_NAME,
   type IconSymbolName,
 } from '@/components/ui/icon-symbol';
-import { MenuDrawerLayout, Typography } from '@/constants/theme';
+import { getToolbarTopInset, MenuDrawerLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type DrawerView = 'menu' | 'app-language' | 'system-settings' | 'text-settings';
@@ -179,8 +179,11 @@ export function SettingsDrawer({
       visible
       animationType="fade"
       onRequestClose={handleClose}
-      statusBarTranslucent>
-      <View style={styles.overlay}>
+      statusBarTranslucent
+      // Without this the Android modal window stops above the navigation bar, leaving a gap below the drawer.
+      navigationBarTranslucent>
+      {/* Android lays out modal content without the system bars even when it draws under them; size to the full screen. */}
+      <View style={[styles.overlay, { height: Dimensions.get('screen').height }]}>
         <Pressable
           style={[
             styles.dismissLayer,
@@ -199,7 +202,9 @@ export function SettingsDrawer({
             {
               width: drawerWidth,
               backgroundColor: theme.backgroundElement,
-              paddingTop: insets.top,
+              // Same top inset as the screen toolbars, so the ✕ lands where the Menu button was.
+              paddingTop: getToolbarTopInset(insets.top),
+              paddingBottom: insets.bottom,
             },
             styles.drawerShadow,
           ]}>
@@ -269,7 +274,6 @@ export function SettingsDrawer({
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
@@ -291,7 +295,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: MenuDrawerLayout.headerHeight,
-    padding: MenuDrawerLayout.headerPadding,
+    paddingHorizontal: MenuDrawerLayout.headerPadding,
+    paddingVertical: MenuDrawerLayout.headerPaddingV,
     gap: 8,
   },
   headerTitle: {
