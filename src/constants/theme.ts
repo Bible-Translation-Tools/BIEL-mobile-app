@@ -198,10 +198,15 @@ export const DownloadsLibraryLayout = {
   filterOptionGap: 9,
   filterMenuWidth: 220,
   filterMenuEstimatedHeight: 200,
-  languageTitleSize: 20,
-  languageTitleLineHeight: 24,
   countGap: 20,
-  accordionGap: 20,
+} as const;
+
+/** Collapsible groups of rows: languages in the Downloads Library, testaments on the Books screen. */
+export const AccordionLayout = {
+  titleSize: 20,
+  titleLineHeight: 24,
+  /** Space between one group and the next header. */
+  groupGap: 20,
 } as const;
 
 export const BookLayout = {

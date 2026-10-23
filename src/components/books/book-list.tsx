@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -11,11 +11,12 @@ import {
   View,
 } from 'react-native';
 
-import { BookLayout } from '@/constants/theme';
+import { AccordionGroupHeader } from '@/components/ui/accordion-group-header';
+import { AccordionLayout, BookLayout } from '@/constants/theme';
 import { useBookChapters } from '@/hooks/use-book-chapters';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useTheme } from '@/hooks/use-theme';
-import type { BookItem, ChapterItem } from '@/types/book';
+import type { BookItem, ChapterItem, Testament } from '@/types/book';
 
 import { BookCardRow } from './book-card-row';
 
@@ -31,7 +32,15 @@ type BookListProps = {
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
   ListFooterComponent?: React.ComponentType | React.ReactElement | null;
+  /** Open every testament group, e.g. while a search is active. */
+  expandAllGroups?: boolean;
 };
+
+const TESTAMENTS: Testament[] = ['old', 'new'];
+
+type BookListRow =
+  | { type: 'group'; testament: Testament; first: boolean }
+  | { type: 'book'; book: BookItem };
 
 type BookListEmptyProps = {
   loading: boolean;
@@ -85,8 +94,11 @@ export function BookList({
   onRefresh,
   refreshing = false,
   ListFooterComponent,
+  expandAllGroups = false,
 }: BookListProps) {
   const theme = useTheme();
+  const { t } = useTranslation('books');
+  const [expandedTestament, setExpandedTestament] = useState<Testament | null>(null);
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
   const { loadChapters, getChapters, isLoading, clearCache } = useBookChapters(
     languageCode,
@@ -105,6 +117,34 @@ export function BookList({
     }
   }, [books, expandedBookId]);
 
+  // Like the Downloads Library, keep one group open: the current one, else the first with books.
+  useEffect(() => {
+    setExpandedTestament((current) => {
+      if (current && books.some((book) => book.testament === current)) {
+        return current;
+      }
+      return (
+        TESTAMENTS.find((testament) => books.some((book) => book.testament === testament)) ?? null
+      );
+    });
+  }, [books]);
+
+  const rows = useMemo(() => {
+    const result: BookListRow[] = [];
+    for (const testament of TESTAMENTS) {
+      const groupBooks = books.filter((book) => book.testament === testament);
+      if (groupBooks.length === 0) continue;
+
+      result.push({ type: 'group', testament, first: result.length === 0 });
+      if (expandAllGroups || expandedTestament === testament) {
+        for (const book of groupBooks) {
+          result.push({ type: 'book', book });
+        }
+      }
+    }
+    return result;
+  }, [books, expandAllGroups, expandedTestament]);
+
   useEffect(() => {
     if (expandedBook) {
       loadChapters(expandedBook.slug);
@@ -118,8 +158,27 @@ export function BookList({
     await onRefresh();
   }, [clearCache, onRefresh]);
 
-  const renderItem: ListRenderItem<BookItem> = useCallback(
-    ({ item }) => {
+  const renderItem: ListRenderItem<BookListRow> = useCallback(
+    ({ item: row }) => {
+      if (row.type === 'group') {
+        const expanded = expandAllGroups || expandedTestament === row.testament;
+        return (
+          <View style={!row.first && styles.groupSpacing}>
+            <AccordionGroupHeader
+              title={row.testament === 'old' ? t('oldTestament') : t('newTestament')}
+              expanded={expanded}
+              onPress={() => {
+                Keyboard.dismiss();
+                setExpandedTestament((current) =>
+                  current === row.testament ? null : row.testament,
+                );
+              }}
+            />
+          </View>
+        );
+      }
+
+      const item = row.book;
       const isExpanded = expandedBookId === item.id;
 
       return (
@@ -151,7 +210,9 @@ export function BookList({
       );
     },
     [
+      expandAllGroups,
       expandedBookId,
+      expandedTestament,
       getChapters,
       isLoading,
       languageCode,
@@ -159,6 +220,7 @@ export function BookList({
       loadChapters,
       onChapterPress,
       onDownloadStatusChange,
+      t,
     ],
   );
 
@@ -168,10 +230,10 @@ export function BookList({
     <FlatList
       key={isEmpty ? 'empty' : 'filled'}
       style={styles.list}
-      data={books}
+      data={rows}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      extraData={expandedBookId}
+      keyExtractor={(row) => (row.type === 'group' ? `group:${row.testament}` : row.book.id)}
+      extraData={`${expandedTestament}:${expandedBookId}`}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
         <View style={styles.emptyFill}>
@@ -224,6 +286,9 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: BookLayout.listGap,
+  },
+  groupSpacing: {
+    paddingTop: AccordionLayout.groupGap - BookLayout.listGap,
   },
   centered: {
     paddingVertical: 48,
