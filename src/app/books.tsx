@@ -85,37 +85,34 @@ export default function BookSelectionScreen() {
     });
   }, [books, searchQuery, activeTestament]);
 
-  const listHeader = useMemo(
-    () => (
-      <View style={styles.listHeader}>
-        <BooksHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-        <TestamentTabs activeTestament={activeTestament} onTestamentChange={setActiveTestament} />
-      </View>
-    ),
-    [searchQuery, activeTestament],
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <BooksToolbar />
         {ietfCode ? (
-          <BookList
-            key={`${listKey}-${activeTestament}`}
-            books={filteredBooks}
-            languageCode={ietfCode}
-            audioOnly={!hasText}
-            loading={loading}
-            error={error}
-            onRetry={refetch}
-            onRefresh={handleRefresh}
-            refreshing={refreshing}
-            onChapterPress={handleChapterPress}
-            onDownloadStatusChange={refreshDownloadStatus}
-            ListHeaderComponent={listHeader}
-            contentContainerStyle={styles.listContent}
-          />
+          <>
+            <View style={styles.stickyHeader}>
+              <BooksHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+              <TestamentTabs
+                activeTestament={activeTestament}
+                onTestamentChange={setActiveTestament}
+              />
+            </View>
+            <BookList
+              key={`${listKey}-${activeTestament}`}
+              books={filteredBooks}
+              languageCode={ietfCode}
+              audioOnly={!hasText}
+              loading={loading}
+              error={error}
+              onRetry={refetch}
+              onRefresh={handleRefresh}
+              refreshing={refreshing}
+              onChapterPress={handleChapterPress}
+              onDownloadStatusChange={refreshDownloadStatus}
+            />
+          </>
         ) : (
           <View style={styles.missingLanguage}>
             <Text style={[styles.missingLanguageText, { color: theme.textSecondary }]}>
@@ -135,11 +132,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  listContent: {
-    paddingTop: BookLayout.padding,
-  },
-  listHeader: {
+  stickyHeader: {
     gap: BookLayout.contentGap,
+    paddingHorizontal: BookLayout.padding,
+    paddingTop: BookLayout.padding,
     paddingBottom: BookLayout.contentGap,
   },
   missingLanguage: {
