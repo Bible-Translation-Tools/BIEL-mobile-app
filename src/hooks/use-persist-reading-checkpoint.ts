@@ -16,24 +16,30 @@ import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
  */
 export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null): void {
   const checkpointRef = useRef(checkpoint);
+  const focusedRef = useRef(false);
 
   useEffect(() => {
     checkpointRef.current = checkpoint;
-    if (checkpoint != null) saveReadingCheckpoint(checkpoint);
+    if (checkpoint != null && focusedRef.current) saveReadingCheckpoint(checkpoint);
   }, [checkpoint]);
 
   useFocusEffect(
     useCallback(() => {
+      focusedRef.current = true;
       cancelScheduledClearReadingCheckpoint();
       if (checkpointRef.current != null) saveReadingCheckpoint(checkpointRef.current);
 
-      return () => scheduleClearReadingCheckpoint();
+      return () => {
+        focusedRef.current = false;
+        scheduleClearReadingCheckpoint();
+      };
     }, []),
   );
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState !== 'background' && nextState !== 'inactive') return;
+      if (!focusedRef.current) return;
       if (checkpointRef.current != null) saveReadingCheckpoint(checkpointRef.current);
       flushReadingCheckpoint();
     });
