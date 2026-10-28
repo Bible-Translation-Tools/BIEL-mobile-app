@@ -167,7 +167,12 @@ export function BookList({
             <AccordionGroupHeader
               title={row.testament === 'old' ? t('oldTestament') : t('newTestament')}
               expanded={expanded}
+              // While searching both groups are forced open; toggling would only change hidden state.
+              disabled={expandAllGroups}
               onPress={() => {
+                if (expandAllGroups) {
+                  return;
+                }
                 Keyboard.dismiss();
                 setExpandedTestament((current) =>
                   current === row.testament ? null : row.testament,

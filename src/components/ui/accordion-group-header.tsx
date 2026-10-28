@@ -9,10 +9,17 @@ type AccordionGroupHeaderProps = {
   title: string;
   expanded: boolean;
   onPress: () => void;
+  /** Shown but not toggleable, e.g. while a search forces every group open. */
+  disabled?: boolean;
 };
 
 /** Bold title and chevron that toggles a group of rows, e.g. a language or a testament. */
-export function AccordionGroupHeader({ title, expanded, onPress }: AccordionGroupHeaderProps) {
+export function AccordionGroupHeader({
+  title,
+  expanded,
+  onPress,
+  disabled = false,
+}: AccordionGroupHeaderProps) {
   const theme = useTheme();
   const { t } = useTranslation('books');
 
@@ -20,13 +27,14 @@ export function AccordionGroupHeader({ title, expanded, onPress }: AccordionGrou
     <Pressable
       style={({ pressed }) => [styles.header, { opacity: pressed ? 0.7 : 1 }]}
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={
         expanded
           ? t('accessibility.collapse', { name: title })
           : t('accessibility.expand', { name: title })
       }
-      accessibilityState={{ expanded }}>
+      accessibilityState={{ expanded, disabled }}>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <IconSymbol
         name={
