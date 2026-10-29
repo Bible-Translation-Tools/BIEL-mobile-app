@@ -96,4 +96,27 @@ describe('reading checkpoint store', () => {
     expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(1);
     expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledWith(chapterSix);
   });
+  it('writes nothing when flushed with no pending save', async () => {
+    const { store, mocks } = await load();
+    await store.initReadingCheckpointStore();
+    store.saveReadingCheckpoint(chapterFive);
+    await vi.advanceTimersByTimeAsync(200);
+
+    store.flushReadingCheckpoint();
+
+    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs a failed write instead of throwing', async () => {
+    const { store, mocks } = await load();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.mocked(mocks.saveReadingCheckpointPreference).mockRejectedValueOnce(new Error('disk full'));
+    await store.initReadingCheckpointStore();
+
+    store.saveReadingCheckpoint(chapterFive);
+    await vi.advanceTimersByTimeAsync(200);
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
 });
