@@ -1,4 +1,5 @@
-import { useRouter } from 'expo-router';
+import type { NavigationProp, ParamListBase, StackNavigationState } from '@react-navigation/native';
+import { useNavigation, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -16,6 +17,16 @@ import { getReadingCheckpointSnapshot } from '@/stores/reading-checkpoint-store'
 import type { LanguageItem } from '@/types/language';
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
 
+// The native stack emits `transitionEnd` on a screen once it has finished appearing or disappearing.
+type StackNavigation = NavigationProp<
+  ParamListBase,
+  string,
+  undefined,
+  StackNavigationState<ParamListBase>,
+  object,
+  { transitionEnd: { data: { closing: boolean } } }
+>;
+
 // Only the first mount after launch may restore; the store's snapshot changes while a reader is open.
 let launchRestoreHandled = false;
 
@@ -27,16 +38,34 @@ function takeLaunchCheckpoint(): ReadingCheckpoint | null {
 
 export default function IndexRoute() {
   const router = useRouter();
+  const navigation = useNavigation<StackNavigation>();
+  const theme = useTheme();
   const [checkpoint] = useState(takeLaunchCheckpoint);
   const restoredRef = useRef(false);
+  // Blank instead of Home while the restored reader opens, so Home doesn't flash first.
+  const [showHome, setShowHome] = useState(checkpoint == null);
 
   // Reopen the chapter the user was reading with the screens behind it, so Back walks up the stack.
+  // The parent is pushed without an animation (`restored` param), so only the reader slides in.
   useEffect(() => {
     if (checkpoint == null || restoredRef.current) return;
     restoredRef.current = true;
     router.push(getReadingParentHref(checkpoint));
     router.push({ pathname: '/read', params: checkpointToReadParams(checkpoint) });
   }, [checkpoint, router]);
+
+  // Render Home underneath only once the reader has fully covered this screen (losing focus happens
+  // as the slide starts, which would show Home under it), so it is ready when Back returns.
+  useEffect(() => {
+    if (showHome) return;
+    return navigation.addListener('transitionEnd', (event) => {
+      if (event.data.closing) setShowHome(true);
+    });
+  }, [navigation, showHome]);
+
+  if (!showHome) {
+    return <View style={[styles.container, { backgroundColor: theme.background }]} />;
+  }
 
   return <HomeScreen />;
 }

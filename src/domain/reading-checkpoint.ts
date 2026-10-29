@@ -8,6 +8,16 @@ import type {
 /** `from` route param that marks a chapter opened from the Downloads library. */
 export const DOWNLOADS_LIBRARY_FROM_PARAM = 'downloads-library';
 
+/**
+ * Route param on the parent screen pushed under a restored reader. The stack shows it without an
+ * animation, so the launch restore plays one transition (the reader's).
+ */
+const RESTORED_PARAM = 'restored';
+
+export function isRestoredRoute(params: object | undefined): boolean {
+  return (params as Record<string, unknown> | undefined)?.[RESTORED_PARAM] === '1';
+}
+
 const SOURCES: readonly string[] = [
   'catalog',
   'downloads-library',
@@ -97,10 +107,16 @@ export function getReadingParentHref(options: {
   audioOnly: boolean;
   source: ReadingCheckpointSource;
 }): ReadingParentHref {
-  if (options.source === 'downloads-library') return '/downloads-library';
+  if (options.source === 'downloads-library') {
+    return { pathname: '/downloads-library', params: { [RESTORED_PARAM]: '1' } };
+  }
 
   return {
     pathname: '/books',
-    params: { languageCode: options.languageCode, hasText: options.audioOnly ? '0' : '1' },
+    params: {
+      languageCode: options.languageCode,
+      hasText: options.audioOnly ? '0' : '1',
+      [RESTORED_PARAM]: '1',
+    },
   };
 }

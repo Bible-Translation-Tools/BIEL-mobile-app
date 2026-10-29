@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   checkpointToReadParams,
   getReadingParentHref,
+  isRestoredRoute,
   parseReadingCheckpoint,
   readingCheckpointsEqual,
   resolveReadingCheckpointSource,
@@ -90,7 +91,7 @@ describe('reading parent href', () => {
         audioOnly: false,
         source: 'downloads-library',
       }),
-    ).toBe('/downloads-library');
+    ).toEqual({ pathname: '/downloads-library', params: { restored: '1' } });
   });
 
   it('returns the book list for a restored catalog session', () => {
@@ -102,7 +103,7 @@ describe('reading parent href', () => {
       }),
     ).toEqual({
       pathname: '/books',
-      params: { languageCode: 'fr', hasText: '1' },
+      params: { languageCode: 'fr', hasText: '1', restored: '1' },
     });
     expect(
       getReadingParentHref({
@@ -112,8 +113,21 @@ describe('reading parent href', () => {
       }),
     ).toEqual({
       pathname: '/books',
-      params: { languageCode: 'fr', hasText: '0' },
+      params: { languageCode: 'fr', hasText: '0', restored: '1' },
     });
+  });
+});
+
+describe('isRestoredRoute', () => {
+  it('is true only for the parent pushed under a restored reader', () => {
+    const parent = getReadingParentHref({
+      languageCode: 'en',
+      audioOnly: false,
+      source: 'catalog',
+    });
+    expect(isRestoredRoute(parent.params)).toBe(true);
+    expect(isRestoredRoute({ languageCode: 'en', hasText: '1' })).toBe(false);
+    expect(isRestoredRoute(undefined)).toBe(false);
   });
 });
 

@@ -8,7 +8,7 @@ See also: [App architecture](./app-architecture.md) for where stores, preference
 
 - While the reader is open, the app remembers the language, book, chapter, whether it is audio-only, and where the reader was opened from (book list or Downloads Library).
 - The chapter remembered is the one playing when the audio panel is open, otherwise the one on screen.
-- On the next launch, Home pushes the screen the reader came from and then the reader, so Back walks the same path as before the restart.
+- On the next launch, Home pushes the screen the reader came from and then the reader, so Back walks the same path as before the restart. The parent is pushed with a `restored=1` param, which the stack in `_layout.tsx` shows without an animation, so only the reader slides in. Home renders blank until the reader covers it, so it doesn't flash first.
 - Leaving the reader in any way (toolbar Back, Android Back, iOS swipe-back, or opening another screen on top) forgets the checkpoint, and the next launch shows Home.
 
 ```mermaid

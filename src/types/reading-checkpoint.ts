@@ -23,5 +23,5 @@ export type ReadingCheckpointReadParams = {
 
 /** The screen restored under the reader at launch, so Back returns to it. */
 export type ReadingParentHref =
-  | '/downloads-library'
-  | { pathname: '/books'; params: { languageCode: string; hasText: string } };
+  | { pathname: '/downloads-library'; params: { restored: string } }
+  | { pathname: '/books'; params: { languageCode: string; hasText: string; restored: string } };
