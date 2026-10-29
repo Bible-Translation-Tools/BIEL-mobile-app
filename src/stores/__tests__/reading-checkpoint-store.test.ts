@@ -46,23 +46,22 @@ describe('reading checkpoint store', () => {
     expect(store.getReadingCheckpointSnapshot()).toEqual(chapterFive);
   });
 
-  it('writes only the latest checkpoint after rapid saves', async () => {
+  it('writes each new checkpoint right away and skips an unchanged one', async () => {
     const { store, mocks } = await load();
     await store.initReadingCheckpointStore();
 
     store.saveReadingCheckpoint(chapterFive);
+    store.saveReadingCheckpoint({ ...chapterFive });
     store.saveReadingCheckpoint(chapterSix);
-    await vi.advanceTimersByTimeAsync(200);
 
-    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(1);
-    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledWith(chapterSix);
+    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(2);
+    expect(mocks.saveReadingCheckpointPreference).toHaveBeenLastCalledWith(chapterSix);
   });
 
   it('clears the stored checkpoint after the scheduled delay', async () => {
     const { store, mocks } = await load();
     await store.initReadingCheckpointStore();
     store.saveReadingCheckpoint(chapterFive);
-    await vi.advanceTimersByTimeAsync(200);
 
     store.scheduleClearReadingCheckpoint();
     await vi.advanceTimersByTimeAsync(250);
@@ -75,7 +74,6 @@ describe('reading checkpoint store', () => {
     const { store, mocks } = await load();
     await store.initReadingCheckpointStore();
     store.saveReadingCheckpoint(chapterFive);
-    await vi.advanceTimersByTimeAsync(200);
 
     store.scheduleClearReadingCheckpoint();
     await vi.advanceTimersByTimeAsync(100);
@@ -86,27 +84,6 @@ describe('reading checkpoint store', () => {
     expect(store.getReadingCheckpointSnapshot()).toEqual(chapterFive);
   });
 
-  it('writes a pending change immediately when flushed', async () => {
-    const { store, mocks } = await load();
-    await store.initReadingCheckpointStore();
-
-    store.saveReadingCheckpoint(chapterSix);
-    store.flushReadingCheckpoint();
-
-    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(1);
-    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledWith(chapterSix);
-  });
-  it('writes nothing when flushed with no pending save', async () => {
-    const { store, mocks } = await load();
-    await store.initReadingCheckpointStore();
-    store.saveReadingCheckpoint(chapterFive);
-    await vi.advanceTimersByTimeAsync(200);
-
-    store.flushReadingCheckpoint();
-
-    expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(1);
-  });
-
   it('logs a failed write instead of throwing', async () => {
     const { store, mocks } = await load();
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -114,7 +91,7 @@ describe('reading checkpoint store', () => {
     await store.initReadingCheckpointStore();
 
     store.saveReadingCheckpoint(chapterFive);
-    await vi.advanceTimersByTimeAsync(200);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();

@@ -6,26 +6,16 @@ import {
 import { readingCheckpointsEqual } from '@/domain/reading-checkpoint';
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
 
-// Scrolling through chapters or audio advancing changes the checkpoint several times in a row;
-// only the last one is written.
-const PERSIST_DEBOUNCE_MS = 200;
 // The reader can lose focus and regain it right away; a short delay lets the refocus cancel the
 // clear.
 const CLEAR_DEBOUNCE_MS = 250;
 
 let checkpoint: ReadingCheckpoint | null = null;
-let persistTimer: ReturnType<typeof setTimeout> | null = null;
 let clearTimer: ReturnType<typeof setTimeout> | null = null;
 let initPromise: Promise<void> | null = null;
 
 function logWriteError(err: unknown) {
   console.warn('[reading-checkpoint] failed to write preference', err);
-}
-
-function cancelPersistTimer() {
-  if (persistTimer == null) return;
-  clearTimeout(persistTimer);
-  persistTimer = null;
 }
 
 function cancelClearTimer() {
@@ -34,29 +24,23 @@ function cancelClearTimer() {
   clearTimer = null;
 }
 
-function writeCheckpoint() {
-  cancelPersistTimer();
-  if (checkpoint != null) saveReadingCheckpointPreference(checkpoint).catch(logWriteError);
-}
-
 /** The checkpoint loaded at startup, or the chapter being read now. */
 export function getReadingCheckpointSnapshot(): ReadingCheckpoint | null {
   return checkpoint;
 }
 
+/** Writes the checkpoint right away; an unchanged one is skipped. */
 export function saveReadingCheckpoint(next: ReadingCheckpoint) {
   cancelClearTimer();
   if (readingCheckpointsEqual(checkpoint, next)) return;
   checkpoint = next;
-  cancelPersistTimer();
-  persistTimer = setTimeout(writeCheckpoint, PERSIST_DEBOUNCE_MS);
+  saveReadingCheckpointPreference(next).catch(logWriteError);
 }
 
 export function scheduleClearReadingCheckpoint() {
   cancelClearTimer();
   clearTimer = setTimeout(() => {
     clearTimer = null;
-    cancelPersistTimer();
     if (checkpoint == null) return;
     checkpoint = null;
     clearReadingCheckpointPreference().catch(logWriteError);
@@ -65,11 +49,6 @@ export function scheduleClearReadingCheckpoint() {
 
 export function cancelScheduledClearReadingCheckpoint() {
   cancelClearTimer();
-}
-
-/** Writes a debounced save now (the app is going to the background). */
-export function flushReadingCheckpoint() {
-  if (persistTimer != null) writeCheckpoint();
 }
 
 /** Called before any screen renders (`_layout` awaits it), so saves never race the load. */

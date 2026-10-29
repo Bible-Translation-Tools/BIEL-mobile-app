@@ -13,8 +13,7 @@ See also: [App architecture](./app-architecture.md) for where stores, preference
 
 ```mermaid
 flowchart LR
-  Reader[Reader focused] -- chapter changes --> Save[save after 200 ms]
-  Reader -- app to background --> Flush[write now]
+  Reader[Reader focused] -- chapter changes --> Save[write now]
   Reader -- loses focus --> Clear[clear after 250 ms]
   Clear -- refocused in time --> Reader
   Launch[App launch] -- checkpoint saved --> Restore[push parent screen, then reader]
@@ -26,18 +25,16 @@ flowchart LR
 |------|-------|
 | `domain/reading-checkpoint.ts` | parse/serialize, equality, route params, the parent screen to restore (pure, tested) |
 | `db/reading-checkpoint-preferences.ts` | the `reading_checkpoint` row in `preferences` (JSON) |
-| `stores/reading-checkpoint-store.ts` | in-memory checkpoint, save and clear timers (tested) |
-| `hooks/use-persist-reading-checkpoint.ts` | reader focus, background flush, scheduling the clear |
+| `stores/reading-checkpoint-store.ts` | in-memory checkpoint, writes, the delayed clear (tested) |
+| `hooks/use-persist-reading-checkpoint.ts` | reader focus, saving, scheduling the clear |
 | `app/read.tsx` | picks the chapter and builds the checkpoint |
 | `app/index.tsx` | restores at launch, once |
 | `components/download/downloads-library-view.tsx` | marks chapters opened from the library with `from=downloads-library` |
 
 ## Timing
 
-Both delays are intentional; keep them when simplifying the store.
-
-- **Save, 200 ms debounce.** Scrolling through chapters or audio moving on changes the checkpoint several times in a row; only the last one is written. Because of the delay, going to the background flushes a pending save.
-- **Clear, 250 ms delay.** A reader that loses focus and regains it right away keeps its checkpoint. This is the only clear: the toolbar's Back does not clear on its own, because the reader is still focused at that point and its next re-render would save again.
+- **Save, immediate.** Each new checkpoint is written right away; an unchanged one is skipped. A fast scroll through short chapters (Psalms) writes once per chapter passed, which is one small SQLite upsert each and costs far less than the per-chapter audio check the reader already does. With no pending save, nothing needs flushing when the app goes to the background.
+- **Clear, 250 ms delay (intentional; keep it).** A reader that loses focus and regains it right away keeps its checkpoint. This is the only clear: the toolbar's Back does not clear on its own, because the reader is still focused at that point and its next re-render would save again.
 
 ## Gotchas
 
