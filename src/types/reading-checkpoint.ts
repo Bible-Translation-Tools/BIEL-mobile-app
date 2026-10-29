@@ -1,4 +1,4 @@
-/** Where the reader was opened from; decides where Back goes when there is no history. */
+/** Where the reader was opened from; decides which screen is restored under it at launch. */
 export type ReadingCheckpointSource = 'catalog' | 'downloads-library';
 
 /** The chapter the user was on, saved so the app can reopen it after a restart. */
@@ -21,7 +21,7 @@ export type ReadingCheckpointReadParams = {
   from?: string;
 };
 
-/** Screen to return to from the reader when the stack has no history. */
+/** The screen restored under the reader at launch, so Back returns to it. */
 export type ReadingParentHref =
   | '/downloads-library'
   | { pathname: '/books'; params: { languageCode: string; hasText: string } };

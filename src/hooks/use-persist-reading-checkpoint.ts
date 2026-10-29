@@ -11,8 +11,10 @@ import {
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
 
 /**
- * Keeps the open chapter saved while the reader is focused so a relaunch reopens it. Leaving the
- * reader clears it; sending the app to the background writes it right away.
+ * Keeps the open chapter saved while the reader is focused so a relaunch reopens it. Losing focus
+ * (any way of leaving: toolbar Back, hardware Back, swipe-back, or a screen pushed on top) schedules
+ * the clear; regaining focus cancels it. Saves are skipped while unfocused so a reader left under
+ * another screen can't save itself back. Going to the background writes a pending save right away.
  */
 export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null): void {
   const checkpointRef = useRef(checkpoint);

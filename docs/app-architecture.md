@@ -2,7 +2,7 @@
 
 The spec and guideline for where code goes in BIEL Mobile and how layers talk to each other.
 
-See also: [Offline mode](./offline-mode.md), [Chapter audio](./chapter-audio.md), [Downloads Library](./downloads-library.md).
+See also: [Offline mode](./offline-mode.md), [Chapter audio](./chapter-audio.md), [Downloads Library](./downloads-library.md), [Reading checkpoint](./reading-checkpoint.md).
 Reviews against this doc: the `review-architecture` skill (`.agents/skills/review-architecture/`).
 
 ## Principles

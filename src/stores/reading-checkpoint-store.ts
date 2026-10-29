@@ -10,7 +10,7 @@ import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
 // only the last one is written.
 const PERSIST_DEBOUNCE_MS = 200;
 // The reader can lose focus and regain it right away; a short delay lets the refocus cancel the
-// clear. This clear is the only one that runs for hardware Back and the iOS swipe-back gesture.
+// clear.
 const CLEAR_DEBOUNCE_MS = 250;
 
 let checkpoint: ReadingCheckpoint | null = null;
