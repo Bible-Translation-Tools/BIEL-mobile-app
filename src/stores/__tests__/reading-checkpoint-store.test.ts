@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
+import type { BooksCheckpoint, ChapterCheckpoint } from '@/types/reading-checkpoint';
 
 vi.mock('@/db/reading-checkpoint-preferences', () => ({
   clearReadingCheckpointPreference: vi.fn(() => Promise.resolve()),
@@ -8,7 +8,8 @@ vi.mock('@/db/reading-checkpoint-preferences', () => ({
   saveReadingCheckpointPreference: vi.fn(() => Promise.resolve()),
 }));
 
-const chapterFive: ReadingCheckpoint = {
+const chapterFive: ChapterCheckpoint = {
+  screen: 'read',
   languageCode: 'en',
   bookSlug: 'MAT',
   bookName: 'Matthew',
@@ -17,7 +18,9 @@ const chapterFive: ReadingCheckpoint = {
   source: 'catalog',
 };
 
-const chapterSix: ReadingCheckpoint = { ...chapterFive, chapter: 6 };
+const chapterSix: ChapterCheckpoint = { ...chapterFive, chapter: 6 };
+
+const englishBooks: BooksCheckpoint = { screen: 'books', languageCode: 'en', hasText: true };
 
 // The store keeps module-level state, so each test loads a fresh store and fresh db mocks together.
 async function load() {
@@ -58,7 +61,7 @@ describe('reading checkpoint store', () => {
     await store.initReadingCheckpointStore();
     store.saveReadingCheckpoint(chapterFive);
 
-    store.clearReadingCheckpoint();
+    store.clearReadingCheckpoint(chapterFive);
 
     expect(mocks.clearReadingCheckpointPreference).toHaveBeenCalledTimes(1);
     expect(store.getReadingCheckpointSnapshot()).toBeNull();
@@ -68,7 +71,7 @@ describe('reading checkpoint store', () => {
     const { store, mocks } = await load();
     await store.initReadingCheckpointStore();
 
-    store.clearReadingCheckpoint();
+    store.clearReadingCheckpoint(chapterFive);
 
     expect(mocks.clearReadingCheckpointPreference).not.toHaveBeenCalled();
   });
@@ -77,12 +80,25 @@ describe('reading checkpoint store', () => {
     const { store, mocks } = await load();
     await store.initReadingCheckpointStore();
     store.saveReadingCheckpoint(chapterFive);
-    store.clearReadingCheckpoint();
+    store.clearReadingCheckpoint(chapterFive);
 
     store.saveReadingCheckpoint(chapterFive);
 
     expect(mocks.saveReadingCheckpointPreference).toHaveBeenCalledTimes(2);
     expect(store.getReadingCheckpointSnapshot()).toEqual(chapterFive);
+  });
+
+  it("does not clear another screen's checkpoint", async () => {
+    const { store, mocks } = await load();
+    await store.initReadingCheckpointStore();
+
+    // Back from the reader to the book list: the book list saved before the reader's clear arrived.
+    store.saveReadingCheckpoint(chapterFive);
+    store.saveReadingCheckpoint(englishBooks);
+    store.clearReadingCheckpoint(chapterFive);
+
+    expect(mocks.clearReadingCheckpointPreference).not.toHaveBeenCalled();
+    expect(store.getReadingCheckpointSnapshot()).toEqual(englishBooks);
   });
 
   it('logs a failed write instead of throwing', async () => {

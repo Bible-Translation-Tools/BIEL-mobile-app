@@ -449,6 +449,7 @@ export default function ReadingScreen() {
   const readingCheckpoint =
     ietfCode && resolvedBookSlug && checkpointChapter != null
       ? {
+          screen: 'read' as const,
           languageCode: ietfCode,
           bookSlug: resolvedBookSlug,
           bookName: checkpointBookName,

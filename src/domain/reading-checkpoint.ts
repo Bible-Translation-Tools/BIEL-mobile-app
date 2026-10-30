@@ -1,8 +1,11 @@
 import type {
+  BooksCheckpoint,
+  ChapterCheckpoint,
   ReadingCheckpoint,
   ReadingCheckpointReadParams,
   ReadingCheckpointSource,
   ReadingParentHref,
+  ReadingRestoreHref,
 } from '@/types/reading-checkpoint';
 
 /** `from` route param that marks a chapter opened from the Downloads library. */
@@ -43,12 +46,18 @@ export function parseReadingCheckpoint(raw: string | null | undefined): ReadingC
   }
   if (parsed == null || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
 
-  const { languageCode, bookSlug, bookName, chapter, audioOnly, source } = parsed as Record<
-    string,
-    unknown
-  >;
-  if (!isNonEmptyString(languageCode) || !isNonEmptyString(bookSlug) || !isNonEmptyString(bookName))
-    return null;
+  const record = parsed as Record<string, unknown>;
+  if (!isNonEmptyString(record.languageCode)) return null;
+  const languageCode = record.languageCode.trim();
+
+  if (record.screen === 'books') {
+    return { screen: 'books', languageCode, hasText: record.hasText !== false };
+  }
+  // Checkpoints saved before book lists were checkpointed have no `screen`; they are chapters.
+  if (record.screen !== undefined && record.screen !== 'read') return null;
+
+  const { bookSlug, bookName, chapter, audioOnly, source } = record;
+  if (!isNonEmptyString(bookSlug) || !isNonEmptyString(bookName)) return null;
 
   const chapterNumber =
     typeof chapter === 'number' ? chapter : Number.parseInt(String(chapter), 10);
@@ -56,7 +65,8 @@ export function parseReadingCheckpoint(raw: string | null | undefined): ReadingC
   if (!isCheckpointSource(source)) return null;
 
   return {
-    languageCode: languageCode.trim(),
+    screen: 'read',
+    languageCode,
     bookSlug: bookSlug.trim(),
     bookName: bookName.trim(),
     chapter: Math.floor(chapterNumber),
@@ -74,6 +84,13 @@ export function readingCheckpointsEqual(
   b: ReadingCheckpoint | null,
 ): boolean {
   if (a == null || b == null) return a === b;
+  if (a.screen === 'books' || b.screen === 'books') {
+    return (
+      a.screen === b.screen &&
+      a.languageCode === b.languageCode &&
+      (a as BooksCheckpoint).hasText === (b as BooksCheckpoint).hasText
+    );
+  }
   return (
     a.languageCode === b.languageCode &&
     a.bookSlug === b.bookSlug &&
@@ -90,7 +107,7 @@ export function resolveReadingCheckpointSource(
   return fromParam === DOWNLOADS_LIBRARY_FROM_PARAM ? 'downloads-library' : 'catalog';
 }
 
-export function checkpointToReadParams(checkpoint: ReadingCheckpoint): ReadingCheckpointReadParams {
+export function checkpointToReadParams(checkpoint: ChapterCheckpoint): ReadingCheckpointReadParams {
   return {
     languageCode: checkpoint.languageCode,
     bookSlug: checkpoint.bookSlug,
@@ -119,4 +136,23 @@ export function getReadingParentHref(options: {
       [RESTORED_PARAM]: '1',
     },
   };
+}
+
+/**
+ * The screens to push at launch, in order, to reopen a checkpoint: the book list on its own, or the
+ * screen the reader came from (shown without an animation) and then the reader.
+ */
+export function getRestoreHrefs(checkpoint: ReadingCheckpoint): ReadingRestoreHref[] {
+  if (checkpoint.screen === 'books') {
+    return [
+      {
+        pathname: '/books',
+        params: { languageCode: checkpoint.languageCode, hasText: checkpoint.hasText ? '1' : '0' },
+      },
+    ];
+  }
+  return [
+    getReadingParentHref(checkpoint),
+    { pathname: '/read', params: checkpointToReadParams(checkpoint) },
+  ];
 }

@@ -25,9 +25,13 @@ export function saveReadingCheckpoint(next: ReadingCheckpoint) {
   saveReadingCheckpointPreference(next).catch(logWriteError);
 }
 
-/** Forgets the checkpoint; the next launch shows Home. */
-export function clearReadingCheckpoint() {
-  if (checkpoint == null) return;
+/**
+ * Forgets the checkpoint, but only if it is still `owned` (the one the leaving screen saved). When
+ * one checkpointed screen replaces another, the new one's save and the old one's clear can arrive in
+ * either order; this keeps the old screen from wiping the new screen's checkpoint.
+ */
+export function clearReadingCheckpoint(owned: ReadingCheckpoint) {
+  if (checkpoint == null || !readingCheckpointsEqual(checkpoint, owned)) return;
   checkpoint = null;
   clearReadingCheckpointPreference().catch(logWriteError);
 }

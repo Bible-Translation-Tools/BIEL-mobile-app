@@ -5,10 +5,10 @@ import { clearReadingCheckpoint, saveReadingCheckpoint } from '@/stores/reading-
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
 
 /**
- * Keeps the open chapter saved while the reader is focused so a relaunch reopens it. Losing focus
- * (any way of leaving: toolbar Back, hardware Back, swipe-back, or a screen pushed on top) clears
- * it; regaining focus saves it again. Saves are skipped while unfocused so a reader left under
- * another screen can't save itself back.
+ * Keeps a screen's checkpoint (the book list or the reader) saved while that screen is focused, so a
+ * relaunch reopens it. Losing focus (any way of leaving: Back, hardware Back, swipe-back, or a screen
+ * pushed on top) clears it if it is still this screen's; regaining focus saves it again. Saves are
+ * skipped while unfocused so a screen left under another one can't save itself back.
  */
 export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null): void {
   const checkpointRef = useRef(checkpoint);
@@ -26,7 +26,7 @@ export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null
 
       return () => {
         focusedRef.current = false;
-        clearReadingCheckpoint();
+        if (checkpointRef.current != null) clearReadingCheckpoint(checkpointRef.current);
       };
     }, []),
   );

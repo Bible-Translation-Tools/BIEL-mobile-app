@@ -13,6 +13,7 @@ import { BookLayout } from '@/constants/theme';
 import { stopPlayback } from '@/features/playback';
 import { useBooks } from '@/hooks/use-books';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePersistReadingCheckpoint } from '@/hooks/use-persist-reading-checkpoint';
 import { useTheme } from '@/hooks/use-theme';
 import type { BookItem, ChapterItem, Testament } from '@/types/book';
 import { normalizeRouteParam } from '@/utils/route-params';
@@ -42,6 +43,10 @@ export default function BookSelectionScreen() {
     useCallback(() => {
       void stopPlayback();
     }, []),
+  );
+
+  usePersistReadingCheckpoint(
+    ietfCode ? { screen: 'books', languageCode: ietfCode, hasText } : null,
   );
 
   const handleRefresh = useCallback(async () => {

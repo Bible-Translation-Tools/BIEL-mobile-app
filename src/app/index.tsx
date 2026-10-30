@@ -9,7 +9,7 @@ import { HomeHeader } from '@/components/home/home-header';
 import { HomeToolbar } from '@/components/home/home-toolbar';
 import { LanguageList } from '@/components/home/language-list';
 import { HomeLayout } from '@/constants/theme';
-import { checkpointToReadParams, getReadingParentHref } from '@/domain/reading-checkpoint';
+import { getRestoreHrefs } from '@/domain/reading-checkpoint';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
@@ -42,20 +42,19 @@ export default function IndexRoute() {
   const theme = useTheme();
   const [checkpoint] = useState(takeLaunchCheckpoint);
   const restoredRef = useRef(false);
-  // Blank instead of Home while the restored reader opens, so Home doesn't flash first.
+  // Blank instead of Home while the restored screen opens, so Home doesn't flash first.
   const [showHome, setShowHome] = useState(checkpoint == null);
 
-  // Reopen the chapter the user was reading with the screens behind it, so Back walks up the stack.
-  // The parent is pushed without an animation (`restored` param), so only the reader slides in.
+  // Reopen the book list or chapter the user was on, with the screens behind it, so Back walks up
+  // the stack. A reader's parent is pushed without an animation (`restored` param), so one slides in.
   useEffect(() => {
     if (checkpoint == null || restoredRef.current) return;
     restoredRef.current = true;
-    router.push(getReadingParentHref(checkpoint));
-    router.push({ pathname: '/read', params: checkpointToReadParams(checkpoint) });
+    for (const href of getRestoreHrefs(checkpoint)) router.push(href);
   }, [checkpoint, router]);
 
-  // Render Home underneath only once the reader has fully covered this screen (losing focus happens
-  // as the slide starts, which would show Home under it), so it is ready when Back returns.
+  // Render Home underneath only once the restored screen has fully covered this one (losing focus
+  // happens as the slide starts, which would show Home under it), so it is ready when Back returns.
   useEffect(() => {
     if (showHome) return;
     return navigation.addListener('transitionEnd', (event) => {
