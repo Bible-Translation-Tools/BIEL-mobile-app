@@ -13,6 +13,7 @@ import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-contex
 import { LocaleProvider } from '@/contexts/locale-context';
 import { initDatabase } from '@/db';
 import { loadLocalePreference } from '@/db/locale-preferences';
+import { isRestoredRoute } from '@/domain/reading-checkpoint';
 import { getLanguageCatalog } from '@/features/catalog';
 import { initDownloadNotifications } from '@/features/downloads';
 import { initPlaybackAppLifecycle } from '@/features/playback';
@@ -20,6 +21,7 @@ import { i18n, initI18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
 import { setupTrackPlayer } from '@/services/track-player/setup';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
+import { initReadingCheckpointStore } from '@/stores/reading-checkpoint-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
@@ -35,7 +37,13 @@ function RootNavigation() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <View style={styles.root}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            // The parent screen pushed under a restored reader appears without a transition.
+            ...(isRestoredRoute(route.params) ? { animation: 'none' as const } : {}),
+          })}
+        />
         <OfflineBanner />
       </View>
     </ThemeProvider>
@@ -66,6 +74,7 @@ export default function RootLayout() {
         await Promise.all([
           initReadingTextSettingsStore(),
           initAudioVolumeStore(),
+          initReadingCheckpointStore(),
           initDownloadNotifications(),
           Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
         ]);

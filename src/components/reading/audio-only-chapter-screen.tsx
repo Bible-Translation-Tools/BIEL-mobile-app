@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,8 @@ type AudioOnlyChapterScreenProps = {
   bookSlug: string;
   bookName?: string;
   chapter: number;
+  /** The chapter now playing, which changes as playback moves on. */
+  onChapterChange?: (chapter: number) => void;
 };
 
 export function AudioOnlyChapterScreen({
@@ -21,6 +24,7 @@ export function AudioOnlyChapterScreen({
   bookSlug,
   bookName,
   chapter,
+  onChapterChange,
 }: AudioOnlyChapterScreenProps) {
   const theme = useTheme();
   const { t } = useTranslation('reading');
@@ -36,6 +40,10 @@ export function AudioOnlyChapterScreen({
     handlePreviousVerse,
     refetchChapters,
   } = useAudioChapterReader(languageCode, bookSlug, displayBookName, chapter);
+
+  useEffect(() => {
+    onChapterChange?.(activeChapter ?? chapter);
+  }, [activeChapter, chapter, onChapterChange]);
 
   const showPlayer = !loading && !error;
   useSystemVolumeSync(showPlayer);

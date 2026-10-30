@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout } from '@/constants/theme';
-import { stopPlaybackBeforeLeave } from '@/hooks/use-stop-playback-on-leave';
+import { useLeaveReadingScreen } from '@/hooks/use-leave-reading-screen';
 import { useTheme } from '@/hooks/use-theme';
 
 type AudioOnlyToolbarProps = {
@@ -24,7 +23,7 @@ export function AudioOnlyToolbar({
 }: AudioOnlyToolbarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const leaveReadingScreen = useLeaveReadingScreen();
   const { t } = useTranslation('reading');
   const { t: tc } = useTranslation('common');
 
@@ -37,10 +36,7 @@ export function AudioOnlyToolbar({
       <View style={styles.toolbar}>
         <Pressable
           style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
-          onPress={() => {
-            stopPlaybackBeforeLeave();
-            router.back();
-          }}
+          onPress={() => leaveReadingScreen()}
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}>
           <IconSymbol
