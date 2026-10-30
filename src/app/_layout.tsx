@@ -6,7 +6,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { ensureOfflineRootExists } from '@/api/offline-storage';
-import { OfflineBanner } from '@/components/offline-banner';
+import { OfflineToast } from '@/components/offline-toast';
 import { SplashScreenView } from '@/components/splash-screen';
 import { resolveAppLocale, type AppLocale } from '@/constants/locale';
 import { AppearanceProvider, useColorScheme } from '@/contexts/appearance-context';
@@ -44,7 +44,7 @@ function RootNavigation() {
             ...(isRestoredRoute(route.params) ? { animation: 'none' as const } : {}),
           })}
         />
-        <OfflineBanner />
+        <OfflineToast />
       </View>
     </ThemeProvider>
   );

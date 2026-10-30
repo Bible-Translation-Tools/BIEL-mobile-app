@@ -165,6 +165,7 @@
     "menu": {
       "title": "Menu",
       "close": "Tutup menu",
+      "appLanguage": "Bahasa Aplikasi",
       "downloadsLibrary": "Perpustakaan unduhan",
       "download": "Unduh",
       "systemSettings": "Pengaturan sistem",

@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
-import { type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
 import { SettingsDrawer } from '@/components/settings/settings-drawer';
 import { MENU_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,8 +10,6 @@ type SettingsToolbarButtonProps = {
   hitSize?: number;
   style?: StyleProp<ViewStyle>;
   showTextSettings?: boolean;
-  downloadContext?: ChapterDownloadContext;
-  audioOnlyDownload?: boolean;
 };
 
 export function SettingsToolbarButton({
@@ -20,8 +17,6 @@ export function SettingsToolbarButton({
   hitSize,
   style,
   showTextSettings = false,
-  downloadContext,
-  audioOnlyDownload = false,
 }: SettingsToolbarButtonProps) {
   const theme = useTheme();
   const buttonSize = hitSize ?? iconSize;
@@ -55,8 +50,6 @@ export function SettingsToolbarButton({
         visible={drawerVisible}
         onClose={close}
         showTextSettings={showTextSettings}
-        downloadContext={downloadContext}
-        audioOnlyDownload={audioOnlyDownload}
       />
     </>
   );

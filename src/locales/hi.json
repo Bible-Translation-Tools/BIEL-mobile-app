@@ -165,6 +165,7 @@
     "menu": {
       "title": "मेनू",
       "close": "मेनू बंद करें",
+      "appLanguage": "ऐप की भाषा",
       "downloadsLibrary": "डाउनलोड लाइब्रेरी",
       "download": "डाउनलोड",
       "systemSettings": "सिस्टम सेटिंग",

@@ -10,6 +10,8 @@ import { useTheme } from '@/hooks/use-theme';
 
 type LocaleMenuProps = {
   onSelect?: () => void;
+  /** Render without the card chrome and title, for use inside the menu drawer. */
+  embedded?: boolean;
 };
 
 const LocaleMenuLayout = {
@@ -24,10 +26,54 @@ const LocaleMenuLayout = {
   optionsMaxHeight: 300,
 } as const;
 
-export const LocaleMenu = memo(function LocaleMenu({ onSelect }: LocaleMenuProps) {
+export const LocaleMenu = memo(function LocaleMenu({
+  onSelect,
+  embedded = false,
+}: LocaleMenuProps) {
   const theme = useTheme();
   const { uiLocale, setUiLocale } = useLocale();
   const { t } = useTranslation('locale');
+
+  const options = SUPPORTED_LOCALE_CODES.map((code) => {
+    const selected = uiLocale === code;
+    const { nativeLabel } = SUPPORTED_LOCALES[code as AppLocale];
+
+    return (
+      <Pressable
+        key={code}
+        style={({ pressed }) => [
+          styles.option,
+          {
+            backgroundColor: selected ? theme.backgroundSelected : theme.backgroundElement,
+            borderColor: selected ? theme.textLabel : theme.border,
+            opacity: pressed ? 0.85 : 1,
+          },
+        ]}
+        onPress={() => {
+          setUiLocale(code);
+          onSelect?.();
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={nativeLabel}
+        accessibilityState={{ selected }}>
+        <Text style={[styles.optionTitle, { color: theme.text }]}>{nativeLabel}</Text>
+        {selected ? (
+          <IconSymbol
+            name={{
+              ios: 'checkmark',
+              android: 'check',
+            }}
+            size={LocaleMenuLayout.optionIconSize}
+            color={theme.tabActive}
+          />
+        ) : null}
+      </Pressable>
+    );
+  });
+
+  if (embedded) {
+    return <View style={styles.optionsContent}>{options}</View>;
+  }
 
   return (
     <View
@@ -46,42 +92,7 @@ export const LocaleMenu = memo(function LocaleMenu({ onSelect }: LocaleMenuProps
         contentContainerStyle={styles.optionsContent}
         nestedScrollEnabled
         showsVerticalScrollIndicator={false}>
-        {SUPPORTED_LOCALE_CODES.map((code) => {
-          const selected = uiLocale === code;
-          const { nativeLabel } = SUPPORTED_LOCALES[code as AppLocale];
-
-          return (
-            <Pressable
-              key={code}
-              style={({ pressed }) => [
-                styles.option,
-                {
-                  backgroundColor: selected ? theme.backgroundSelected : theme.backgroundElement,
-                  borderColor: selected ? theme.textLabel : theme.border,
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-              onPress={() => {
-                setUiLocale(code);
-                onSelect?.();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={nativeLabel}
-              accessibilityState={{ selected }}>
-              <Text style={[styles.optionTitle, { color: theme.text }]}>{nativeLabel}</Text>
-              {selected ? (
-                <IconSymbol
-                  name={{
-                    ios: 'checkmark',
-                    android: 'check',
-                  }}
-                  size={LocaleMenuLayout.optionIconSize}
-                  color={theme.tabActive}
-                />
-              ) : null}
-            </Pressable>
-          );
-        })}
+        {options}
       </ScrollView>
     </View>
   );

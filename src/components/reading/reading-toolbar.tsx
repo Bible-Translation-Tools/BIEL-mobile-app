@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
+import { ChapterDownloadToolbarButton } from '@/components/reading/chapter-download-toolbar-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
@@ -68,11 +69,17 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
         </View>
 
         <View style={styles.trailing}>
+          {downloadContext ? (
+            <ChapterDownloadToolbarButton
+              downloadContext={downloadContext}
+              iconSize={ReadingLayout.toolbarActionIconSize}
+              hitSize={ReadingLayout.toolbarHitSize}
+            />
+          ) : null}
           <SettingsToolbarButton
-            iconSize={ReadingLayout.toolbarSettingsIconSize}
-            hitSize={ReadingLayout.toolbarIconSize}
+            iconSize={28}
+            hitSize={ReadingLayout.toolbarHitSize}
             showTextSettings
-            downloadContext={downloadContext}
           />
         </View>
       </View>
@@ -117,8 +124,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   iconButton: {
-    width: ReadingLayout.toolbarIconSize,
-    height: ReadingLayout.toolbarIconSize,
+    width: ReadingLayout.toolbarHitSize,
+    height: ReadingLayout.toolbarHitSize,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 4,
