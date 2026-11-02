@@ -11,6 +11,8 @@ type ChapterUnavailablePlaceholderProps = {
   fill?: boolean;
 };
 
+const IOS_BLUR_BLEED = 24;
+
 const PLACEHOLDER_TITLE = 'Genesis 1';
 const PLACEHOLDER_HEADING = 'The Creation of the World';
 const PLACEHOLDER_BODY = [
@@ -52,7 +54,7 @@ export function ChapterUnavailablePlaceholder({
           pointerEvents="none"
           intensity={25}
           tint={scheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+          style={styles.iosBlur}
         />
       ) : null}
 
@@ -90,6 +92,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     justifyContent: 'center',
+    paddingHorizontal: ReadingLayout.padding,
+  },
+  iosBlur: {
+    // Extend past the clipped root so the blur has content to sample at its edges.
+    position: 'absolute',
+    top: -IOS_BLUR_BLEED,
+    right: -IOS_BLUR_BLEED,
+    bottom: -IOS_BLUR_BLEED,
+    left: -IOS_BLUR_BLEED,
   },
   blurred: {
     gap: 16,
