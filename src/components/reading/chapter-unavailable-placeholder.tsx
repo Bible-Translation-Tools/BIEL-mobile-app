@@ -1,8 +1,10 @@
+import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ReadingLayout, Typography } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 type ChapterUnavailablePlaceholderProps = {
@@ -21,6 +23,7 @@ export function ChapterUnavailablePlaceholder({
   fill = false,
 }: ChapterUnavailablePlaceholderProps) {
   const theme = useTheme();
+  const scheme = useColorScheme();
   const { t } = useTranslation('reading');
 
   return (
@@ -42,6 +45,16 @@ export function ChapterUnavailablePlaceholder({
           ))}
         </View>
       </View>
+
+      {/* iOS ignores the `filter: blur` style, so blur the placeholder with a native view. */}
+      {Platform.OS === 'ios' ? (
+        <BlurView
+          pointerEvents="none"
+          intensity={25}
+          tint={scheme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
 
       <View pointerEvents="none" style={[styles.frost, { backgroundColor: theme.background }]} />
 
@@ -81,7 +94,7 @@ const styles = StyleSheet.create({
   blurred: {
     gap: 16,
     opacity: 0.5,
-    // RN New Architecture / web: Gaussian blur matching Figma blur-[9px].
+    // Android / web: Gaussian blur matching Figma blur-[9px]. iOS uses the BlurView below.
     filter: [{ blur: 9 }],
   },
   frost: {
