@@ -40,6 +40,8 @@ export type IconSymbolName =
 
 /** Material icons rendered on every platform (including iOS). */
 export const BACK_ICON_NAME = 'arrow-back';
+export const EXPAND_ICON_NAME = 'keyboard-arrow-down';
+export const COLLAPSE_ICON_NAME = 'keyboard-arrow-up';
 export const DOWNLOAD_ICON_NAME = 'download';
 export const DOWNLOAD_DONE_ICON_NAME = 'download-done';
 export const DELETE_ICON_NAME = 'delete';
@@ -53,6 +55,8 @@ export const VOLUME_OFF_ICON_NAME = 'volume-off';
 
 const MATERIAL_ICON_NAMES = new Set<string>([
   BACK_ICON_NAME,
+  EXPAND_ICON_NAME,
+  COLLAPSE_ICON_NAME,
   DOWNLOAD_ICON_NAME,
   DOWNLOAD_DONE_ICON_NAME,
   DELETE_ICON_NAME,

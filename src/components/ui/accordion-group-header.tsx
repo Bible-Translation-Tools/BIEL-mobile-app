@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { COLLAPSE_ICON_NAME, EXPAND_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { AccordionLayout, HomeLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -37,11 +37,7 @@ export function AccordionGroupHeader({
       accessibilityState={{ expanded, disabled }}>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <IconSymbol
-        name={
-          expanded
-            ? { ios: 'chevron.up', android: 'keyboard_arrow_up' }
-            : { ios: 'chevron.down', android: 'keyboard_arrow_down' }
-        }
+        name={expanded ? COLLAPSE_ICON_NAME : EXPAND_ICON_NAME}
         size={28}
         color={theme.iconTertiary}
       />
