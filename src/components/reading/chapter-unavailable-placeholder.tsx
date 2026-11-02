@@ -11,7 +11,8 @@ type ChapterUnavailablePlaceholderProps = {
   fill?: boolean;
 };
 
-const IOS_BLUR_BLEED = 24;
+/** Inset for the placeholder text so the blur fades out before the edges instead of being cut. */
+const BLUR_PADDING = 24;
 
 const PLACEHOLDER_TITLE = 'Genesis 1';
 const PLACEHOLDER_HEADING = 'The Creation of the World';
@@ -54,7 +55,7 @@ export function ChapterUnavailablePlaceholder({
           pointerEvents="none"
           intensity={25}
           tint={scheme === 'dark' ? 'dark' : 'light'}
-          style={styles.iosBlur}
+          style={StyleSheet.absoluteFill}
         />
       ) : null}
 
@@ -92,19 +93,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     justifyContent: 'center',
-    paddingHorizontal: ReadingLayout.padding,
-  },
-  iosBlur: {
-    // Extend past the clipped root so the blur has content to sample at its edges.
-    position: 'absolute',
-    top: -IOS_BLUR_BLEED,
-    right: -IOS_BLUR_BLEED,
-    bottom: -IOS_BLUR_BLEED,
-    left: -IOS_BLUR_BLEED,
   },
   blurred: {
     gap: 16,
     opacity: 0.5,
+    paddingHorizontal: BLUR_PADDING,
     // Android / web: Gaussian blur matching Figma blur-[9px]. iOS uses the BlurView below.
     filter: [{ blur: 9 }],
   },
