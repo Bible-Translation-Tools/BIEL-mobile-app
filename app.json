@@ -2,7 +2,7 @@
   "expo": {
     "name": "BIEL",
     "slug": "biel-mobile-app",
-    "version": "1.0.0-beta",
+    "version": "1.1.1-qa",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bielmobileapp",
@@ -21,7 +21,7 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "org.bibletranslationtools.biel",
-      "versionCode": 1
+      "versionCode": 2
     },
     "web": {
       "output": "static",
