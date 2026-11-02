@@ -334,6 +334,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingsContentInner: {
+    paddingTop: MenuDrawerLayout.itemPadding,
     paddingHorizontal: MenuDrawerLayout.itemPadding,
     paddingBottom: MenuDrawerLayout.itemPadding,
   },
