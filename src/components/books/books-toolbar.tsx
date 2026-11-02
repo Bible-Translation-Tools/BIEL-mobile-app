@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BACK_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -20,7 +20,7 @@ export function BooksToolbar() {
         accessibilityRole="button"
         accessibilityLabel={t('goBack')}>
         <IconSymbol
-          name={{ ios: 'chevron.left', android: 'arrow_back' }}
+          name={BACK_ICON_NAME}
           size={28}
           color={theme.textHeading}
         />

@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BACK_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { HomeLayout, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -25,7 +25,7 @@ export function DownloadsLibraryToolbar() {
         accessibilityRole="button"
         accessibilityLabel={t('goBack')}>
         <IconSymbol
-          name={{ ios: 'chevron.left', android: 'arrow_back' }}
+          name={BACK_ICON_NAME}
           size={28}
           color={theme.text}
         />

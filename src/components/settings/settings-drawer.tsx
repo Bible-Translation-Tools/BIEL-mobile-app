@@ -9,6 +9,7 @@ import { SystemSettingsMenu } from '@/components/home/system-settings-menu';
 import { LocaleMenu } from '@/components/locale/locale-menu';
 import { TextSettingsMenu } from '@/components/reading/text-settings-menu';
 import {
+  BACK_ICON_NAME,
   IconSymbol,
   SETTINGS_ICON_NAME,
   TRANSLATE_ICON_NAME,
@@ -54,7 +55,7 @@ function DrawerHeader({ title, onClose, onBack }: DrawerHeaderProps) {
           accessibilityRole="button"
           accessibilityLabel={t('menu.back')}>
           <IconSymbol
-            name={{ ios: 'chevron.left', android: 'arrow-back' }}
+            name={BACK_ICON_NAME}
             size={MenuDrawerLayout.closeIconSize}
             color={theme.textHeading}
           />
