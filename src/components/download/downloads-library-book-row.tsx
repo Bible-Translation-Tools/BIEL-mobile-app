@@ -4,7 +4,12 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { ChapterGrid } from '@/components/books/chapter-grid';
 import { DownloadMenuPopover } from '@/components/download/download-menu-popover';
-import { DELETE_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
+import {
+  COLLAPSE_ICON_NAME,
+  DELETE_ICON_NAME,
+  EXPAND_ICON_NAME,
+  IconSymbol,
+} from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
 import { getBookContentFlags } from '@/domain/content-type';
 import { resolveDownloadStatus } from '@/domain/downloads';
@@ -195,11 +200,7 @@ export const DownloadsLibraryBookRow = memo(function DownloadsLibraryBookRow({
         {book.name}
       </Text>
       <IconSymbol
-        name={
-          isExpanded
-            ? { ios: 'chevron.up', android: 'keyboard_arrow_up' }
-            : { ios: 'chevron.down', android: 'keyboard_arrow_down' }
-        }
+        name={isExpanded ? COLLAPSE_ICON_NAME : EXPAND_ICON_NAME}
         size={28}
         color={theme.iconTertiary}
       />

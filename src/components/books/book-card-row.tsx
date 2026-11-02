@@ -4,9 +4,11 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { DownloadMenuPopover } from '@/components/download/download-menu-popover';
 import {
+  COLLAPSE_ICON_NAME,
   DELETE_ICON_NAME,
   DOWNLOAD_DONE_ICON_NAME,
   DOWNLOAD_ICON_NAME,
+  EXPAND_ICON_NAME,
   IconSymbol,
 } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
@@ -219,11 +221,7 @@ export const BookCardRow = memo(function BookCardRow({
         </Text>
       </View>
       <IconSymbol
-        name={
-          isExpanded
-            ? { ios: 'chevron.up', android: 'keyboard_arrow_up' }
-            : { ios: 'chevron.down', android: 'keyboard_arrow_down' }
-        }
+        name={isExpanded ? COLLAPSE_ICON_NAME : EXPAND_ICON_NAME}
         size={28}
         color={theme.iconTertiary}
       />

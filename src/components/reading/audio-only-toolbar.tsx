@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChapterDownloadToolbarButton } from '@/components/reading/chapter-download-toolbar-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BACK_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout } from '@/constants/theme';
 import { useLeaveReadingScreen } from '@/hooks/use-leave-reading-screen';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,7 +41,7 @@ export function AudioOnlyToolbar({
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}>
           <IconSymbol
-            name={{ ios: 'chevron.left', android: 'arrow_back' }}
+            name={BACK_ICON_NAME}
             size={28}
             color={theme.textHeading}
           />

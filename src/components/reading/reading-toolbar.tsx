@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
 import { ChapterDownloadToolbarButton } from '@/components/reading/chapter-download-toolbar-button';
 import { SettingsToolbarButton } from '@/components/settings/settings-toolbar-button';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BACK_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { getToolbarTopInset, ReadingLayout, Typography } from '@/constants/theme';
 import { useLeaveReadingScreen } from '@/hooks/use-leave-reading-screen';
 import { useTheme } from '@/hooks/use-theme';
@@ -56,7 +56,7 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
             accessibilityRole="button"
             accessibilityLabel={t('goBack')}>
             <IconSymbol
-              name={{ ios: 'chevron.left', android: 'arrow_back' }}
+              name={BACK_ICON_NAME}
               size={ReadingLayout.toolbarIconSize}
               color={theme.iconPrimary}
             />
