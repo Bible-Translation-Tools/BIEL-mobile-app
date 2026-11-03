@@ -8,6 +8,7 @@
     "scheme": "bielmobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "org.bibletranslationtools.biel",
       "icon": "./assets/images/icon.png",
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
