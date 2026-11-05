@@ -16,7 +16,7 @@ const MARKER = '# @generated withPodsDeploymentTarget';
 
 const POST_INSTALL_HOOK = `
     ${MARKER}
-    min_ios = podfile_properties['ios.deploymentTarget'] || '17.0'
+    min_ios = podfile_properties['ios.deploymentTarget'] || '15.1'
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |build_config|
         current = build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
