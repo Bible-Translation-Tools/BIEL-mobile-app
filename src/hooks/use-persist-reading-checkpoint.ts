@@ -1,5 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 
 import { clearReadingCheckpoint, saveReadingCheckpoint } from '@/stores/reading-checkpoint-store';
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
@@ -9,6 +10,11 @@ import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
  * relaunch reopens it. Losing focus (any way of leaving: Back, hardware Back, swipe-back, or a screen
  * pushed on top) clears it if it is still this screen's; regaining focus saves it again. Saves are
  * skipped while unfocused so a screen left under another one can't save itself back.
+ *
+ * Closing the app also runs the focus cleanup: iOS stops the React surface on terminate (swiping the
+ * app away from the switcher) and Android does when the activity is destroyed, which unmounts every
+ * screen. That is not the user leaving the screen, so the checkpoint is kept when the app is no
+ * longer in the foreground; navigation only happens while it is `active`.
  */
 export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null): void {
   const checkpointRef = useRef(checkpoint);
@@ -26,6 +32,7 @@ export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null
 
       return () => {
         focusedRef.current = false;
+        if (AppState.currentState !== 'active') return;
         if (checkpointRef.current != null) clearReadingCheckpoint(checkpointRef.current);
       };
     }, []),
