@@ -13,6 +13,9 @@
       "icon": "./assets/images/icon.png",
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
