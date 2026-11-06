@@ -295,7 +295,7 @@ export function DownloadsLibraryList({
       keyExtractor={(item) => item.language.code}
       extraData={`${expandedLanguageCode}:${JSON.stringify(testamentToggles)}:${expandAllGroups}:${expandedBook?.languageCode}:${expandedBook?.bookId}`}
       ListHeaderComponent={
-        isEmpty ? null : (
+        isEmpty ? undefined : (
           <Text style={[styles.count, { color: theme.textLabel }]}>
             {t('booksDownloaded', { count: bookCount })}
           </Text>

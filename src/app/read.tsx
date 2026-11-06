@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  type HostInstance,
   NativeScrollEvent,
   NativeSyntheticEvent,
   StyleSheet,
@@ -111,7 +112,7 @@ export default function ReadingScreen() {
   const viewportHeightRef = useRef(0);
   const contentHeightRef = useRef(0);
   const scrollYRef = useRef(0);
-  const chapterViewRefsRef = useRef<Map<number, View>>(new Map());
+  const chapterViewRefsRef = useRef<Map<number, HostInstance>>(new Map());
   const verseLayoutsRef = useRef<Map<number, Map<number, number>>>(new Map());
   const audioPanelHeightRef = useRef(0);
   const chaptersRef = useRef<ChapterContent[]>([]);
@@ -156,11 +157,11 @@ export default function ReadingScreen() {
   }, [hasPrevious]);
 
   const getChapterRefSetter = useMemo(() => {
-    const cache = new Map<number, (node: View | null) => void>();
+    const cache = new Map<number, (node: HostInstance | null) => void>();
     return (chapterValue: number) => {
       let setter = cache.get(chapterValue);
       if (!setter) {
-        setter = (node: View | null) => {
+        setter = (node: HostInstance | null) => {
           if (node) chapterViewRefsRef.current.set(chapterValue, node);
           else chapterViewRefsRef.current.delete(chapterValue);
         };
@@ -197,7 +198,7 @@ export default function ReadingScreen() {
 
     requestAnimationFrame(() => {
       chapterView.measureLayout(
-        scrollRef as unknown as Parameters<View['measureLayout']>[0],
+        scrollRef as unknown as Parameters<HostInstance['measureLayout']>[0],
         (_x, chapterY) => {
           const viewportH = viewportHeightRef.current;
           if (viewportH <= 0) return;
@@ -470,7 +471,7 @@ export default function ReadingScreen() {
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={theme.iconPrimary} />
       </View>
-    ) : null;
+    ) : undefined;
 
   if (showAudioOnly && effectiveChapterNumber != null) {
     return (

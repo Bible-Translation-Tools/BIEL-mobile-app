@@ -1,13 +1,5 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Platform,
-  Pressable,
-  StatusBar as RNStatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type ChapterDownloadContext } from '@/components/reading/chapter-download-menu';
@@ -30,16 +22,6 @@ export function ReadingToolbar({ chapterTitle, downloadContext }: ReadingToolbar
   const insets = useSafeAreaInsets();
   const isElevated = chapterTitle != null;
   const headerBackground = isElevated ? theme.surfaceAccent : theme.background;
-
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
-
-    RNStatusBar.setBackgroundColor(headerBackground, true);
-
-    return () => {
-      RNStatusBar.setBackgroundColor(theme.background, true);
-    };
-  }, [headerBackground, theme.background]);
 
   return (
     <View

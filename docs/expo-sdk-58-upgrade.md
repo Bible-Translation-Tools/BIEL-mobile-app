@@ -43,6 +43,28 @@ Source: [SDK 57 changelog](https://expo.dev/changelog/sdk-57). React Native 0.86
 | `expo prebuild` now cleans and regenerates `android/` / `ios/` by default (`--no-clean` to opt out) | No impact: both folders are generated (CNG) |
 | iOS 27 scene lifecycle is opt-in on SDK 57 (`expo-build-properties` → `ios.enableSceneSupport`, from `57.0.23`) | Not enabled; it becomes the default in SDK 58 |
 
+### SDK 58: `expo@58.0.23` (React Native 0.88.1, React 19.3.0)
+
+Source: [SDK 58 changelog](https://expo.dev/changelog/sdk-58), [Router SDK 57 → 58 migration](https://docs.expo.dev/router/migrate/sdk-57-to-58/).
+
+| Change in SDK 58 | What we did |
+|------------------|-------------|
+| RN's **strict TypeScript API** is the default (RN 0.87) | Migrated instead of using the `customConditions` opt-out: host refs typed `HostInstance` (was `View`), `TextInputInstance` (was `TextInput`); `ListViewToken` (was `ViewToken`); `TextLayoutEvent` (was `NativeSyntheticEvent<TextLayoutEventData>`); `ListHeaderComponent` / `ListFooterComponent` use `undefined`, not `null`; `useColorScheme()` can return `null` |
+| `StatusBar.setBackgroundColor` removed | Dropped the Android effect in `reading-toolbar.tsx`; under edge-to-edge (targetSdk 36) the status bar is transparent and the toolbar already paints behind it |
+| `react-native-gesture-handler` 2.32 → **3.3** (major) | No app code imports it directly (only via router/screens) |
+| Expo Router navigation core rewrite | None of the removed APIs are used (`initialRouteName`, `initialParams`, `beforeRemove`, `preloadedRoutes`, `navigationKey`…). `index.tsx` keeps `navigation.addListener('transitionEnd')` |
+| `File.write()` async | Already handled in the prep (`writeFileAtomically`) |
+| R8 minification on by default for Android release builds | See **Release build** below |
+| Foreground notifications shown by default | `notifications.ts` sets `shouldShowBanner` / `shouldShowList` explicitly; no change |
+| iOS: scene-based lifecycle (`SceneDelegate.swift`), RTL follows `I18nManager` | Prebuild handles the scene delegate; iOS still needs testing on a Mac with Xcode 27 |
+| Node 22.13+ / 24.3+ / 26+ | CI and `mise.toml` use Node 24 |
+| Android compileSdk **37**, build-tools **37.0.0** (targetSdk stays 36, NDK unchanged) | CI installs `platforms;android-37` / `build-tools;37.0.0` and checks them against `:app:properties` |
+| Reanimated 4.7 / Worklets 0.13 moved to `build.gradle.kts` | `scripts/patch-android-cxx-paths.js` handles both Gradle DSLs (it was skipping them silently) |
+
+**Debug build:** verified on the Pixel 6a (manual checks pass).
+
+**Release build (R8):** _pending_
+
 ## Each SDK step
 
 Do each step on its own branch and PR (for example `chore/expo-sdk-56`), cut from `main` after the previous step has merged.

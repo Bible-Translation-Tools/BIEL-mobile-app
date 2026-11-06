@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, type TextInputInstance, View } from 'react-native';
 
 import { LibraryFilterPopover } from '@/components/download/library-filter-popover';
 import { FILTER_LIST_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
@@ -23,7 +23,7 @@ export function DownloadsLibraryHeader({
   onContentFilterChange,
 }: DownloadsLibraryHeaderProps) {
   const theme = useTheme();
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInputInstance>(null);
   const { t } = useTranslation('library');
   const { t: tc } = useTranslation('common');
   const {

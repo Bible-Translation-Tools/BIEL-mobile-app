@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Keyboard, type LayoutRectangle, type View } from 'react-native';
+import { type HostInstance, Keyboard, type LayoutRectangle } from 'react-native';
 
 export type MenuAnchor = Pick<LayoutRectangle, 'x' | 'y' | 'width' | 'height'>;
 
@@ -13,7 +13,7 @@ type UseAnchoredMenuOptions = {
  * `collapsable={false}` wrapper, call `open` to measure it and show the menu.
  */
 export function useAnchoredMenu({ dismissKeyboard = false }: UseAnchoredMenuOptions = {}) {
-  const anchorRef = useRef<View>(null);
+  const anchorRef = useRef<HostInstance>(null);
   const [visible, setVisible] = useState(false);
   const [anchor, setAnchor] = useState<MenuAnchor | null>(null);
 

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, type TextInputInstance, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BookLayout, Typography } from '@/constants/theme';
@@ -13,7 +13,7 @@ type BooksHeaderProps = {
 
 export function BooksHeader({ searchQuery, onSearchChange }: BooksHeaderProps) {
   const theme = useTheme();
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInputInstance>(null);
   const { t } = useTranslation('books');
   const { t: tc } = useTranslation('common');
 
