@@ -18,7 +18,7 @@ import type { DownloadedLibraryLanguage } from '@/features/library';
 import type { BookDownloadStatusChange } from '@/hooks/use-books';
 import { useLibraryChapters } from '@/hooks/use-library-chapters';
 import { useTheme } from '@/hooks/use-theme';
-import type { BookItem, ChapterItem } from '@/types/book';
+import type { BookItem, ChapterItem, Testament } from '@/types/book';
 
 type DownloadsLibraryListProps = {
   items: DownloadedLibraryLanguage[];
@@ -26,6 +26,8 @@ type DownloadsLibraryListProps = {
   error: string | null;
   refreshing: boolean;
   bookCount: number;
+  /** Open every testament group, e.g. while a search is active. */
+  expandAllGroups?: boolean;
   onRetry: () => void;
   onRefresh: () => void | Promise<void>;
   onChapterPress: (languageCode: string, book: BookItem, chapter: ChapterItem) => void;
@@ -36,6 +38,12 @@ type ExpandedBook = {
   languageCode: string;
   bookId: string;
 };
+
+const TESTAMENTS: Testament[] = ['old', 'new'];
+
+function testamentToggleKey(languageCode: string, testament: Testament) {
+  return `${languageCode}:${testament}`;
+}
 
 function DownloadsLibraryEmpty({
   loading,
@@ -82,9 +90,11 @@ function LanguageAccordion({
   item,
   expanded,
   expandedBook,
+  isTestamentExpanded,
   getChapters,
   isChaptersLoading,
   onToggleLanguage,
+  onToggleTestament,
   onToggleBook,
   onChapterPress,
   onDownloadStatusChange,
@@ -92,13 +102,16 @@ function LanguageAccordion({
   item: DownloadedLibraryLanguage;
   expanded: boolean;
   expandedBook: ExpandedBook | null;
+  isTestamentExpanded: (testament: Testament) => boolean;
   getChapters: (languageCode: string, bookSlug: string) => ChapterItem[] | undefined;
   isChaptersLoading: (languageCode: string, bookSlug: string) => boolean;
   onToggleLanguage: () => void;
+  onToggleTestament: (testament: Testament) => void;
   onToggleBook: (book: BookItem) => void;
   onChapterPress: (languageCode: string, book: BookItem, chapter: ChapterItem) => void;
   onDownloadStatusChange: (change?: BookDownloadStatusChange) => void;
 }) {
+  const { t } = useTranslation('books');
   const languageName = item.language.nationalName || item.language.name;
 
   return (
@@ -106,22 +119,44 @@ function LanguageAccordion({
       <AccordionGroupHeader title={languageName} expanded={expanded} onPress={onToggleLanguage} />
 
       {expanded
-        ? item.books.map((book) => {
-            const isBookExpanded =
-              expandedBook?.languageCode === item.language.code && expandedBook.bookId === book.id;
+        ? TESTAMENTS.map((testament) => {
+            const books = item.books.filter((book) => book.testament === testament);
+            if (books.length === 0) return null;
+
+            const groupExpanded = isTestamentExpanded(testament);
 
             return (
-              <DownloadsLibraryBookRow
-                key={`${item.language.code}:${book.id}`}
-                book={book}
-                languageCode={item.language.code}
-                isExpanded={isBookExpanded}
-                chapters={getChapters(item.language.code, book.slug)}
-                chaptersLoading={isChaptersLoading(item.language.code, book.slug)}
-                onToggleExpand={() => onToggleBook(book)}
-                onChapterPress={(chapter) => onChapterPress(item.language.code, book, chapter)}
-                onDownloadStatusChange={onDownloadStatusChange}
-              />
+              <View key={testament} style={styles.testamentGroup}>
+                <AccordionGroupHeader
+                  title={testament === 'old' ? t('oldTestament') : t('newTestament')}
+                  expanded={groupExpanded}
+                  onPress={() => onToggleTestament(testament)}
+                />
+
+                {groupExpanded
+                  ? books.map((book) => {
+                      const isBookExpanded =
+                        expandedBook?.languageCode === item.language.code &&
+                        expandedBook.bookId === book.id;
+
+                      return (
+                        <DownloadsLibraryBookRow
+                          key={`${item.language.code}:${book.id}`}
+                          book={book}
+                          languageCode={item.language.code}
+                          isExpanded={isBookExpanded}
+                          chapters={getChapters(item.language.code, book.slug)}
+                          chaptersLoading={isChaptersLoading(item.language.code, book.slug)}
+                          onToggleExpand={() => onToggleBook(book)}
+                          onChapterPress={(chapter) =>
+                            onChapterPress(item.language.code, book, chapter)
+                          }
+                          onDownloadStatusChange={onDownloadStatusChange}
+                        />
+                      );
+                    })
+                  : null}
+              </View>
             );
           })
         : null}
@@ -135,6 +170,7 @@ export function DownloadsLibraryList({
   error,
   refreshing,
   bookCount,
+  expandAllGroups = false,
   onRetry,
   onRefresh,
   onChapterPress,
@@ -143,6 +179,8 @@ export function DownloadsLibraryList({
   const theme = useTheme();
   const { t } = useTranslation('library');
   const [expandedLanguageCode, setExpandedLanguageCode] = useState<string | null>(null);
+  // Keyed by `${languageCode}:${testament}`; untouched groups start expanded.
+  const [testamentToggles, setTestamentToggles] = useState<Record<string, boolean>>({});
   const [expandedBook, setExpandedBook] = useState<ExpandedBook | null>(null);
   const { loadChapters, getChapters, isLoading, clearCache } = useLibraryChapters();
 
@@ -199,12 +237,26 @@ export function DownloadsLibraryList({
     [expandedBook, loadChapters],
   );
 
+  const handleToggleTestament = useCallback(
+    (language: DownloadedLibraryLanguage, testament: Testament) => {
+      Keyboard.dismiss();
+      const key = testamentToggleKey(language.language.code, testament);
+      setTestamentToggles((current) => ({ ...current, [key]: !(current[key] ?? true) }));
+    },
+    [],
+  );
+
   const renderItem: ListRenderItem<DownloadedLibraryLanguage> = useCallback(
     ({ item }) => (
       <LanguageAccordion
         item={item}
         expanded={expandedLanguageCode === item.language.code}
         expandedBook={expandedBook}
+        isTestamentExpanded={(testament) => {
+          if (expandAllGroups) return true;
+          const stored = testamentToggles[testamentToggleKey(item.language.code, testament)];
+          return stored ?? true;
+        }}
         getChapters={getChapters}
         isChaptersLoading={isLoading}
         onToggleLanguage={() => {
@@ -213,17 +265,21 @@ export function DownloadsLibraryList({
             current === item.language.code ? null : item.language.code,
           );
         }}
+        onToggleTestament={(testament) => handleToggleTestament(item, testament)}
         onToggleBook={(book) => handleToggleBook(item.language.code, book)}
         onChapterPress={onChapterPress}
         onDownloadStatusChange={handleDownloadStatusChange}
       />
     ),
     [
+      expandAllGroups,
       expandedBook,
       expandedLanguageCode,
       getChapters,
       handleToggleBook,
+      handleToggleTestament,
       isLoading,
+      testamentToggles,
       onChapterPress,
       handleDownloadStatusChange,
     ],
@@ -237,7 +293,7 @@ export function DownloadsLibraryList({
       data={items}
       renderItem={renderItem}
       keyExtractor={(item) => item.language.code}
-      extraData={`${expandedLanguageCode}:${expandedBook?.languageCode}:${expandedBook?.bookId}`}
+      extraData={`${expandedLanguageCode}:${JSON.stringify(testamentToggles)}:${expandAllGroups}:${expandedBook?.languageCode}:${expandedBook?.bookId}`}
       ListHeaderComponent={
         isEmpty ? null : (
           <Text style={[styles.count, { color: theme.textLabel }]}>
@@ -291,6 +347,9 @@ const styles = StyleSheet.create({
     marginBottom: DownloadsLibraryLayout.countGap,
   },
   accordion: {
+    gap: HomeLayout.listGap,
+  },
+  testamentGroup: {
     gap: HomeLayout.listGap,
   },
   separator: {
