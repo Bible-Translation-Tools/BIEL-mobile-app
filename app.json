@@ -2,16 +2,20 @@
   "expo": {
     "name": "BIEL",
     "slug": "biel-mobile-app",
-    "version": "1.1.1-qa",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bielmobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "org.bibletranslationtools.biel",
+      "buildNumber": "2",
       "icon": "./assets/images/icon.png",
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -45,7 +49,17 @@
           "color": "#208AEF"
         }
       ],
-      "./plugins/withTrackPlayerService"
+      "./plugins/withTrackPlayerService",
+      "./plugins/withPodsDeploymentTarget",
+      "./plugins/withSceneLifecycle",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
