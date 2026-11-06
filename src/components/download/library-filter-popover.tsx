@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dismissLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   menuWrap: {
     position: 'absolute',

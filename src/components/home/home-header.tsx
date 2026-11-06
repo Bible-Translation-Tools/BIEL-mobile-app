@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, type TextInputInstance, View } from 'react-native';
 
 import { BookHeaderIcon } from '@/components/icons/book-header-icon';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -15,7 +15,7 @@ type HomeHeaderProps = {
 
 export function HomeHeader({ searchQuery, onSearchChange, title }: HomeHeaderProps) {
   const theme = useTheme();
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInputInstance>(null);
   const { t } = useTranslation('home');
   const { t: tc } = useTranslation('common');
 

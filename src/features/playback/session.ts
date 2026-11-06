@@ -1,6 +1,5 @@
-import TrackPlayer, { State } from 'react-native-track-player';
-
 import { findNextVerseTiming, findPreviousVerseTiming } from '@/domain/verse-navigation';
+import * as engine from '@/services/playback-engine';
 
 import {
   getAudioChaptersForBook,
@@ -173,7 +172,7 @@ export function clearSession() {
 /** Stops playback, clears the queue, and dismisses system media controls. */
 export async function stopPlayback(): Promise<void> {
   try {
-    await TrackPlayer.reset();
+    await engine.reset();
   } catch {
     // Player may not be initialized yet.
   }
@@ -189,7 +188,7 @@ async function ensureChapterNumbers(): Promise<void> {
 
 export async function updateNowPlayingVerse(chapter: number, verse: number | null): Promise<void> {
   if (!session) return;
-  await TrackPlayer.updateNowPlayingMetadata({
+  await engine.updateNowPlaying({
     title: formatTitle(session.bookName, chapter, verse),
     artist: session.bookName || 'BIEL',
   });
@@ -232,8 +231,7 @@ export async function loadChapter(
     session.activeChapter = chapter;
     const firstVerse = timings[0]?.verse ?? null;
 
-    await TrackPlayer.reset();
-    await TrackPlayer.add({
+    await engine.loadTrack({
       id: `${session.bookSlug}-${chapter}`,
       url,
       title: formatTitle(session.bookName, chapter, firstVerse),
@@ -249,7 +247,7 @@ export async function loadChapter(
     });
 
     if (options?.autoPlay) {
-      await TrackPlayer.play();
+      await engine.play();
     }
   } catch (err) {
     if (generation !== loadGeneration) return;
@@ -270,7 +268,7 @@ export async function handleQueueEnded(): Promise<void> {
   );
 
   if (nextChapter == null) {
-    await TrackPlayer.pause();
+    await engine.pause();
     return;
   }
 
@@ -284,11 +282,10 @@ export function clearDidJustFinish() {
 }
 
 async function isAtChapterEnd(): Promise<boolean> {
-  const { state } = await TrackPlayer.getPlaybackState();
-  if (state === State.Ended) return true;
+  if ((await engine.getPlaybackStatus()) === 'ended') return true;
   if (snapshot.didJustFinish) return true;
 
-  const progress = await TrackPlayer.getProgress();
+  const progress = await engine.getProgress();
   return progress.duration > 0 && progress.position >= progress.duration - 0.25;
 }
 
@@ -302,52 +299,51 @@ async function restartChapterIfAtEnd(): Promise<void> {
 export async function play(): Promise<void> {
   if (!snapshot.audioUrl) return;
   await restartChapterIfAtEnd();
-  await TrackPlayer.play();
+  await engine.play();
 }
 
 export async function pause(): Promise<void> {
-  await TrackPlayer.pause();
+  await engine.pause();
 }
 
 export async function togglePlay(): Promise<void> {
   if (!snapshot.audioUrl) return;
-  const { state } = await TrackPlayer.getPlaybackState();
-  if (state === State.Playing) {
-    await TrackPlayer.pause();
+  if ((await engine.getPlaybackStatus()) === 'playing') {
+    await engine.pause();
     return;
   }
 
   await restartChapterIfAtEnd();
-  await TrackPlayer.play();
+  await engine.play();
 }
 
 export async function seekTo(seconds: number): Promise<void> {
-  await TrackPlayer.seekTo(seconds);
+  await engine.seekTo(seconds);
 }
 
 export async function seekToVerse(verse: number): Promise<boolean> {
   const timing = snapshot.verseTimings.find((item) => item.verse === verse);
   if (!timing) return false;
-  await TrackPlayer.seekTo(timing.time);
+  await engine.seekTo(timing.time);
   return true;
 }
 
 export async function seekToFirstVerse(): Promise<void> {
-  await TrackPlayer.seekTo(snapshot.verseTimings[0]?.time ?? 0);
+  await engine.seekTo(snapshot.verseTimings[0]?.time ?? 0);
 }
 
 export async function seekToLastVerse(duration: number): Promise<void> {
   if (snapshot.verseTimings.length > 0) {
-    await TrackPlayer.seekTo(snapshot.verseTimings[snapshot.verseTimings.length - 1].time);
+    await engine.seekTo(snapshot.verseTimings[snapshot.verseTimings.length - 1].time);
     return;
   }
-  if (duration > 0) await TrackPlayer.seekTo(Math.max(0, duration - 1));
+  if (duration > 0) await engine.seekTo(Math.max(0, duration - 1));
 }
 
 export async function seekToNextVerse(): Promise<boolean> {
   const next = findNextVerseTiming(snapshot.verseTimings, currentTime);
   if (!next) return false;
-  await TrackPlayer.seekTo(next.time);
+  await engine.seekTo(next.time);
   return true;
 }
 
@@ -362,6 +358,6 @@ export function canSeekToPreviousVerseInChapter(): boolean {
 export async function seekToPreviousVerse(): Promise<boolean> {
   const target = findPreviousVerseTiming(snapshot.verseTimings, currentTime);
   if (!target) return false;
-  await TrackPlayer.seekTo(target.time);
+  await engine.seekTo(target.time);
   return true;
 }

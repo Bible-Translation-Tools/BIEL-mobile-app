@@ -35,7 +35,10 @@ function shouldPatchCmakeBlock(lines, cmakeLineIndex) {
       break;
     }
 
-    if (/path "(?:CMakeLists\.txt|src\/main\/jni\/CMakeLists\.txt)"/.test(line)) {
+    // Groovy: path "CMakeLists.txt"; Kotlin DSL (.kts): path = file("CMakeLists.txt")
+    if (
+      /path (?:= file\()?"(?:CMakeLists\.txt|src\/main\/jni\/CMakeLists\.txt)"/.test(line)
+    ) {
       return true;
     }
 
@@ -90,8 +93,13 @@ for (const packageName of NATIVE_PACKAGES) {
     continue;
   }
 
-  const buildGradlePath = path.join(path.dirname(packageJsonPath), 'android', 'build.gradle');
-  if (!fs.existsSync(buildGradlePath)) {
+  // Reanimated 4.7+ / Worklets 0.13+ use the Kotlin DSL (build.gradle.kts); the marker line is
+  // valid in both.
+  const androidDir = path.join(path.dirname(packageJsonPath), 'android');
+  const buildGradlePath = ['build.gradle', 'build.gradle.kts']
+    .map((name) => path.join(androidDir, name))
+    .find((candidate) => fs.existsSync(candidate));
+  if (!buildGradlePath) {
     continue;
   }
 

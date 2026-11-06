@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     filter: [{ blur: 9 }],
   },
   frost: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.2,
   },
   chapterTitle: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 0,

@@ -22,7 +22,7 @@ Preconditions:
 - `bv flow download-book` passed (2 John text on disk). Then `bv net off`; `bv net` prints `airplane-mode: 1`.
 
 - **Offline boot.** Run `bv flow offline-read`. Home shows the `You are in offline mode.` toast at the bottom (`01-home-offline.png`).
-- **Cached catalog.** The flow dismisses the toast if it is still up, opens `Open English` → `New Testament` → `Expand 2 John`; `Chapter 1.*` is listed (`02-2john-offline-chapters.png`).
+- **Cached catalog.** The flow dismisses the toast if it is still up, opens `Open English`, searches `2 John` (search opens both testament groups) → `Expand 2 John`; `Chapter 1.*` is listed (`02-2john-offline-chapters.png`).
 - **Local read.** The flow taps `Chapter 1.*`; verse text `From the elder to the chosen lady…` renders with the network off (`03-2john-read-offline.png`).
 - **Not downloaded.** The flow expands `3 John`; no chapter buttons appear (`04-3john-not-downloaded.png`).
 - **Restore.** Run `bv net on` (cleanup also does this).

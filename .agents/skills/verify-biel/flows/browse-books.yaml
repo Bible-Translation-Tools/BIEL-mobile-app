@@ -4,10 +4,12 @@ appId: ${APP_ID}
 - runFlow: _open-english.yaml
 - assertVisible: "Expand Genesis"
 - takeScreenshot: 01-old-testament
-- tapOn: "New Testament"
+- tapOn: "Search book here..."   # search reaches New Testament books without scrolling past the OT list
+- inputText: "Matthew"
 - assertVisible: "Expand Matthew"
 - assertNotVisible: "Expand Genesis"
 - takeScreenshot: 02-new-testament
+- tapOn: "Clear search"
 - tapOn: "Search book here..."
 - inputText: "2 John"
 - assertVisible: "Expand 2 John"

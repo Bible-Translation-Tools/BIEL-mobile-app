@@ -19,10 +19,9 @@ appId: ${APP_ID}
 - inputText: "en"
 - tapOn: "Open English"
 - extendedWaitUntil:
-    visible: "New Testament"
+    visible: "Old Testament"
     timeout: 30000
-- tapOn: "New Testament"
-- tapOn: "Search book here..."
+- tapOn: "Search book here..."   # search opens both testament groups
 - inputText: "2 John"
 - tapOn: "Expand 2 John"
 - extendedWaitUntil:
