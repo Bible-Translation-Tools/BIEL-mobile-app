@@ -32,8 +32,9 @@ export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null
 
       return () => {
         focusedRef.current = false;
-        if (AppState.currentState !== 'active') return;
-        if (checkpointRef.current != null) clearReadingCheckpoint(checkpointRef.current);
+        if (AppState.currentState === 'active' && checkpointRef.current != null) {
+          clearReadingCheckpoint(checkpointRef.current);
+        }
       };
     }, []),
   );
