@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   dismissLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   drawer: {
     height: '100%',

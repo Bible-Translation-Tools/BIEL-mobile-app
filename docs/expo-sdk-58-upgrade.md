@@ -13,6 +13,24 @@ Sources: [SDK 58 changelog](https://expo.dev/changelog/sdk-58), [upgrade walkthr
 | `expo-file-system`: `File.write()` becomes async in SDK 58 | `writeFileAtomically()` (`src/api/offline-storage.ts`) is async and awaits the write, and every caller awaits it. Without this, the `.tmp` → target move would race the write and corrupt downloads. |
 | `react-native-track-player` risk | All player calls go through `src/services/playback-engine/`. Lint (`no-restricted-imports`) blocks direct imports anywhere else. If the library breaks on a new RN, the fix or the replacement (for example `expo-audio`) is confined to that folder. |
 
+## Step log
+
+### SDK 56 — `expo@56.0.24` (React Native 0.85.3, React 19.2.3, TypeScript 6.0.3)
+
+Source: [SDK 56 changelog](https://expo.dev/changelog/sdk-56), [Router SDK 55 → 56 migration](https://docs.expo.dev/router/migrate/sdk-55-to-56/).
+
+| Change in SDK 56 | What we did |
+|------------------|-------------|
+| Expo Router no longer supports `@react-navigation/*` imports in app code | `src/app/_layout.tsx` (themes, `ThemeProvider`) and `src/app/index.tsx` (navigation types) import from `expo-router/react-navigation`; removed the `@react-navigation/native` dependency |
+| `expo-file-system`: `File.move()` / `copy()` are async | `writeFileAtomically()` now awaits `move()` too (no other `move`/`copy` calls) |
+| RN 0.85 removed `StyleSheet.absoluteFillObject` | Spread `StyleSheet.absoluteFill` instead (6 places) |
+| `@expo/dom-webview` (optional peer of `expo`) stayed at 55.x in the lockfile | Added it as a direct dependency at the SDK version (`expo install @expo/dom-webview`) |
+| `expo install --fix` added the `expo-font` config plugin to `app.json` | Kept |
+| expo-doctor: `react-native-track-player` "Unsupported on New Architecture" (React Native Directory) | Excluded in `package.json` → `expo.doctor.reactNativeDirectoryCheck.exclude`; the risk is tracked in the checklist below |
+| **Known regression:** Hermes V1 (default from SDK 56) leaks memory with Reanimated/Worklets; expo-doctor flags it | Not worked around. Fixed in SDK 57 (`expo@57.0.9`+, RN 0.86.2+). **Don't ship a release from SDK 56**; go on to 57 |
+| `expo/fetch` replaces `globalThis.fetch` | No code change; verify downloads and streaming audio on device (opt-out: `EXPO_PUBLIC_USE_RN_FETCH=1`) |
+| Minimum Xcode 26.4, iOS deployment target 16.4, Node ≥ 20.19.4 | Nothing to change here (Node 24) |
+
 ## Each SDK step
 
 Do each step on its own branch and PR (for example `chore/expo-sdk-56`), cut from `main` after the previous step has merged.

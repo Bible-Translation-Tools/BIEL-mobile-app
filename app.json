@@ -45,7 +45,8 @@
           "color": "#208AEF"
         }
       ],
-      "./plugins/withTrackPlayerService"
+      "./plugins/withTrackPlayerService",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
