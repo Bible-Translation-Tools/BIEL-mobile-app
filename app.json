@@ -46,7 +46,8 @@
         }
       ],
       "./plugins/withTrackPlayerService",
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

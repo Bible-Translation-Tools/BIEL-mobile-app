@@ -31,6 +31,18 @@ Source: [SDK 56 changelog](https://expo.dev/changelog/sdk-56), [Router SDK 55 �
 | `expo/fetch` replaces `globalThis.fetch` | No code change; verify downloads and streaming audio on device (opt-out: `EXPO_PUBLIC_USE_RN_FETCH=1`) |
 | Minimum Xcode 26.4, iOS deployment target 16.4, Node ≥ 20.19.4 | Nothing to change here (Node 24) |
 
+### SDK 57: `expo@57.0.32` (React Native 0.86.3, React 19.2.3)
+
+Source: [SDK 57 changelog](https://expo.dev/changelog/sdk-57). React Native 0.86 is meant to have no breaking changes from 0.85, and this step needed no app code changes.
+
+| Change in SDK 57 | What we did |
+|------------------|-------------|
+| Hermes V1 memory regression fixed in `expo@57.0.9` (and the dev startup slowdown in `57.0.17`) | On 57.0.32; expo-doctor passes all checks |
+| Reanimated 4.3 → 4.5, Worklets 0.8 → 0.10, Gesture Handler 2.31 → 2.32 | Taken from `expo install --fix` |
+| `expo install --fix` added the `expo-status-bar` config plugin to `app.json` | Kept |
+| `expo prebuild` now cleans and regenerates `android/` / `ios/` by default (`--no-clean` to opt out) | No impact: both folders are generated (CNG) |
+| iOS 27 scene lifecycle is opt-in on SDK 57 (`expo-build-properties` → `ios.enableSceneSupport`, from `57.0.23`) | Not enabled; it becomes the default in SDK 58 |
+
 ## Each SDK step
 
 Do each step on its own branch and PR (for example `chore/expo-sdk-56`), cut from `main` after the previous step has merged.
