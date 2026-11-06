@@ -37,7 +37,7 @@ flowchart LR
   Flag -->|true| Library
 ```
 
-The library screen has its own chrome (Back, title, search, filter). Each language accordion groups its books under collapsible Old/New Testament headers, both expanded by default; a search opens both. The catalog language picker and menu are hidden while the mode is on; **Back** exits.
+The library screen has its own chrome (Back, title, search, filter, testament tabs). The catalog language picker and menu are hidden while the mode is on; **Back** exits.
 
 ## Architecture
 
@@ -111,7 +111,7 @@ Canonical counts are `BIBLE_BOOK_CHAPTER_COUNTS` in `src/constants/bible-books.t
 1. With no downloads, open **Downloads Library**. Expect “No downloads yet”.
 2. Download scripture and/or audio from the catalog, then open the library. That language accordion should appear with the matching badge (Text, Audio, or Both).
 3. Expand a book that has only some chapters. The full chapter grid should show; missing chapters are muted and not tappable.
-4. Filter by Scripture / Audio / Both and search by book name. Languages with no matching books are hidden, and the testament groups only show books that match.
+4. Filter by Scripture / Audio / Both and search by book name. Testament tabs hide languages with no matching books.
 5. Delete the last local content for a book. After refresh, that book should leave the list.
 6. Tap **Back**. Catalog home returns. Force-quit while the library is open; on next launch the catalog is back.
 
