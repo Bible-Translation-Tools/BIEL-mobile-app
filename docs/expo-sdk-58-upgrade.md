@@ -56,7 +56,7 @@ Source: [SDK 58 changelog](https://expo.dev/changelog/sdk-58), [Router SDK 57 â†
 | `File.write()` async | Already handled in the prep (`writeFileAtomically`) |
 | R8 minification on by default for Android release builds | See **Release build** below |
 | Foreground notifications shown by default | `notifications.ts` sets `shouldShowBanner` / `shouldShowList` explicitly; no change |
-| iOS: scene-based lifecycle (`SceneDelegate.swift`), RTL follows `I18nManager` | Prebuild handles the scene delegate; iOS still needs testing on a Mac with Xcode 27 |
+| iOS: scene-based lifecycle (`SceneDelegate.swift`), RTL follows `I18nManager` | The template's `SceneDelegate` (subclass of `ExpoAppSceneDelegate`) and scene manifest replace `plugins/withSceneLifecycle.js` from `main`, which was removed. Its AppDelegate regex no longer matches, so it would have broken prebuild. `withPodsDeploymentTarget` stays (its Podfile anchor is unchanged). iOS still needs testing on a Mac with Xcode 27 |
 | Node 22.13+ / 24.3+ / 26+ | CI and `mise.toml` use Node 24 |
 | Android compileSdk **37**, build-tools **37.0.0** (targetSdk stays 36, NDK unchanged) | CI installs `platforms;android-37` / `build-tools;37.0.0` and checks them against `:app:properties` |
 | Reanimated 4.7 / Worklets 0.13 moved to `build.gradle.kts` | `scripts/patch-android-cxx-paths.js` handles both Gradle DSLs (it was skipping them silently) |

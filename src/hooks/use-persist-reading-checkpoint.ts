@@ -1,5 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 
 import { clearReadingCheckpoint, saveReadingCheckpoint } from '@/stores/reading-checkpoint-store';
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
@@ -26,7 +27,10 @@ export function usePersistReadingCheckpoint(checkpoint: ReadingCheckpoint | null
 
       return () => {
         focusedRef.current = false;
-        if (checkpointRef.current != null) clearReadingCheckpoint(checkpointRef.current);
+        // Only clear while the app is in the foreground; switching apps on iOS shouldn't clear the checkpoint.
+        if (AppState.currentState === 'active' && checkpointRef.current != null) {
+          clearReadingCheckpoint(checkpointRef.current);
+        }
       };
     }, []),
   );
