@@ -32,5 +32,6 @@ flowchart LR
 
 - **A screen clears only its own checkpoint.** Going Back from the reader to the book list, the list's save and the reader's clear can arrive in either order.
 - **Saves are skipped while a screen isn't focused.** Otherwise a reader left under another screen saves itself again.
+- **Closing the app doesn't clear.** Swiping the app away on iOS (Fabric stops the surface on terminate) and on Android (the activity is destroyed) unmounts every screen, which runs the focus cleanup. The clear is skipped unless `AppState` is `active`, since real navigation only happens in the foreground.
 - **Saves and clears are immediate.** Each write is one small SQLite row, so no debounce or delay is needed.
 - **Home restores only on its first mount** (`takeLaunchCheckpoint`), or later renders would redirect into the reader.
