@@ -98,7 +98,8 @@ export function BookList({
 }: BookListProps) {
   const theme = useTheme();
   const { t } = useTranslation('books');
-  const [expandedTestament, setExpandedTestament] = useState<Testament | null>(null);
+  // Testaments the user has toggled; untouched groups start expanded.
+  const [testamentToggles, setTestamentToggles] = useState<Partial<Record<Testament, boolean>>>({});
   const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
   const { loadChapters, getChapters, isLoading, clearCache } = useBookChapters(
     languageCode,
@@ -109,6 +110,7 @@ export function BookList({
 
   useEffect(() => {
     setExpandedBookId(null);
+    setTestamentToggles({});
   }, [languageCode]);
 
   useEffect(() => {
@@ -117,18 +119,6 @@ export function BookList({
     }
   }, [books, expandedBookId]);
 
-  // Like the Downloads Library, keep one group open: the current one, else the first with books.
-  useEffect(() => {
-    setExpandedTestament((current) => {
-      if (current && books.some((book) => book.testament === current)) {
-        return current;
-      }
-      return (
-        TESTAMENTS.find((testament) => books.some((book) => book.testament === testament)) ?? null
-      );
-    });
-  }, [books]);
-
   const rows = useMemo(() => {
     const result: BookListRow[] = [];
     for (const testament of TESTAMENTS) {
@@ -136,14 +126,14 @@ export function BookList({
       if (groupBooks.length === 0) continue;
 
       result.push({ type: 'group', testament, first: result.length === 0 });
-      if (expandAllGroups || expandedTestament === testament) {
+      if (expandAllGroups || (testamentToggles[testament] ?? true)) {
         for (const book of groupBooks) {
           result.push({ type: 'book', book });
         }
       }
     }
     return result;
-  }, [books, expandAllGroups, expandedTestament]);
+  }, [books, expandAllGroups, testamentToggles]);
 
   useEffect(() => {
     if (expandedBook) {
@@ -161,7 +151,7 @@ export function BookList({
   const renderItem: ListRenderItem<BookListRow> = useCallback(
     ({ item: row }) => {
       if (row.type === 'group') {
-        const expanded = expandAllGroups || expandedTestament === row.testament;
+        const expanded = expandAllGroups || (testamentToggles[row.testament] ?? true);
         return (
           <View style={!row.first && styles.groupSpacing}>
             <AccordionGroupHeader
@@ -174,9 +164,10 @@ export function BookList({
                   return;
                 }
                 Keyboard.dismiss();
-                setExpandedTestament((current) =>
-                  current === row.testament ? null : row.testament,
-                );
+                setTestamentToggles((current) => ({
+                  ...current,
+                  [row.testament]: !(current[row.testament] ?? true),
+                }));
               }}
             />
           </View>
@@ -217,7 +208,7 @@ export function BookList({
     [
       expandAllGroups,
       expandedBookId,
-      expandedTestament,
+      testamentToggles,
       getChapters,
       isLoading,
       languageCode,
@@ -238,7 +229,7 @@ export function BookList({
       data={rows}
       renderItem={renderItem}
       keyExtractor={(row) => (row.type === 'group' ? `group:${row.testament}` : row.book.id)}
-      extraData={`${expandedTestament}:${expandedBookId}`}
+      extraData={`${JSON.stringify(testamentToggles)}:${expandAllGroups}:${expandedBookId}`}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
         <View style={styles.emptyFill}>
