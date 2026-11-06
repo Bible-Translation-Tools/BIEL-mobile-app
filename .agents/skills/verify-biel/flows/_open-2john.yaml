@@ -1,8 +1,9 @@
-# English → New Testament → 2 John expanded (chapter grid visible). Stops before opening a chapter.
+# English → search 2 John → expanded (chapter grid visible). Stops before opening a chapter.
+# No testament tap: a book search opens both groups, and the New Testament header sits below the
+# open Old Testament list (off-screen on a phone).
 appId: ${APP_ID}
 ---
 - runFlow: _open-english.yaml
-- tapOn: "New Testament"
 - tapOn: "Search book here..."
 - inputText: "2 John"
 - tapOn: "Expand 2 John"

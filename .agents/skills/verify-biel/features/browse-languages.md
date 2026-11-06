@@ -27,7 +27,7 @@ Preconditions:
 - **Search.** The flow types `en`; the card labelled `Open English` is visible and first (`02-search-en.png`).
 - **Empty.** The flow types `zzqx`; `No languages found` is visible (`03-empty.png`).
 - **Clear.** The flow taps `Clear search`; the list returns.
-- **Open.** The flow taps `Open English`; the Books screen shows `Old Testament` and `New Testament` (`04-books-for-english.png`).
+- **Open.** The flow taps `Open English`; the Books screen shows `Old Testament`, and searching `Matthew` shows `Expand Matthew` (`04-books-for-english.png`).
 - **Proof.** `PASS browse-languages (<platform>) → <evidence dir>` plus the four screenshots.
 
 ## Gotchas

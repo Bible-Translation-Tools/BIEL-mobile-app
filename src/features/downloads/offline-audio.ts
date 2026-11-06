@@ -342,7 +342,7 @@ async function downloadBinaryFile(
   }
 
   const bytes = new Uint8Array(await response.arrayBuffer());
-  writeFileAtomically(targetFile, bytes);
+  await writeFileAtomically(targetFile, bytes);
   return bytes.byteLength;
 }
 
@@ -357,7 +357,7 @@ async function downloadTextFile(
   }
 
   const text = await response.text();
-  writeFileAtomically(targetFile, text);
+  await writeFileAtomically(targetFile, text);
   return new TextEncoder().encode(text).length;
 }
 

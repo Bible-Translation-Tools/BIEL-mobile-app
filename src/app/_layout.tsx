@@ -19,7 +19,7 @@ import { initDownloadNotifications } from '@/features/downloads';
 import { initPlaybackAppLifecycle } from '@/features/playback';
 import { i18n, initI18n } from '@/i18n';
 import { resolveDeviceLocale } from '@/i18n/resolve-device-locale';
-import { setupTrackPlayer } from '@/services/track-player/setup';
+import { setupPlaybackEngine } from '@/services/playback-engine';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingCheckpointStore } from '@/stores/reading-checkpoint-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
@@ -76,7 +76,7 @@ export default function RootLayout() {
           initAudioVolumeStore(),
           initReadingCheckpointStore(),
           initDownloadNotifications(),
-          Platform.OS !== 'web' ? setupTrackPlayer() : Promise.resolve(),
+          Platform.OS !== 'web' ? setupPlaybackEngine() : Promise.resolve(),
         ]);
         await ensureOfflineRootExists();
         await getLanguageCatalog();

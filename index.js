@@ -1,5 +1,5 @@
-import TrackPlayer from 'react-native-track-player';
+import { registerPlaybackEngineService } from './src/services/playback-engine';
 
-TrackPlayer.registerPlaybackService(() => require('./src/features/playback/remote-events').default);
+registerPlaybackEngineService(() => require('./src/features/playback/session').handleQueueEnded);
 
 import 'expo-router/entry';

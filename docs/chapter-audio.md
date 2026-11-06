@@ -88,7 +88,7 @@ Downloading and playing are separate: downloads populate disk and the database; 
 
 ## Background playback and media notification
 
-On native platforms, chapter audio uses **react-native-track-player**. While audio is playing, the OS shows a media notification / lock-screen controls.
+On native platforms, chapter audio plays through the **playback engine adapter** in `src/services/playback-engine/`, currently backed by **react-native-track-player**. It is the only module allowed to import the player library (enforced by `no-restricted-imports` in `oxlint.config.ts`), so the player can be replaced without touching the session, hooks or routing. While audio is playing, the OS shows a media notification / lock-screen controls.
 
 Tapping the notification opens `trackplayer://notification.click`. Expo Router cannot route that URI directly, so `src/app/+native-intent.tsx` intercepts it and redirects to the reading screen:
 
@@ -107,9 +107,10 @@ Relevant files:
 
 | File | Role |
 |------|------|
-| `src/app/+native-intent.tsx` | Rewrites TrackPlayer notification URI to `/read` |
+| `src/app/+native-intent.tsx` | Rewrites the engine's notification URI (`isEngineNotificationClick()`) to `/read` |
 | `src/features/playback` | Session state, `getActivePlaybackReadRoute()`, `getResumedPlaybackChapter()` |
-| `src/services/track-player/setup.ts` | TrackPlayer setup and Android options |
+| `src/services/playback-engine/` | Player adapter: setup and Android options, background service (remote controls, queue end), commands, hooks |
+| `index.js` | Registers the background service via `registerPlaybackEngineService()` before the router mounts |
 | `src/hooks/use-stop-playback-on-leave.ts` | Stops audio when leaving the reading screen |
 
 ## When playback stops
@@ -119,9 +120,9 @@ Playback is intentionally **not** stopped when the user backgrounds the app whil
 | Scenario | How it is handled |
 |----------|-------------------|
 | Back to book list | `stopPlaybackBeforeLeave()` on toolbar back; `useStopPlaybackOnLeave()` on read-screen blur; `stopPlayback()` when books screen gains focus |
-| App removed from recents (Android) | `AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification` in TrackPlayer setup |
+| App removed from recents (Android) | `AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification` in `setupPlaybackEngine()` |
 | App backgrounded outside reading screen | `initPlaybackAppLifecycle()` stops playback when `readingScreenFocused` is false |
-| Close audio panel | Pauses playback (panel closed); does not reset the TrackPlayer queue |
+| Close audio panel | Pauses playback (panel closed); does not reset the player queue |
 
 Relevant files:
 
@@ -135,7 +136,7 @@ Relevant files:
 
 ## UI ↔ audio chapter sync
 
-The reading UI (`activeChapter`, scroll position, verse highlight) and TrackPlayer (`loadedChapter`) can temporarily disagree. The app handles three cases:
+The reading UI (`activeChapter`, scroll position, verse highlight) and the player (`loadedChapter`) can temporarily disagree. The app handles three cases:
 
 ### 1. Background autoplay advances ahead of the UI
 
