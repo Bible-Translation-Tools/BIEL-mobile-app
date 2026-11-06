@@ -44,7 +44,7 @@ jobs:
           # Update these when upgrading Expo / React Native.
           packages: >-
             platform-tools
-            platforms;android-37
+            platforms;android-37.0
             build-tools;37.0.0
             ndk;27.1.12297006
 
