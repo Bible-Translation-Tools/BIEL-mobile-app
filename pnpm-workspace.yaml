@@ -1,6 +1,12 @@
 packages:
   - .
 
+# Flatten node_modules for React Native native builds on Windows.
+nodeLinker: hoisted
+# Avoid junction/symlink targets under .pnpm — Gradle resolves real paths and
+# hits CMake's 250-char object path limit.
+symlink: false
+
 allowBuilds:
   sharp: true
   unrs-resolver: false
