@@ -100,7 +100,6 @@ export function DownloadsLibraryView() {
           error={error}
           refreshing={refreshing}
           bookCount={bookCount}
-          expandAllGroups={searchQuery.trim().length > 0}
           onRetry={refetch}
           onRefresh={handleRefresh}
           onChapterPress={handleChapterPress}

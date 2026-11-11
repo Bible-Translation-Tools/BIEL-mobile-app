@@ -200,6 +200,10 @@ export const DownloadsLibraryLayout = {
   filterMenuWidth: 220,
   filterMenuEstimatedHeight: 200,
   countGap: 20,
+  /** Left inset of a language's testament sections. */
+  testamentIndent: 12,
+  testamentTitleSize: 20,
+  testamentTitleLineHeight: 24,
 } as const;
 
 /** Collapsible groups of rows: languages in the Downloads Library, testaments on the Books screen. */
