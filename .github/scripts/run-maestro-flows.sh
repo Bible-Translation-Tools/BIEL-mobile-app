@@ -25,6 +25,9 @@ FLOWS=(
 mkdir -p "$OUT"
 adb install -r "$APK"
 adb shell pm grant "$APP_ID" android.permission.POST_NOTIFICATIONS || true
+# A slow CI emulator often shows "Pixel Launcher isn't responding" over the app, which hides it from
+# Maestro. Don't show ANR dialogs for background apps (the launcher is one while BIEL is open).
+adb shell settings put secure anr_show_background 0 || true
 
 # First launch boots past splash before any flow runs (_ready alone does not launch the app).
 maestro test -e APP_ID="$APP_ID" "$FLOWS_DIR/_home.yaml" || true
@@ -32,6 +35,7 @@ maestro test -e APP_ID="$APP_ID" "$FLOWS_DIR/_home.yaml" || true
 failed=()
 for flow in "${FLOWS[@]}"; do
   echo "::group::$flow"
+  adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null || true
   if maestro test -e APP_ID="$APP_ID" \
     --format junit --output "$OUT/$flow.xml" \
     --test-output-dir "$OUT/$flow" \
