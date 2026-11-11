@@ -16,14 +16,24 @@ appId: ${APP_ID}
 - tapOn: "Increase text size"
 - tapOn: "Increase line height"
 - takeScreenshot: 02-text-settings-bigger
-- tapOn:   # dimmed backdrop left of the drawer (backdrop and ✕ share the label "Close menu")
-    point: "10%,50%"
+- waitForAnimationToEnd   # a tap during the drawer/toggle animation is lost
+- tapOn:   # the drawer's ✕; the full-screen backdrop shares the label "Close menu" and taps on it are lost on CI
+    text: "Close menu"
+    rightOf: "Text Settings"
+- extendedWaitUntil:
+    notVisible: "Text Size"
+    timeout: 10000
 - takeScreenshot: 03-reader-bigger
 - tapOn: "Menu"
 - tapOn: "Text Settings"
 - tapOn: "Reset text settings"
-- tapOn:   # dimmed backdrop left of the drawer (backdrop and ✕ share the label "Close menu")
-    point: "10%,50%"
+- waitForAnimationToEnd   # a tap during the drawer/toggle animation is lost
+- tapOn:   # the drawer's ✕; the full-screen backdrop shares the label "Close menu" and taps on it are lost on CI
+    text: "Close menu"
+    rightOf: "Text Settings"
+- extendedWaitUntil:
+    notVisible: "Text Size"
+    timeout: 10000
 - takeScreenshot: 04-reader-reset
 - tapOn: "Go back"
 - assertVisible: "Collapse 2 John"
