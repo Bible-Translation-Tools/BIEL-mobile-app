@@ -13,9 +13,12 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     notVisible: "Force Offline Mode"
     timeout: 10000
+# The toast hides itself after 6 s; on CI that can pass before the drawer has closed. It is a hint, not
+# the proof: the 3 John step below (no chapters without a download) is what shows the app is offline.
 - extendedWaitUntil:
     visible: "You are in offline mode."
-    timeout: 10000
+    timeout: 3000
+    optional: true
 - takeScreenshot: 01-home-forced-offline
 - tapOn:                 # the toast hides itself after 6 s, so it may already be gone
     text: "Dismiss"
