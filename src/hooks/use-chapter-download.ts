@@ -16,7 +16,7 @@ import {
   loadDownloadedChapterScriptureByteSize,
 } from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
-import type { GlobalChapterDownloadSync } from '@/types/download-progress';
+import type { GlobalDownloadSync } from '@/types/download-progress';
 
 type UseChapterDownloadOptions = {
   languageCode: string;
@@ -35,12 +35,22 @@ export function useChapterDownload({
   const { t } = useTranslation('download');
   // Routing through the shared job runner gives chapter downloads the same system
   // notification (and navigation-surviving progress) as book and language downloads.
-  const scriptureSync = useMemo<GlobalChapterDownloadSync>(
-    () => ({ languageCode, bookSlug, bookName, chapter, kind: 'chapter-text' }),
+  const scriptureSync = useMemo<GlobalDownloadSync>(
+    () => ({
+      languageCode,
+      contentType: 'text',
+      book: { slug: bookSlug, name: bookName },
+      chapter,
+    }),
     [bookName, bookSlug, chapter, languageCode],
   );
-  const audioSync = useMemo<GlobalChapterDownloadSync>(
-    () => ({ languageCode, bookSlug, bookName, chapter, kind: 'chapter-audio' }),
+  const audioSync = useMemo<GlobalDownloadSync>(
+    () => ({
+      languageCode,
+      contentType: 'audio',
+      book: { slug: bookSlug, name: bookName },
+      chapter,
+    }),
     [bookName, bookSlug, chapter, languageCode],
   );
   const [scriptureStandalone, setScriptureStandalone] = useState(false);

@@ -35,9 +35,8 @@ export function useBookAudioDownload({
     enabled,
     globalSync: {
       languageCode,
-      bookSlug,
-      bookName,
-      kind: 'book-audio',
+      contentType: 'audio',
+      book: { slug: bookSlug, name: bookName },
     },
     partialSizeLabel: true,
     downloadFailedMessage: t('couldNotDownloadAudio'),

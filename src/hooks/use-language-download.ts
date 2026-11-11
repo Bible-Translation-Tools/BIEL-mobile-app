@@ -29,7 +29,7 @@ export function useLanguageDownload({
     globalSync: {
       languageCode,
       languageName,
-      kind: 'language-text',
+      contentType: 'text',
     },
     downloadFailedMessage: t('couldNotDownloadLanguage'),
     onComplete,

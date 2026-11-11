@@ -31,9 +31,8 @@ export function useBookDownload({
     enabled,
     globalSync: {
       languageCode,
-      bookSlug,
-      bookName,
-      kind: 'book-text',
+      contentType: 'text',
+      book: { slug: bookSlug, name: bookName },
     },
     downloadFailedMessage: t('couldNotDownloadScripture'),
     deleteFailedMessage: t('couldNotRemoveScripture'),

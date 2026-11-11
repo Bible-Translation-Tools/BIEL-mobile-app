@@ -5,18 +5,9 @@ const listeners = new Set<() => void>();
 const tasks = new Map<string, DownloadProgressTask>();
 let taskList: DownloadProgressTask[] = [];
 
-function describeSync(sync: GlobalDownloadSync): { displayName: string; bookSlug?: string } {
-  switch (sync.kind) {
-    case 'chapter-text':
-    case 'chapter-audio':
-      return { displayName: `${sync.bookName} ${sync.chapter}`, bookSlug: sync.bookSlug };
-    case 'book-text':
-    case 'book-audio':
-      return { displayName: sync.bookName, bookSlug: sync.bookSlug };
-    case 'language-text':
-    case 'language-audio':
-      return { displayName: sync.languageName };
-  }
+function displayNameFor({ book, chapter, languageName, languageCode }: GlobalDownloadSync): string {
+  if (!book) return languageName ?? languageCode;
+  return chapter == null ? book.name : `${book.name} ${chapter}`;
 }
 
 function emit() {
@@ -43,13 +34,10 @@ export function upsertDownloadTask(
 ): DownloadProgressTask {
   const id = buildDownloadTaskId(sync);
   const existing = tasks.get(id);
-  const { displayName, bookSlug } = describeSync(sync);
   const next: DownloadProgressTask = {
     id,
-    languageCode: sync.languageCode,
-    displayName,
-    bookSlug,
-    kind: sync.kind,
+    displayName: displayNameFor(sync),
+    contentType: sync.contentType,
     progress: patch.progress ?? existing?.progress ?? 0,
     status: patch.status ?? existing?.status ?? 'downloading',
     failure: patch.failure,

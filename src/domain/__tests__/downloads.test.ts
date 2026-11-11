@@ -27,11 +27,21 @@ describe('buildDownloadTaskId', () => {
     expect(
       buildDownloadTaskId({
         languageCode: 'en',
-        bookSlug: 'gen',
-        bookName: 'Genesis',
-        kind: 'book-audio',
+        contentType: 'audio',
+        book: { slug: 'gen', name: 'Genesis' },
       }),
-    ).toBe('en:GEN:book-audio');
+    ).toBe('en:GEN:audio');
+  });
+
+  it('adds the chapter number for chapter tasks', () => {
+    expect(
+      buildDownloadTaskId({
+        languageCode: 'en',
+        contentType: 'text',
+        book: { slug: 'gen', name: 'Genesis' },
+        chapter: 3,
+      }),
+    ).toBe('en:GEN:3:text');
   });
 
   it('gives language tasks their own id space', () => {
@@ -39,9 +49,9 @@ describe('buildDownloadTaskId', () => {
       buildDownloadTaskId({
         languageCode: 'en',
         languageName: 'English',
-        kind: 'language-text',
+        contentType: 'text',
       }),
-    ).toBe('en:__language__:language-text');
+    ).toBe('en:__language__:text');
   });
 });
 
