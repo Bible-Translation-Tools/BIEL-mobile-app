@@ -12,6 +12,22 @@ appId: ${APP_ID}
 - tapOn:
     text: "Continue"
     optional: true
+# Launch reopens the last book list or chapter (reading checkpoint, docs/reading-checkpoint.md), with its
+# parent screens pushed under it. Back out of them (reader → books/Downloads Library → Home); leaving
+# each screen clears its checkpoint. Home stays blank while it restores, so first wait for either.
+- extendedWaitUntil:
+    visible: "Browse the Bible|Go back"
+    timeout: 120000
+- repeat:
+    while:
+      visible: "Go back"
+    times: 4
+    commands:
+      - tapOn: "Go back"
+      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible: "Browse the Bible|Go back"
+          timeout: 30000
 - extendedWaitUntil:
     visible: "Browse the Bible"
-    timeout: 120000
+    timeout: 30000
