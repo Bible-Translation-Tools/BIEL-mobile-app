@@ -81,8 +81,9 @@ export async function listLanguagesWithDownloads(): Promise<LanguageItem[]> {
     }>(
       `SELECT
          l.ietf_code,
-         l.english_name,
-         l.national_name,
+         -- Downloads don't record names, so fall back to the cached language catalog.
+         COALESCE(NULLIF(TRIM(l.english_name), ''), lc.english_name) AS english_name,
+         COALESCE(NULLIF(TRIM(l.national_name), ''), lc.national_name) AS national_name,
          CASE
            WHEN EXISTS (SELECT 1 FROM books b WHERE b.language_code = l.ietf_code)
              OR EXISTS (SELECT 1 FROM book_catalog bc WHERE bc.language_code = l.ietf_code)
@@ -96,10 +97,11 @@ export async function listLanguagesWithDownloads(): Promise<LanguageItem[]> {
            ELSE 0
          END AS has_audio
        FROM languages l
+       LEFT JOIN language_catalog lc ON lc.ietf_code = l.ietf_code COLLATE NOCASE
        WHERE EXISTS (SELECT 1 FROM books b WHERE b.language_code = l.ietf_code)
           OR EXISTS (SELECT 1 FROM audio_books ab WHERE ab.language_code = l.ietf_code)
           OR EXISTS (SELECT 1 FROM scripture_chapters sc WHERE sc.language_code = l.ietf_code)
-       ORDER BY COALESCE(l.english_name, l.ietf_code) ASC`,
+       ORDER BY COALESCE(NULLIF(TRIM(l.english_name), ''), lc.english_name, l.ietf_code) ASC`,
     );
 
     return rows.map((row) => ({

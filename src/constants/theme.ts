@@ -200,6 +200,10 @@ export const DownloadsLibraryLayout = {
   filterMenuWidth: 220,
   filterMenuEstimatedHeight: 200,
   countGap: 20,
+  /** Left inset of a language's testament sections. */
+  testamentIndent: 12,
+  testamentTitleSize: 20,
+  testamentTitleLineHeight: 24,
 } as const;
 
 /** Collapsible groups of rows: languages in the Downloads Library, testaments on the Books screen. */
@@ -221,10 +225,9 @@ export const BookLayout = {
   chapterCellMinHeight: 48,
   chapterLegendGap: 16,
   chapterLegendItemGap: 8,
-  chapterLegendSwatchGap: 4,
-  chapterLegendSwatchSize: 12,
-  chapterLegendSwatchRadius: 2,
-  chapterLegendSwatchBorderWidth: 0.5,
+  chapterLegendChipPadding: 4,
+  chapterLegendChipRadius: 4,
+  chapterLegendChipBorderWidth: 0.5,
 } as const;
 
 export const ReadingLayout = {

@@ -153,16 +153,15 @@ export function ChapterGrid({ chapters, loading = false, onChapterPress }: Chapt
             const label = indicator === 'both' ? tl('legend.both') : tl(`content.${indicator}`);
 
             return (
-              <View key={indicator} style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendSwatch,
-                    {
-                      backgroundColor: theme[colors.background],
-                      borderColor: theme[colors.foreground],
-                    },
-                  ]}
-                />
+              <View
+                key={indicator}
+                style={[
+                  styles.legendChip,
+                  {
+                    backgroundColor: theme[colors.background],
+                    borderColor: theme[colors.foreground],
+                  },
+                ]}>
                 <Text style={[styles.legendLabel, { color: theme.text }]}>{label}</Text>
               </View>
             );
@@ -204,17 +203,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: BookLayout.chapterLegendItemGap,
   },
-  legendItem: {
-    flexDirection: 'row',
+  legendChip: {
+    padding: BookLayout.chapterLegendChipPadding,
+    borderRadius: BookLayout.chapterLegendChipRadius,
+    borderWidth: BookLayout.chapterLegendChipBorderWidth,
     alignItems: 'center',
-    gap: BookLayout.chapterLegendSwatchGap,
-  },
-  legendSwatch: {
-    width: BookLayout.chapterLegendSwatchSize,
-    height: BookLayout.chapterLegendSwatchSize,
-    borderRadius: BookLayout.chapterLegendSwatchRadius,
-    borderWidth: BookLayout.chapterLegendSwatchBorderWidth,
-    flexShrink: 0,
+    justifyContent: 'center',
   },
   legendLabel: {
     ...Typography.bodyXs,
