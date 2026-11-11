@@ -135,6 +135,12 @@ export function BookList({
     return result;
   }, [books, expandAllGroups, testamentToggles]);
 
+  // Testament headers stay pinned to the top while their books scroll beneath them.
+  const stickyHeaderIndices = useMemo(
+    () => rows.flatMap((row, index) => (row.type === 'group' ? [index] : [])),
+    [rows],
+  );
+
   useEffect(() => {
     if (expandedBook) {
       loadChapters(expandedBook.slug);
@@ -153,7 +159,12 @@ export function BookList({
       if (row.type === 'group') {
         const expanded = expandAllGroups || (testamentToggles[row.testament] ?? true);
         return (
-          <View style={!row.first && styles.groupSpacing}>
+          <View
+            style={[
+              !row.first && styles.groupSpacing,
+              // Opaque so book cards scrolling under the pinned header stay hidden.
+              { backgroundColor: theme.background },
+            ]}>
             <AccordionGroupHeader
               title={row.testament === 'old' ? t('oldTestament') : t('newTestament')}
               expanded={expanded}
@@ -217,6 +228,7 @@ export function BookList({
       onChapterPress,
       onDownloadStatusChange,
       t,
+      theme.background,
     ],
   );
 
@@ -230,6 +242,7 @@ export function BookList({
       renderItem={renderItem}
       keyExtractor={(row) => (row.type === 'group' ? `group:${row.testament}` : row.book.id)}
       extraData={`${JSON.stringify(testamentToggles)}:${expandAllGroups}:${expandedBookId}`}
+      stickyHeaderIndices={stickyHeaderIndices}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
         <View style={styles.emptyFill}>
@@ -263,8 +276,13 @@ export function BookList({
   );
 }
 
-function ItemSeparator() {
-  return <View style={styles.separator} />;
+function ItemSeparator({ leadingItem }: { leadingItem?: BookListRow }) {
+  const theme = useTheme();
+  // FlatList renders a row's separator inside that row's cell, so the gap under a
+  // testament header travels with it when pinned. Keeping it opaque gives the pinned
+  // header its bottom spacing instead of letting cards show through.
+  const underHeader = leadingItem?.type === 'group';
+  return <View style={[styles.separator, underHeader && { backgroundColor: theme.background }]} />;
 }
 
 const styles = StyleSheet.create({
