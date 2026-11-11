@@ -1,12 +1,12 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  type HostInstance,
   type LayoutChangeEvent,
   Modal,
-  type NativeSyntheticEvent,
   Pressable,
   StyleSheet,
   Text,
-  type TextLayoutEventData,
+  type TextLayoutEvent,
   View,
 } from 'react-native';
 
@@ -20,7 +20,7 @@ type ChapterItemProps = {
   chapter: ChapterContent;
   isFirst?: boolean;
   highlightedVerse?: number | null;
-  onRootRef?: (node: View | null) => void;
+  onRootRef?: (node: HostInstance | null) => void;
   onVerseLayout?: (chapterNumber: number, verseToY: Map<number, number>) => void;
   onVersePress?: (verse: number) => void;
 };
@@ -133,7 +133,7 @@ export const ChapterItem = memo(function ChapterItem({
   const handleParagraphTextLayout = (
     sectionIndex: number,
     paragraphIndex: number,
-    event: NativeSyntheticEvent<TextLayoutEventData>,
+    event: TextLayoutEvent,
   ) => {
     const lines = event.nativeEvent.lines;
     if (!lines || lines.length === 0) return;

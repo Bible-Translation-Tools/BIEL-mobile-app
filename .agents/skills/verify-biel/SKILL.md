@@ -28,9 +28,9 @@ bv() { "$(git rev-parse --show-toplevel)/.agents/skills/verify-biel/bin/biel-ver
 - iOS: Xcode with license accepted (`sudo xcodebuild -license accept`) and an iOS simulator runtime; the helper picks
   `iPhone 17 Pro` on the newest installed runtime (override: `BIEL_SIM=<name|UDID>`). Xcode 27 notes, all handled by the helper:
   Simulator.app is now `Xcode.app/Contents/Applications/DeviceHub.app`, so `expo run:ios` fails ("Can't determine id of Simulator
-  app") and the helper builds with `xcodebuild` + `simctl install`; Xcode 27 rejects some pods' deployment targets, so it builds with
-  `IPHONEOS_DEPLOYMENT_TARGET=16.0` (verification-only override, no files changed); `expo prebuild` writes `ios.bundleIdentifier`
-  and a duplicate `"audio"` background mode into `app.json`, which the helper reverts.
+  app") and the helper builds with `xcodebuild` + `simctl install`. Deployment targets come from the app config (iOS 17.0 via
+  `expo-build-properties`, and `plugins/withPodsDeploymentTarget.js` raises pods that Xcode 27 would reject), so the helper
+  doesn't override them.
 
 ## Launch
 

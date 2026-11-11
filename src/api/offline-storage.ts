@@ -8,17 +8,26 @@ function tempFileFor(file: File): File {
   return new File(file.parentDirectory, `${file.name}.tmp`);
 }
 
-/** Writes through a `.tmp` sibling so a crash never leaves a half-written target. */
-export function writeFileAtomically(targetFile: File, contents: string | Uint8Array): void {
+/**
+ * Writes through a `.tmp` sibling so a crash never leaves a half-written target.
+ *
+ * Async because the file APIs are: `File.move()` returns a promise from Expo SDK 56 and
+ * `File.write()` from SDK 58. Awaiting both keeps the steps in order; on an SDK where a call is
+ * still synchronous, its await is a no-op.
+ */
+export async function writeFileAtomically(
+  targetFile: File,
+  contents: string | Uint8Array,
+): Promise<void> {
   const tempFile = tempFileFor(targetFile);
   if (tempFile.exists) {
     tempFile.delete();
   }
-  tempFile.write(contents);
+  await tempFile.write(contents);
   if (targetFile.exists) {
     targetFile.delete();
   }
-  tempFile.move(targetFile);
+  await tempFile.move(targetFile);
 }
 
 /** Deletes a file and any `.tmp` left by an interrupted {@link writeFileAtomically}. */

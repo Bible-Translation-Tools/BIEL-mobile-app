@@ -1,5 +1,9 @@
-import type { NavigationProp, ParamListBase, StackNavigationState } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
+import type {
+  NavigationProp,
+  ParamListBase,
+  StackNavigationState,
+} from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';

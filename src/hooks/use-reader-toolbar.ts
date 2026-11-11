@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { ViewToken } from 'react-native';
+import type { ListViewToken } from 'react-native';
 
 import { ReadingLayout } from '@/constants/theme';
 import type { ChapterContent } from '@/types/reading';
@@ -17,7 +17,7 @@ export function useReaderToolbar(bookName: string) {
     setScrollY(offsetY);
   }
 
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ListViewToken[] }) => {
     const topVisible = viewableItems.find((item) => item.isViewable);
     const chapter = (topVisible?.item as ChapterContent | undefined)?.chapter;
     if (chapter != null) {

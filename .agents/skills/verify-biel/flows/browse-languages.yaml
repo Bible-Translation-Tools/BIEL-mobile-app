@@ -20,5 +20,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: "Old Testament"
     timeout: 30000
-- assertVisible: "New Testament"
+- tapOn: "Search book here..."   # New Testament books are reachable through search
+- inputText: "Matthew"
+- assertVisible: "Expand Matthew"
 - takeScreenshot: 04-books-for-english

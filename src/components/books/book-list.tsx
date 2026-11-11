@@ -31,7 +31,7 @@ type BookListProps = {
   onDownloadStatusChange?: (change: BookDownloadStatusChange) => void;
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
-  ListFooterComponent?: React.ComponentType | React.ReactElement | null;
+  ListFooterComponent?: React.ComponentType | React.ReactElement;
   /** Open every testament group, e.g. while a search is active. */
   expandAllGroups?: boolean;
 };

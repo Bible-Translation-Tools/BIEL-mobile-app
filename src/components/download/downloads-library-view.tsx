@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { TestamentTabs } from '@/components/books/testament-tabs';
 import { DownloadsLibraryHeader } from '@/components/download/downloads-library-header';
 import { DownloadsLibraryList } from '@/components/download/downloads-library-list';
 import { DownloadsLibraryToolbar } from '@/components/download/downloads-library-toolbar';
@@ -13,7 +12,7 @@ import { DOWNLOADS_LIBRARY_FROM_PARAM } from '@/domain/reading-checkpoint';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDownloadsLibrary } from '@/hooks/use-downloads-library';
 import { useTheme } from '@/hooks/use-theme';
-import type { BookItem, ChapterItem, Testament } from '@/types/book';
+import type { BookItem, ChapterItem } from '@/types/book';
 import type { LibraryContentFilter } from '@/types/content-type';
 
 export function DownloadsLibraryView() {
@@ -21,7 +20,6 @@ export function DownloadsLibraryView() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTestament, setActiveTestament] = useState<Testament>('old');
   const [contentFilter, setContentFilter] = useState<LibraryContentFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
   const { items, loading, error, refetch, refreshAfterChange } = useDownloadsLibrary();
@@ -40,7 +38,6 @@ export function DownloadsLibraryView() {
 
     return items.flatMap((item) => {
       const books = item.books.filter((book) => {
-        if (book.testament !== activeTestament) return false;
         if (!bookMatchesContentFilter(book, contentFilter)) return false;
         if (!query) return true;
         return book.name.toLowerCase().includes(query);
@@ -49,7 +46,7 @@ export function DownloadsLibraryView() {
       if (books.length === 0) return [];
       return [{ ...item, books }];
     });
-  }, [activeTestament, contentFilter, items, searchQuery]);
+  }, [contentFilter, items, searchQuery]);
 
   const bookCount = useMemo(
     () => filteredItems.reduce((sum, item) => sum + item.books.length, 0),
@@ -93,7 +90,6 @@ export function DownloadsLibraryView() {
             contentFilter={contentFilter}
             onContentFilterChange={setContentFilter}
           />
-          <TestamentTabs activeTestament={activeTestament} onTestamentChange={setActiveTestament} />
         </SafeAreaView>
       </View>
 
@@ -104,6 +100,7 @@ export function DownloadsLibraryView() {
           error={error}
           refreshing={refreshing}
           bookCount={bookCount}
+          expandAllGroups={searchQuery.trim().length > 0}
           onRetry={refetch}
           onRefresh={handleRefresh}
           onChapterPress={handleChapterPress}

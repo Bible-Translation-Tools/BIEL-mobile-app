@@ -22,7 +22,7 @@ Preconditions:
 - Baseline preconditions; network on.
 
 - **Old Testament default.** Run `bv flow browse-books`. `Expand Genesis` is visible (`01-old-testament.png`).
-- **Switch group.** The flow taps `New Testament`; that group opens, the Old Testament group closes, `Expand Matthew` is visible and `Expand Genesis` is not (`02-new-testament.png`).
+- **New Testament via search.** The flow searches `Matthew` instead of scrolling past the open Old Testament list; `Expand Matthew` is visible and `Expand Genesis` is not (`02-new-testament.png`). Switching groups by tapping the headers is not covered by the flow.
 - **Search.** The flow types `2 John`; only `Expand 2 John` remains.
 - **Expand.** The flow taps `Expand 2 John`; a chapter button matching `Chapter 1.*` appears and the card reads `Collapse 2 John` (`03-2john-chapters.png`).
 - **Open chapter.** The flow taps `Chapter 1.*`; the reader shows `2 John 1` and the verse text `From the elder to the chosen lady…` (`04-reader.png`).

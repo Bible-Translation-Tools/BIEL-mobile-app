@@ -27,7 +27,7 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null);
 
 function resolveColorScheme(
   preference: ThemePreference,
-  systemScheme: ColorSchemeName,
+  systemScheme: ColorSchemeName | null,
 ): 'light' | 'dark' {
   if (preference === 'light') return 'light';
   if (preference === 'dark') return 'dark';

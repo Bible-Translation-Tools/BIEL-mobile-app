@@ -271,7 +271,7 @@ export async function downloadChapterScripture(
   ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
 
   const htmlFile = getChapterHtmlFile(languageCode, canonicalSlug, chapter);
-  writeFileAtomically(htmlFile, html);
+  await writeFileAtomically(htmlFile, html);
 
   const byteSize = new TextEncoder().encode(html).length;
 
@@ -368,7 +368,7 @@ export async function downloadBookScripture(
     ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
 
     const bookJsonFile = getWholeJsonFile(languageCode, canonicalSlug);
-    writeFileAtomically(bookJsonFile, jsonText);
+    await writeFileAtomically(bookJsonFile, jsonText);
 
     wholeBookCache.delete(cacheKey(languageCode, canonicalSlug));
 

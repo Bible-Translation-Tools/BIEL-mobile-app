@@ -47,7 +47,7 @@ layer (`features/`) and one pure layer (`domain/`), with adapters underneath.
 | `domain/` | Pure rules and parsers: same input, same output | Do I/O, read the clock, use randomness, import React/Expo or any layer above `types/` |
 | `api/` | Talking to BIEL (GraphQL, content HTTP), network state, on-disk file layout | Know about features, UI, or stores |
 | `db/` | SQLite: schema, connection, row reads and writes, one file per table group | Contain business rules (read-modify-write belongs to features) |
-| `services/` | Device APIs: TrackPlayer setup, system volume | Contain feature logic |
+| `services/` | Device APIs: playback engine (player adapter), system volume | Contain feature logic |
 | `types/` | Shared type declarations (our shapes, not server shapes) | Contain functions or runtime values |
 | `constants/` | Static values: book order, theme, preference keys | Contain logic |
 | `utils/` | Small, generic, framework-free helpers (`source-strategy`, `run-with-concurrency`, `yield-to-ui`, route params) | Hold domain rules (→ `domain/`) or I/O (→ adapters) |
@@ -189,7 +189,7 @@ Every allowed boundary crossing, with its reason:
 
 | Where | Crosses | Why |
 |-------|---------|-----|
-| `app/_layout.tsx` | imports `api/offline-storage`, `db`, `db/locale-preferences`, `services/track-player/setup` | app bootstrap (composition root): runs once before any screen |
+| `app/_layout.tsx` | imports `api/offline-storage`, `db`, `db/locale-preferences`, `services/playback-engine` | app bootstrap (composition root): runs once before any screen |
 | `stores/*-store.ts`, `contexts/*-context.tsx` | import `db/*-preferences.ts` | persisted preferences have no feature logic; a feature wrapper would only pass the call through |
 | `stores/audio-volume-store.ts`, `hooks/use-system-volume-sync.ts` | import `services/system-audio-volume` | device volume is UI state with no app logic |
 | `stores/force-offline-store.ts` | calls `api/network.ts` `setNetworkBlocked` | force-offline is a temporary testing switch, not a product feature; `api/` never imports the store |

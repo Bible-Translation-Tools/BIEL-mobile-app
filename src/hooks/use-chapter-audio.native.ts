@@ -1,11 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import {
-  Event,
-  State,
-  usePlaybackState,
-  useProgress,
-  useTrackPlayerEvents,
-} from 'react-native-track-player';
 
 import { resolveCurrentVerse } from '@/domain/verse-navigation';
 import {
@@ -31,6 +24,7 @@ import {
   togglePlay as togglePlayPlayback,
   updateNowPlayingVerse,
 } from '@/features/playback';
+import { useEngineProgress, useIsPlaying, useOnQueueEnded } from '@/services/playback-engine';
 import { useAudioVolume, useSetAudioVolume } from '@/stores/audio-volume-store';
 
 import type { UseChapterAudioParams } from './use-chapter-audio.types';
@@ -57,12 +51,12 @@ export function useChapterAudio({
   const volume = useAudioVolume();
   const setVolume = useSetAudioVolume();
   const playbackSnapshot = useChapterPlaybackSnapshot();
-  const playbackState = usePlaybackState();
-  const progress = useProgress();
+  const isPlaying = useIsPlaying();
+  const progress = useEngineProgress();
   const [queueEnded, setQueueEnded] = useState(false);
   const lastVerseRef = useRef<number | null>(null);
 
-  useTrackPlayerEvents([Event.PlaybackQueueEnded], () => {
+  useOnQueueEnded(() => {
     setQueueEnded(true);
   });
 
@@ -70,7 +64,6 @@ export function useChapterAudio({
     setPlaybackCurrentTime(progress.position);
   }, [progress.position]);
 
-  const isPlaying = playbackState.state === State.Playing;
   const didJustFinish = playbackSnapshot.didJustFinish || queueEnded;
 
   useEffect(() => {

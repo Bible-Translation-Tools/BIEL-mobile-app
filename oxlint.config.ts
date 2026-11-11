@@ -11,6 +11,13 @@ const FEATURE_BARREL = {
   regex: '^@/features/[^/]+$',
   message: "Inside features, import the sibling file directly, not another feature's index.",
 };
+// The player library is reached only through the adapter in src/services/playback-engine, so a
+// later engine swap (e.g. to expo-audio) touches one folder. Every override that sets
+// no-restricted-imports must include this pattern, because an override replaces the rule's options.
+const PLAYER_LIBRARY = {
+  group: ['react-native-track-player', 'react-native-track-player/**'],
+  message: "Use '@/services/playback-engine' instead of importing the player library directly.",
+};
 const FEATURE_INTERNALS = {
   regex: '^@/features/[^/]+/.+',
   message: "Import features through their index (e.g. '@/features/downloads').",
@@ -48,6 +55,7 @@ export default defineConfig({
 
     // Architecture (from #5's eslint.config.js).
     'import/no-cycle': 'error',
+    'no-restricted-imports': ['error', { patterns: [PLAYER_LIBRARY] }],
   },
   overrides: [
     {
@@ -98,6 +106,26 @@ export default defineConfig({
                   '@/constants/theme',
                 ],
               },
+              PLAYER_LIBRARY,
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // The playback engine adapter is the one place allowed to import the player library.
+      files: ['src/services/playback-engine/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: [
+                  ...layer('@/features', '@/hooks', '@/stores', '@/components', '@/i18n'),
+                  '@/constants/theme',
+                ],
+              },
             ],
           },
         ],
@@ -119,6 +147,7 @@ export default defineConfig({
                 ],
               },
               FEATURE_BARREL,
+              PLAYER_LIBRARY,
             ],
           },
         ],
@@ -133,6 +162,7 @@ export default defineConfig({
             patterns: [
               { group: [...layer('@/hooks', '@/stores', '@/components'), '@/constants/theme'] },
               FEATURE_BARREL,
+              PLAYER_LIBRARY,
             ],
           },
         ],
@@ -141,7 +171,7 @@ export default defineConfig({
     {
       files: ['src/{app,components,hooks,stores,contexts}/**'],
       rules: {
-        'no-restricted-imports': ['error', { patterns: [FEATURE_INTERNALS] }],
+        'no-restricted-imports': ['error', { patterns: [FEATURE_INTERNALS, PLAYER_LIBRARY] }],
       },
     },
     {
@@ -149,7 +179,12 @@ export default defineConfig({
       rules: {
         'no-restricted-imports': [
           'error',
-          { patterns: [{ group: [...layer('@/hooks', '@/components'), '@/constants/theme'] }] },
+          {
+            patterns: [
+              { group: [...layer('@/hooks', '@/components'), '@/constants/theme'] },
+              PLAYER_LIBRARY,
+            ],
+          },
         ],
       },
     },

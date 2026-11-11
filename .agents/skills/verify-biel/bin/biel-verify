@@ -87,15 +87,13 @@ open_app() {
 build_ios() {
   if [[ ! -d ios ]]; then
     CI=1 pnpm exec expo prebuild --platform ios
-    # Prebuild writes ios.bundleIdentifier (+ a duplicate "audio" background mode) back into app.json; undo that.
-    git checkout -- app.json
   fi
   [[ -d ios/Pods ]] || (cd ios && pod install >"$RUN_DIR/pod-install.log" 2>&1) || die "pod install failed; see $RUN_DIR/pod-install.log"
-  # IPHONEOS_DEPLOYMENT_TARGET=16.0 (verification-only, all targets): Xcode 27 rejects pods below 15.0
-  # (SDWebImage, Mute, RNSVGFilters) and marks UIAction.subtitle, used by expo-router, as iOS 16+.
+  # Deployment targets come from app.json (expo-build-properties: 17.0) and plugins/withPodsDeploymentTarget,
+  # which raises old pods that Xcode 27 would reject. Don't override them here: Expo modules need 17.0.
   xcodebuild -workspace ios/BIEL.xcworkspace -scheme BIEL -configuration Debug -sdk iphonesimulator \
     -destination "id=$(ios_udid)" -derivedDataPath ios/build \
-    IPHONEOS_DEPLOYMENT_TARGET=16.0 build >"$RUN_DIR/xcodebuild.log" 2>&1 \
+    build >"$RUN_DIR/xcodebuild.log" 2>&1 \
     || die "xcodebuild failed; see $RUN_DIR/xcodebuild.log"
   xcrun simctl install "$(ios_udid)" ios/build/Build/Products/Debug-iphonesimulator/BIEL.app
 }
