@@ -33,7 +33,7 @@ export function useBookDownload({
       languageCode,
       bookSlug,
       bookName,
-      kind: 'book-scripture',
+      kind: 'book-text',
     },
     downloadFailedMessage: t('couldNotDownloadScripture'),
     deleteFailedMessage: t('couldNotRemoveScripture'),

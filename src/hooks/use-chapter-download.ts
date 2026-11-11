@@ -36,7 +36,7 @@ export function useChapterDownload({
   // Routing through the shared job runner gives chapter downloads the same system
   // notification (and navigation-surviving progress) as book and language downloads.
   const scriptureSync = useMemo<GlobalChapterDownloadSync>(
-    () => ({ languageCode, bookSlug, bookName, chapter, kind: 'chapter-scripture' }),
+    () => ({ languageCode, bookSlug, bookName, chapter, kind: 'chapter-text' }),
     [bookName, bookSlug, chapter, languageCode],
   );
   const audioSync = useMemo<GlobalChapterDownloadSync>(

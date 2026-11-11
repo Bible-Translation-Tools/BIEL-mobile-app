@@ -39,9 +39,9 @@ describe('buildDownloadTaskId', () => {
       buildDownloadTaskId({
         languageCode: 'en',
         languageName: 'English',
-        kind: 'language-scripture',
+        kind: 'language-text',
       }),
-    ).toBe('en:__language__:language-scripture');
+    ).toBe('en:__language__:language-text');
   });
 });
 

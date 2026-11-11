@@ -5,9 +5,9 @@ export type DownloadJob = (options: {
   onProgress: (progress: number) => void;
 }) => Promise<DownloadOutcome>;
 
-export type BookDownloadKind = 'book-scripture' | 'book-audio';
-export type LanguageDownloadKind = 'language-scripture' | 'language-audio';
-export type ChapterDownloadKind = 'chapter-scripture' | 'chapter-audio';
+export type BookDownloadKind = 'book-text' | 'book-audio';
+export type LanguageDownloadKind = 'language-text' | 'language-audio';
+export type ChapterDownloadKind = 'chapter-text' | 'chapter-audio';
 export type DownloadKind = BookDownloadKind | LanguageDownloadKind | ChapterDownloadKind;
 
 export type DownloadTaskStatus = 'downloading' | 'completed' | 'failed';
