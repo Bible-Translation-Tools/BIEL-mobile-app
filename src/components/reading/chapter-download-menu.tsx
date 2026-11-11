@@ -50,7 +50,7 @@ export const ChapterDownloadMenu = memo(function ChapterDownloadMenu({
     deleteAudioDownload,
     audioError,
     clearAudioError,
-  } = useChapterDownload({ languageCode, bookSlug, chapter });
+  } = useChapterDownload({ languageCode, bookSlug, bookName: bookName ?? bookSlug, chapter });
 
   useDownloadErrorAlert(scriptureError, clearScriptureError);
   useDownloadErrorAlert(audioError, clearAudioError);

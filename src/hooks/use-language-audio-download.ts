@@ -30,7 +30,7 @@ export function useLanguageAudioDownload({
     globalSync: {
       languageCode,
       languageName,
-      kind: 'language-audio',
+      contentType: 'audio',
     },
     downloadFailedMessage: t('couldNotDownloadAudio'),
     onComplete,

@@ -5,33 +5,31 @@ export type DownloadJob = (options: {
   onProgress: (progress: number) => void;
 }) => Promise<DownloadOutcome>;
 
-export type BookDownloadKind = 'book-scripture' | 'book-audio';
-export type LanguageDownloadKind = 'language-scripture' | 'language-audio';
-export type DownloadKind = BookDownloadKind | LanguageDownloadKind;
+export type DownloadContentType = 'text' | 'audio';
 
 export type DownloadTaskStatus = 'downloading' | 'completed' | 'failed';
 
-export type GlobalBookDownloadSync = {
+/**
+ * What a download covers. The level follows from the fields: no `book` is a whole
+ * language, `book` alone is a book, and `book` with `chapter` is one chapter of it.
+ * `chapter` is ignored without a `book`.
+ */
+export type GlobalDownloadSync = {
   languageCode: string;
-  bookSlug: string;
-  bookName: string;
-  kind: BookDownloadKind;
+  /** Shown for language-level downloads; falls back to the code. */
+  languageName?: string;
+  contentType: DownloadContentType;
+  book?: {
+    slug: string;
+    name: string;
+  };
+  chapter?: number;
 };
-
-export type GlobalLanguageDownloadSync = {
-  languageCode: string;
-  languageName: string;
-  kind: LanguageDownloadKind;
-};
-
-export type GlobalDownloadSync = GlobalBookDownloadSync | GlobalLanguageDownloadSync;
 
 export type DownloadProgressTask = {
   id: string;
-  languageCode: string;
   displayName: string;
-  kind: DownloadKind;
-  bookSlug?: string;
+  contentType: DownloadContentType;
   progress: number;
   status: DownloadTaskStatus;
   failure?: DownloadFailure;

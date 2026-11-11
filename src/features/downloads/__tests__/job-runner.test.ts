@@ -9,7 +9,7 @@ import {
 } from '@/features/downloads/notifications';
 import { getDownloadTask } from '@/features/downloads/task-registry';
 import type { DownloadOutcome } from '@/types/download';
-import type { DownloadJob, GlobalBookDownloadSync } from '@/types/download-progress';
+import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
 import { createAbortError } from '@/utils/run-with-concurrency';
 
 vi.mock('@/features/downloads/notifications', () => ({
@@ -17,11 +17,10 @@ vi.mock('@/features/downloads/notifications', () => ({
   syncDownloadNotification: vi.fn(async () => {}),
 }));
 
-const sync: GlobalBookDownloadSync = {
+const sync: GlobalDownloadSync = {
   languageCode: 'en',
-  bookSlug: 'gen',
-  bookName: 'Genesis',
-  kind: 'book-audio',
+  contentType: 'audio',
+  book: { slug: 'gen', name: 'Genesis' },
 };
 const taskId = buildDownloadTaskId(sync);
 
@@ -198,6 +197,32 @@ describe('runDownload', () => {
     vi.advanceTimersByTime(4500);
 
     expect(getDownloadTask(taskId)).toBeUndefined();
+  });
+});
+
+describe('chapter downloads', () => {
+  it('track each chapter as its own task and notify with the passage name', async () => {
+    const chapterSync: GlobalDownloadSync = {
+      languageCode: 'en',
+      contentType: 'audio',
+      book: { slug: 'gen', name: 'Genesis' },
+      chapter: 3,
+    };
+    const chapterTaskId = buildDownloadTaskId(chapterSync);
+    expect(chapterTaskId).not.toBe(taskId);
+    expect(chapterTaskId).not.toBe(buildDownloadTaskId({ ...chapterSync, chapter: 4 }));
+
+    await runDownload({ sync: chapterSync, download: resolvesWith({ status: 'completed' }) });
+
+    expect(syncDownloadNotification).toHaveBeenCalled();
+    expect(showDownloadFinishedNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: chapterTaskId,
+        displayName: 'Genesis 3',
+        contentType: 'audio',
+      }),
+      true,
+    );
   });
 });
 

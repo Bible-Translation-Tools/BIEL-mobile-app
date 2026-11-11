@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { resolveDownloadStatus } from '@/domain/downloads';
@@ -16,15 +16,43 @@ import {
   loadDownloadedChapterScriptureByteSize,
 } from '@/features/downloads';
 import { useContentDownload } from '@/hooks/use-content-download';
+import type { GlobalDownloadSync } from '@/types/download-progress';
 
 type UseChapterDownloadOptions = {
   languageCode: string;
   bookSlug: string;
+  /** Shown in the system download notification. */
+  bookName: string;
   chapter: number;
 };
 
-export function useChapterDownload({ languageCode, bookSlug, chapter }: UseChapterDownloadOptions) {
+export function useChapterDownload({
+  languageCode,
+  bookSlug,
+  bookName,
+  chapter,
+}: UseChapterDownloadOptions) {
   const { t } = useTranslation('download');
+  // Routing through the shared job runner gives chapter downloads the same system
+  // notification (and navigation-surviving progress) as book and language downloads.
+  const scriptureSync = useMemo<GlobalDownloadSync>(
+    () => ({
+      languageCode,
+      contentType: 'text',
+      book: { slug: bookSlug, name: bookName },
+      chapter,
+    }),
+    [bookName, bookSlug, chapter, languageCode],
+  );
+  const audioSync = useMemo<GlobalDownloadSync>(
+    () => ({
+      languageCode,
+      contentType: 'audio',
+      book: { slug: bookSlug, name: bookName },
+      chapter,
+    }),
+    [bookName, bookSlug, chapter, languageCode],
+  );
   const [scriptureStandalone, setScriptureStandalone] = useState(false);
 
   const refreshStandalone = useCallback(async () => {
@@ -41,6 +69,7 @@ export function useChapterDownload({ languageCode, bookSlug, chapter }: UseChapt
   const scripture = useContentDownload({
     downloadFailedMessage: t('couldNotDownloadChapter'),
     deleteFailedMessage: t('couldNotRemoveChapter'),
+    globalSync: scriptureSync,
     onComplete: refreshStandalone,
     download: (options) => downloadChapterScripture(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterScripture(languageCode, bookSlug, chapter),
@@ -53,6 +82,7 @@ export function useChapterDownload({ languageCode, bookSlug, chapter }: UseChapt
   const audio = useContentDownload({
     downloadFailedMessage: t('couldNotDownloadAudio'),
     deleteFailedMessage: t('couldNotRemoveAudio'),
+    globalSync: audioSync,
     download: (options) => downloadChapterAudio(languageCode, bookSlug, chapter, options),
     deleteContent: () => deleteChapterAudio(languageCode, bookSlug, chapter),
     getDownloadedBytes: () => loadDownloadedChapterAudioByteSize(languageCode, bookSlug, chapter),
