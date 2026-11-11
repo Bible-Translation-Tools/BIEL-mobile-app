@@ -7,7 +7,8 @@ export type DownloadJob = (options: {
 
 export type BookDownloadKind = 'book-scripture' | 'book-audio';
 export type LanguageDownloadKind = 'language-scripture' | 'language-audio';
-export type DownloadKind = BookDownloadKind | LanguageDownloadKind;
+export type ChapterDownloadKind = 'chapter-scripture' | 'chapter-audio';
+export type DownloadKind = BookDownloadKind | LanguageDownloadKind | ChapterDownloadKind;
 
 export type DownloadTaskStatus = 'downloading' | 'completed' | 'failed';
 
@@ -24,7 +25,18 @@ export type GlobalLanguageDownloadSync = {
   kind: LanguageDownloadKind;
 };
 
-export type GlobalDownloadSync = GlobalBookDownloadSync | GlobalLanguageDownloadSync;
+export type GlobalChapterDownloadSync = {
+  languageCode: string;
+  bookSlug: string;
+  bookName: string;
+  chapter: number;
+  kind: ChapterDownloadKind;
+};
+
+export type GlobalDownloadSync =
+  | GlobalBookDownloadSync
+  | GlobalLanguageDownloadSync
+  | GlobalChapterDownloadSync;
 
 export type DownloadProgressTask = {
   id: string;

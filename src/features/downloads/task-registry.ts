@@ -29,7 +29,12 @@ export function upsertDownloadTask(
 ): DownloadProgressTask {
   const id = buildDownloadTaskId(sync);
   const existing = tasks.get(id);
-  const displayName = 'bookName' in sync ? sync.bookName : sync.languageName;
+  const displayName =
+    'chapter' in sync
+      ? `${sync.bookName} ${sync.chapter}`
+      : 'bookName' in sync
+        ? sync.bookName
+        : sync.languageName;
   const bookSlug = 'bookSlug' in sync ? sync.bookSlug : undefined;
   const next: DownloadProgressTask = {
     id,

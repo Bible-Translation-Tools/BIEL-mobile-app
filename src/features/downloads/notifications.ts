@@ -29,7 +29,11 @@ function clearDismissTimer() {
 }
 
 function taskTitle(task: DownloadProgressTask): string {
-  if (task.kind === 'book-audio' || task.kind === 'language-audio') {
+  if (
+    task.kind === 'book-audio' ||
+    task.kind === 'language-audio' ||
+    task.kind === 'chapter-audio'
+  ) {
     return i18n.t('download:notification.downloadingAudio', { name: task.displayName });
   }
   return i18n.t('download:notification.downloadingScripture', { name: task.displayName });

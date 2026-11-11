@@ -18,6 +18,9 @@ export function resolveDownloadStatus(
 }
 
 export function buildDownloadTaskId(sync: GlobalDownloadSync): string {
+  if ('chapter' in sync) {
+    return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.chapter}:${sync.kind}`;
+  }
   if ('bookSlug' in sync) {
     return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.kind}`;
   }

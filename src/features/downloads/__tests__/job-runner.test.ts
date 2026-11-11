@@ -9,7 +9,11 @@ import {
 } from '@/features/downloads/notifications';
 import { getDownloadTask } from '@/features/downloads/task-registry';
 import type { DownloadOutcome } from '@/types/download';
-import type { DownloadJob, GlobalBookDownloadSync } from '@/types/download-progress';
+import type {
+  DownloadJob,
+  GlobalBookDownloadSync,
+  GlobalChapterDownloadSync,
+} from '@/types/download-progress';
 import { createAbortError } from '@/utils/run-with-concurrency';
 
 vi.mock('@/features/downloads/notifications', () => ({
@@ -198,6 +202,33 @@ describe('runDownload', () => {
     vi.advanceTimersByTime(4500);
 
     expect(getDownloadTask(taskId)).toBeUndefined();
+  });
+});
+
+describe('chapter downloads', () => {
+  it('track each chapter as its own task and notify with the passage name', async () => {
+    const chapterSync: GlobalChapterDownloadSync = {
+      languageCode: 'en',
+      bookSlug: 'gen',
+      bookName: 'Genesis',
+      chapter: 3,
+      kind: 'chapter-audio',
+    };
+    const chapterTaskId = buildDownloadTaskId(chapterSync);
+    expect(chapterTaskId).not.toBe(taskId);
+    expect(chapterTaskId).not.toBe(buildDownloadTaskId({ ...chapterSync, chapter: 4 }));
+
+    await runDownload({ sync: chapterSync, download: resolvesWith({ status: 'completed' }) });
+
+    expect(syncDownloadNotification).toHaveBeenCalled();
+    expect(showDownloadFinishedNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: chapterTaskId,
+        displayName: 'Genesis 3',
+        kind: 'chapter-audio',
+      }),
+      true,
+    );
   });
 });
 
