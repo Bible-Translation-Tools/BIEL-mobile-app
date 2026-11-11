@@ -30,6 +30,17 @@ describe('pickChapterAudioFiles', () => {
     ).toEqual({ mp3Url: 'a.mp3', mp3ByteSize: 1000, cueUrl: 'a.cue', cueByteSize: 10 });
   });
 
+  it('uses the first rendering of each type, matching chapter playback', () => {
+    expect(
+      pickChapterAudioFiles([
+        audioFile({ url: 'reg.mp3', fileSizeBytes: 1000 }),
+        audioFile({ url: 'ulb.mp3', fileSizeBytes: 2000 }),
+        audioFile({ url: 'reg.cue', fileType: 'cue', fileSizeBytes: 10 }),
+        audioFile({ url: 'ulb.cue', fileType: 'cue', fileSizeBytes: 20 }),
+      ]),
+    ).toEqual({ mp3Url: 'reg.mp3', mp3ByteSize: 1000, cueUrl: 'reg.cue', cueByteSize: 10 });
+  });
+
   it('treats a missing size as zero', () => {
     expect(pickChapterAudioFiles([audioFile({ fileSizeBytes: null })]).mp3ByteSize).toBe(0);
   });
