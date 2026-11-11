@@ -225,10 +225,9 @@ export const BookLayout = {
   chapterCellMinHeight: 48,
   chapterLegendGap: 16,
   chapterLegendItemGap: 8,
-  chapterLegendSwatchGap: 4,
-  chapterLegendSwatchSize: 12,
-  chapterLegendSwatchRadius: 2,
-  chapterLegendSwatchBorderWidth: 0.5,
+  chapterLegendChipPadding: 4,
+  chapterLegendChipRadius: 4,
+  chapterLegendChipBorderWidth: 0.5,
 } as const;
 
 export const ReadingLayout = {
