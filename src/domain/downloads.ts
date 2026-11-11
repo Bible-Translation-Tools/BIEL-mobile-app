@@ -18,13 +18,17 @@ export function resolveDownloadStatus(
 }
 
 export function buildDownloadTaskId(sync: GlobalDownloadSync): string {
-  if ('chapter' in sync) {
-    return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.chapter}:${sync.kind}`;
+  switch (sync.kind) {
+    case 'chapter-text':
+    case 'chapter-audio':
+      return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.chapter}:${sync.kind}`;
+    case 'book-text':
+    case 'book-audio':
+      return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.kind}`;
+    case 'language-text':
+    case 'language-audio':
+      return `${sync.languageCode}:__language__:${sync.kind}`;
   }
-  if ('bookSlug' in sync) {
-    return `${sync.languageCode}:${sync.bookSlug.toUpperCase()}:${sync.kind}`;
-  }
-  return `${sync.languageCode}:__language__:${sync.kind}`;
 }
 
 /**
