@@ -1,7 +1,7 @@
 import { File } from 'expo-file-system';
 
 import { catalogApi } from '@/api/catalog';
-import { fetchRenderedContent } from '@/api/content-fetch';
+import { downloadRenderedContentToFile } from '@/api/content-fetch';
 import {
   deleteFileAndTemp,
   ensureOfflineAudioDirectory,
@@ -9,7 +9,6 @@ import {
   getChapterCueFile,
   getChapterMp3File,
   getOfflineAudioDirectory,
-  writeFileAtomically,
 } from '@/api/offline-storage';
 import type { AudioChapterRecord } from '@/db';
 import {
@@ -44,6 +43,11 @@ import { createAbortError, isAbortError, runWithConcurrency } from '@/utils/run-
 
 import { missingAudioChaptersError } from './failures';
 
+/**
+ * Chapters downloaded at once. On iOS the transfers run in a background URLSession, so the
+ * chapters already started keep going while the app is suspended; JavaScript starts the next ones
+ * when the app runs again.
+ */
 const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = 3;
 export type DownloadProgressCallback = (progress: number) => void;
 
@@ -331,36 +335,6 @@ export async function loadOfflineChapterCueText(
   return file.exists ? file.text() : null;
 }
 
-async function downloadBinaryFile(
-  url: string,
-  targetFile: File,
-  options?: { signal?: AbortSignal },
-): Promise<number> {
-  const response = await fetchRenderedContent(url, { signal: options?.signal });
-  if (!response.ok) {
-    throw new Error(`Failed to download audio (${response.status})`);
-  }
-
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  await writeFileAtomically(targetFile, bytes);
-  return bytes.byteLength;
-}
-
-async function downloadTextFile(
-  url: string,
-  targetFile: File,
-  options?: { signal?: AbortSignal },
-): Promise<number> {
-  const response = await fetchRenderedContent(url, { signal: options?.signal });
-  if (!response.ok) {
-    throw new Error(`Failed to download timing file (${response.status})`);
-  }
-
-  const text = await response.text();
-  await writeFileAtomically(targetFile, text);
-  return new TextEncoder().encode(text).length;
-}
-
 /** Downloads the cue file if there is one. Cue failures are ignored; only aborts propagate. */
 async function downloadOptionalCueFile(
   cueUrl: string | undefined,
@@ -370,7 +344,7 @@ async function downloadOptionalCueFile(
   if (!cueUrl) return { cuePath: null, cueByteSize: 0 };
 
   try {
-    const cueByteSize = await downloadTextFile(cueUrl, cueFile, options);
+    const cueByteSize = await downloadRenderedContentToFile(cueUrl, cueFile, options);
     return { cuePath: cueFile.uri, cueByteSize };
   } catch (err) {
     if (isAbortError(err)) {
@@ -393,22 +367,25 @@ async function writeChapterAudioFiles(
   languageCode: string,
   bookSlug: string,
   chapterAudio: ResolvedChapterAudio,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; onProgress?: (fraction: number) => void },
 ): Promise<AudioChapterRecord> {
   if (options?.signal?.aborted) {
     throw createAbortError();
   }
 
   const mp3File = getChapterMp3File(languageCode, bookSlug, chapterAudio.chapter);
-  const mp3ByteSize = await downloadBinaryFile(chapterAudio.mp3Url, mp3File, {
-    signal: options?.signal,
-  });
-
-  const { cuePath, cueByteSize } = await downloadOptionalCueFile(
-    chapterAudio.cueUrl,
-    getChapterCueFile(languageCode, bookSlug, chapterAudio.chapter),
-    { signal: options?.signal },
-  );
+  // Both start at once so iOS gets both transfers before the app may be suspended.
+  const [mp3ByteSize, { cuePath, cueByteSize }] = await Promise.all([
+    downloadRenderedContentToFile(chapterAudio.mp3Url, mp3File, {
+      signal: options?.signal,
+      onProgress: options?.onProgress,
+    }),
+    downloadOptionalCueFile(
+      chapterAudio.cueUrl,
+      getChapterCueFile(languageCode, bookSlug, chapterAudio.chapter),
+      { signal: options?.signal },
+    ),
+  ]);
 
   return {
     chapterNumber: chapterAudio.chapter,
@@ -477,10 +454,21 @@ export async function downloadBookAudio(
 
   const progressByChapter = new Array<number>(pendingChapters.length).fill(0);
   const failedChapters: number[] = [];
-  const markChapterDone = (index: number) => {
-    progressByChapter[index] = 1;
-    options?.onProgress?.(averageProgress(progressByChapter));
+  // Progress is measured in bytes per chapter: several chapters download at once, so counting
+  // finished chapters would move in jumps. Reported only when the whole percent changes.
+  let lastReportedPercent = -1;
+  const reportProgress = () => {
+    const progress = averageProgress(progressByChapter);
+    const percent = Math.floor(progress * 100);
+    if (percent === lastReportedPercent) return;
+    lastReportedPercent = percent;
+    options?.onProgress?.(progress);
   };
+  const setChapterProgress = (index: number, fraction: number) => {
+    progressByChapter[index] = Math.max(progressByChapter[index] ?? 0, fraction);
+    reportProgress();
+  };
+  const markChapterDone = (index: number) => setChapterProgress(index, 1);
 
   const savedChapters = (
     await runWithConcurrency(
@@ -496,7 +484,11 @@ export async function downloadBookAudio(
             languageCode,
             canonicalSlug,
             chapterAudio,
-            options,
+            {
+              signal: options?.signal,
+              // Hold the last 5% until the chapter is saved, so the bar never shows done early.
+              onProgress: (fraction) => setChapterProgress(index, fraction * 0.95),
+            },
           );
           markChapterDone(index);
           return chapterRecord;
@@ -746,16 +738,16 @@ export async function downloadChapterAudio(
   options?.onProgress?.(0.1);
 
   const mp3File = getChapterMp3File(languageCode, canonicalSlug, chapter);
-  const mp3ByteSize = await downloadBinaryFile(mp3.mp3Url, mp3File, { signal: options?.signal });
-
-  if (cue.cueUrl) {
-    options?.onProgress?.(0.7);
-  }
-  const { cuePath, cueByteSize } = await downloadOptionalCueFile(
-    cue.cueUrl,
-    getChapterCueFile(languageCode, canonicalSlug, chapter),
-    { signal: options?.signal },
-  );
+  const [mp3ByteSize, { cuePath, cueByteSize }] = await Promise.all([
+    downloadRenderedContentToFile(mp3.mp3Url, mp3File, {
+      signal: options?.signal,
+      onProgress: (fraction) => options?.onProgress?.(0.1 + fraction * 0.8),
+    }),
+    downloadOptionalCueFile(cue.cueUrl, getChapterCueFile(languageCode, canonicalSlug, chapter), {
+      signal: options?.signal,
+    }),
+  ]);
+  options?.onProgress?.(0.9);
 
   const manifest = await fetchBookAudioManifest(languageCode, canonicalSlug).catch(() => ({
     bookSlug: canonicalSlug,
