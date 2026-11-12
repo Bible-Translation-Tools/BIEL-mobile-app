@@ -12,6 +12,11 @@ import type { DownloadOutcome } from '@/types/download';
 import type { DownloadJob, GlobalDownloadSync } from '@/types/download-progress';
 import { createAbortError } from '@/utils/run-with-concurrency';
 
+// yieldToUi reads AppState; React Native itself can't load under Vitest.
+vi.mock('react-native', () => ({
+  AppState: { currentState: 'active', addEventListener: () => ({ remove: () => {} }) },
+}));
+
 vi.mock('@/features/downloads/notifications', () => ({
   showDownloadFinishedNotification: vi.fn(async () => {}),
   syncDownloadNotification: vi.fn(async () => {}),
