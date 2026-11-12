@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { i18n } from '@/i18n';
 import type { DownloadProgressTask } from '@/types/download-progress';
 
+import { showDownloadService, stopDownloadService } from '../../../modules/download-service';
 import { listActiveDownloadTasks } from './task-registry';
 
 const DOWNLOAD_CHANNEL_ID = 'book-downloads';
@@ -130,6 +131,7 @@ export async function syncDownloadNotification(): Promise<void> {
 
   if (!content) {
     resetProgressSyncState();
+    stopDownloadService();
     await Notifications.dismissNotificationAsync(ACTIVE_DOWNLOAD_NOTIFICATION_ID).catch(() => {});
     return;
   }
@@ -141,11 +143,22 @@ export async function syncDownloadNotification(): Promise<void> {
   lastProgressPercent = content.percent;
   lastProgressSyncAt = Date.now();
 
+  // Android: the progress notification belongs to the foreground service, which also keeps the
+  // app (and the download) running while the user is in another app.
+  if (Platform.OS === 'android') {
+    showDownloadService({
+      channelId: DOWNLOAD_CHANNEL_ID,
+      title: content.title,
+      body: content.body,
+      percent: content.percent,
+    });
+    return;
+  }
+
   await presentNotification({
     title: content.title,
     body: content.body,
     data: content.data,
-    ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
   });
 }
 
@@ -164,6 +177,11 @@ export async function showDownloadFinishedNotification(
   const body = succeeded ? undefined : i18n.t('download:downloadFailedMessage');
 
   resetProgressSyncState();
+
+  // The finished task is no longer active; stop the Android service once nothing else is downloading.
+  if (listActiveDownloadTasks().length === 0) {
+    stopDownloadService();
+  }
 
   await presentNotification({
     title,
