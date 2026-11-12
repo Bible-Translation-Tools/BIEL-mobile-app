@@ -45,11 +45,12 @@ import { createAbortError, isAbortError, runWithConcurrency } from '@/utils/run-
 import { missingAudioChaptersError } from './failures';
 
 /**
- * Chapters downloaded at once. iOS gets every chapter of the book up front: the transfers run in a
- * background URLSession that keeps going while the app is suspended, but JavaScript cannot start
- * new ones until the app runs again.
+ * Chapters downloaded at once. iOS gets more: its transfers run in a background URLSession that
+ * keeps going while the app is suspended, but JavaScript cannot start new ones until the app runs
+ * again, so only the chapters already started finish in the background. It is still capped so
+ * that cancelling keeps the chapters that finished, instead of leaving every chapter part-way.
  */
-const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = Platform.OS === 'ios' ? Number.POSITIVE_INFINITY : 3;
+const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = Platform.OS === 'ios' ? 8 : 3;
 export type DownloadProgressCallback = (progress: number) => void;
 
 /** Dedupes overlapping language audio catalog requests per language code. */
@@ -455,8 +456,8 @@ export async function downloadBookAudio(
 
   const progressByChapter = new Array<number>(pendingChapters.length).fill(0);
   const failedChapters: number[] = [];
-  // Progress is measured in bytes per chapter: on iOS every chapter downloads at once, so counting
-  // finished chapters would sit at 0% until the end. Reported only when the whole percent changes.
+  // Progress is measured in bytes per chapter: several chapters download at once, so counting
+  // finished chapters would move in jumps. Reported only when the whole percent changes.
   let lastReportedPercent = -1;
   const reportProgress = () => {
     const progress = averageProgress(progressByChapter);
