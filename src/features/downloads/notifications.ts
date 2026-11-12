@@ -73,12 +73,12 @@ function buildNotificationContent(active: DownloadProgressTask[]) {
   };
 }
 
-async function presentNotification(
-  content: Notifications.NotificationContentInput,
-  kind: (typeof NOTIFICATION_KIND)[keyof typeof NOTIFICATION_KIND],
-) {
-  const isProgress = kind === NOTIFICATION_KIND.progress;
-
+/**
+ * Download notifications are quiet on both platforms: they land in the notification list / tray
+ * without a banner or sound. On Android the LOW-importance channel does this; on iOS the passive
+ * interruption level (background) and the handler below (foreground) do.
+ */
+async function presentNotification(content: Notifications.NotificationContentInput) {
   await Notifications.scheduleNotificationAsync({
     identifier: ACTIVE_DOWNLOAD_NOTIFICATION_ID,
     content: {
@@ -86,11 +86,7 @@ async function presentNotification(
       sticky: Platform.OS === 'android',
       autoDismiss: false,
       sound: false,
-      ...(Platform.OS === 'ios'
-        ? {
-            interruptionLevel: isProgress ? 'passive' : 'active',
-          }
-        : {}),
+      ...(Platform.OS === 'ios' ? { interruptionLevel: 'passive' } : {}),
     },
     trigger: null,
   });
@@ -100,16 +96,12 @@ export async function initDownloadNotifications(): Promise<void> {
   if (initialized || Platform.OS === 'web') return;
 
   Notifications.setNotificationHandler({
-    handleNotification: async (notification) => {
-      const isProgress = notification.request.content.data?.kind === NOTIFICATION_KIND.progress;
-
-      return {
-        shouldShowBanner: !isProgress,
-        shouldShowList: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      };
-    },
+    handleNotification: async () => ({
+      shouldShowBanner: false,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
   });
 
   if (Platform.OS === 'android') {
@@ -149,15 +141,12 @@ export async function syncDownloadNotification(): Promise<void> {
   lastProgressPercent = content.percent;
   lastProgressSyncAt = Date.now();
 
-  await presentNotification(
-    {
-      title: content.title,
-      body: content.body,
-      data: content.data,
-      ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
-    },
-    NOTIFICATION_KIND.progress,
-  );
+  await presentNotification({
+    title: content.title,
+    body: content.body,
+    data: content.data,
+    ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
+  });
 }
 
 export async function showDownloadFinishedNotification(
@@ -176,15 +165,12 @@ export async function showDownloadFinishedNotification(
 
   resetProgressSyncState();
 
-  await presentNotification(
-    {
-      title,
-      body,
-      data: { taskId: task.id, kind: NOTIFICATION_KIND.finished },
-      ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
-    },
-    NOTIFICATION_KIND.finished,
-  );
+  await presentNotification({
+    title,
+    body,
+    data: { taskId: task.id, kind: NOTIFICATION_KIND.finished },
+    ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
+  });
 
   dismissTimer = setTimeout(() => {
     dismissTimer = null;
