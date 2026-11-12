@@ -203,6 +203,30 @@ describe('runDownload', () => {
 
     expect(getDownloadTask(taskId)).toBeUndefined();
   });
+
+  it('keeps a restarted download in the list when the previous run is cleared', async () => {
+    await runDownload({
+      sync,
+      download: async () => {
+        throw createAbortError();
+      },
+    });
+
+    // Restarted before the first run's cleanup fires.
+    vi.advanceTimersByTime(2000);
+    const job = controllableDownload();
+    const running = runDownload({ sync, download: job.download });
+    await vi.waitFor(() => expect(job.download).toHaveBeenCalled());
+
+    vi.advanceTimersByTime(4500);
+
+    expect(getDownloadTask(taskId)).toMatchObject({ status: 'downloading' });
+
+    job.finish({ status: 'completed' });
+    await running;
+    vi.advanceTimersByTime(4500);
+    expect(getDownloadTask(taskId)).toBeUndefined();
+  });
 });
 
 describe('chapter downloads', () => {

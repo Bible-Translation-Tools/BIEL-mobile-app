@@ -19,6 +19,26 @@ type ActiveJob = {
 
 const activeJobs = new Map<string, ActiveJob>();
 
+/** How long a finished task stays in the list before it is cleared. */
+const FINISHED_TASK_LINGER_MS = 4500;
+
+/** Pending "clear the finished task" timers, by task id. */
+const cleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+/**
+ * Drops the pending cleanup for a task. A new run of the same download owns the task from then
+ * on; a cleanup left over from the previous run would remove the new run's task, which hides its
+ * progress and stops the Android foreground service while it is still downloading.
+ */
+function cancelPendingCleanup(id: string): void {
+  const timer = cleanupTimers.get(id);
+  if (timer == null) {
+    return;
+  }
+  clearTimeout(timer);
+  cleanupTimers.delete(id);
+}
+
 export function cancelDownload(sync: GlobalDownloadSync): void {
   const id = buildDownloadTaskId(sync);
   activeJobs.get(id)?.controller.abort();
@@ -37,6 +57,7 @@ export async function runDownload(params: {
 
   const controller = new AbortController();
   activeJobs.set(id, { sync: params.sync, controller });
+  cancelPendingCleanup(id);
 
   upsertDownloadTask(params.sync, { status: 'downloading', progress: 0 });
   await syncDownloadNotification();
@@ -81,9 +102,13 @@ export async function runDownload(params: {
     await fail(toDownloadFailure(err));
   } finally {
     activeJobs.delete(id);
-    setTimeout(() => {
-      removeDownloadTask(id);
-      void syncDownloadNotification();
-    }, 4500);
+    cleanupTimers.set(
+      id,
+      setTimeout(() => {
+        cleanupTimers.delete(id);
+        removeDownloadTask(id);
+        void syncDownloadNotification();
+      }, FINISHED_TASK_LINGER_MS),
+    );
   }
 }
