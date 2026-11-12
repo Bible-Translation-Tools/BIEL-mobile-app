@@ -4,8 +4,17 @@ import { normalizeBookSlug } from '@/domain/book-slug';
 
 const OFFLINE_ROOT_DIR_NAME = 'biel-offline';
 
-function tempFileFor(file: File): File {
+/** The `.tmp` sibling a file is written to before it is moved into place. */
+export function tempFileFor(file: File): File {
   return new File(file.parentDirectory, `${file.name}.tmp`);
+}
+
+/** Replaces `targetFile` with the finished `tempFile`. */
+export async function moveTempFileIntoPlace(tempFile: File, targetFile: File): Promise<void> {
+  if (targetFile.exists) {
+    targetFile.delete();
+  }
+  await tempFile.move(targetFile);
 }
 
 /**
@@ -24,10 +33,7 @@ export async function writeFileAtomically(
     tempFile.delete();
   }
   await tempFile.write(contents);
-  if (targetFile.exists) {
-    targetFile.delete();
-  }
-  await tempFile.move(targetFile);
+  await moveTempFileIntoPlace(tempFile, targetFile);
 }
 
 /** Deletes a file and any `.tmp` left by an interrupted {@link writeFileAtomically}. */
@@ -52,6 +58,11 @@ function getOfflineBookDirectory(languageCode: string, bookSlug: string): Direct
 
 export function getWholeJsonFile(languageCode: string, bookSlug: string): File {
   return new File(getOfflineScriptureDirectory(languageCode, bookSlug), 'whole.json');
+}
+
+/** Where the whole-book JSON lands while it is validated, before `whole.json` is written. */
+export function getWholeJsonDownloadFile(languageCode: string, bookSlug: string): File {
+  return new File(getOfflineScriptureDirectory(languageCode, bookSlug), 'whole.json.download');
 }
 
 export async function ensureOfflineRootExists(): Promise<void> {
