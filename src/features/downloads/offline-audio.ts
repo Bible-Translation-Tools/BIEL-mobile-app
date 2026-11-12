@@ -1,5 +1,4 @@
 import { File } from 'expo-file-system';
-import { Platform } from 'react-native';
 
 import { catalogApi } from '@/api/catalog';
 import { downloadRenderedContentToFile } from '@/api/content-fetch';
@@ -45,12 +44,11 @@ import { createAbortError, isAbortError, runWithConcurrency } from '@/utils/run-
 import { missingAudioChaptersError } from './failures';
 
 /**
- * Chapters downloaded at once. iOS gets more: its transfers run in a background URLSession that
- * keeps going while the app is suspended, but JavaScript cannot start new ones until the app runs
- * again, so only the chapters already started finish in the background. It is still capped so
- * that cancelling keeps the chapters that finished, instead of leaving every chapter part-way.
+ * Chapters downloaded at once. On iOS the transfers run in a background URLSession, so the
+ * chapters already started keep going while the app is suspended; JavaScript starts the next ones
+ * when the app runs again.
  */
-const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = Platform.OS === 'ios' ? 8 : 3;
+const AUDIO_CHAPTER_DOWNLOAD_CONCURRENCY = 3;
 export type DownloadProgressCallback = (progress: number) => void;
 
 /** Dedupes overlapping language audio catalog requests per language code. */
