@@ -2,6 +2,7 @@ import { File } from 'expo-file-system';
 
 import { assertNetworkAvailable } from '@/api/network';
 import { moveTempFileIntoPlace, tempFileFor } from '@/api/offline-storage';
+import { rejectOnAbort } from '@/utils/run-with-concurrency';
 
 /** Headers required for read.bibletranslationtools.org (Cloudflare allows BIEL API referer). */
 // export const CONTENT_FETCH_HEADERS = {
@@ -75,7 +76,9 @@ export async function downloadRenderedContentToFile(
           }
         : undefined,
     });
-    const downloaded = await task.downloadAsync();
+    // Don't wait on the native task to report a cancel: on Android, expo-file-system 58 can leave
+    // its read loop on cancel without resolving or rejecting, which would hang this call forever.
+    const downloaded = await rejectOnAbort(task.downloadAsync(), options?.signal);
     if (!downloaded) {
       throw new Error('Download was paused');
     }
