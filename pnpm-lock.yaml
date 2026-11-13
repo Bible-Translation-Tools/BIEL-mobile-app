@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  react-native-track-player@4.1.2: 771099c5c0361d8033b53cd75a050b1ae8ba6561f51a37dcd5b30a4d23bb102e
+  react-native-track-player@4.1.2: 820e2a3b24aac747aeed0ac72b98ffe446f325b56cb53d51d4de9879153145b5
 
 importers:
 
@@ -103,7 +103,7 @@ importers:
         version: 15.16.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       react-native-track-player:
         specifier: ^4.1.2
-        version: 4.1.2(patch_hash=771099c5c0361d8033b53cd75a050b1ae8ba6561f51a37dcd5b30a4d23bb102e)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+        version: 4.1.2(patch_hash=820e2a3b24aac747aeed0ac72b98ffe446f325b56cb53d51d4de9879153145b5)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       react-native-volume-manager:
         specifier: ^2.0.8
         version: 2.0.8(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
@@ -7356,7 +7356,7 @@ snapshots:
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
 
-  react-native-track-player@4.1.2(patch_hash=771099c5c0361d8033b53cd75a050b1ae8ba6561f51a37dcd5b30a4d23bb102e)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0):
+  react-native-track-player@4.1.2(patch_hash=820e2a3b24aac747aeed0ac72b98ffe446f325b56cb53d51d4de9879153145b5)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0):
     dependencies:
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.88.1(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
