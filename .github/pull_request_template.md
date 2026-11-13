@@ -10,9 +10,9 @@ Write each section as short bullets with a bold label, not paragraphs.
 
 <!-- Required. -->
 
-- **Problem:** what the user sees, and on which platform.
-- **Cause:** for bugs, what actually goes wrong. Point to the evidence (log line, code path).
-- **Fix:** the change in one or two lines.
+- **Problem or goal:** for a bug, what the user sees and on which platform; for a feature or chore, what we want and who it's for.
+- **Cause:** bugs only. What actually goes wrong; point to the evidence (log line, code path).
+- **Change:** what this PR does, in one or two lines.
 - **Why this approach:** what makes it the right place or tool.
 - **What it is:** size, files or modules, the API it adds, platforms it affects.
 
