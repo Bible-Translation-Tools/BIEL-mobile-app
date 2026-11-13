@@ -38,7 +38,6 @@ class DownloadService : Service() {
     private const val NOTIFICATION_ID = 0xB1E1
 
     private var instance: DownloadService? = null
-    private var startRequested = false
     private var content: DownloadNotificationContent? = null
 
     @Synchronized
@@ -50,14 +49,17 @@ class DownloadService : Service() {
         running.post(next)
         return
       }
-      if (startRequested) return // onStartCommand picks up the latest content.
 
+      // Ask for a start on every call until the service is running. A start that is still pending
+      // just gets a second onStartCommand, and one Android dropped is retried here instead of
+      // blocking the service for the rest of the download. Each onStartCommand promotes the
+      // service, and finish() stops it only for the latest start, so no start is left without
+      // startForeground.
       try {
         ContextCompat.startForegroundService(
           context.applicationContext,
           Intent(context.applicationContext, DownloadService::class.java),
         )
-        startRequested = true
       } catch (e: Exception) {
         // E.g. ForegroundServiceStartNotAllowedException when the app is already in the
         // background. The download still runs; it just isn't protected from being frozen.
@@ -68,28 +70,38 @@ class DownloadService : Service() {
     @Synchronized
     fun stop() {
       content = null
-      startRequested = false
       instance?.finish()
-      // If the start is still pending, onStartCommand sees no content and stops right away.
+      // A start that is still pending sees no content in onStartCommand and stops right away.
     }
   }
 
+  /** The latest start delivered to this service; [finish] stops only for this one. */
+  private var lastStartId = 0
+
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     synchronized(DownloadService) {
-      startRequested = false
+      lastStartId = startId
       val current = content
       // Android requires startForeground after startForegroundService, even when the
       // download already finished, so promote first and stop right after if there is nothing to show.
-      ServiceCompat.startForeground(
-        this,
-        NOTIFICATION_ID,
-        buildNotification(current ?: DownloadNotificationContent(channelIdOrDefault(), "", "", 0)),
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-        } else {
-          0
-        },
-      )
+      try {
+        ServiceCompat.startForeground(
+          this,
+          NOTIFICATION_ID,
+          buildNotification(current ?: DownloadNotificationContent(channelIdOrDefault(), "", "", 0)),
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+          } else {
+            0
+          },
+        )
+      } catch (e: Exception) {
+        // E.g. ForegroundServiceStartNotAllowedException once the Android 15+ daily dataSync
+        // limit is used up. The download still runs; it just isn't protected from being frozen.
+        Log.w(TAG, "Could not promote download service", e)
+        stopSelf(startId)
+        return START_NOT_STICKY
+      }
       // Only a promoted service is visible to show()/stop(), so stop() can never race ahead of
       // startForeground (which would crash with ForegroundServiceDidNotStartInTimeException).
       instance = this
@@ -102,7 +114,6 @@ class DownloadService : Service() {
   override fun onTimeout(startId: Int, fgsType: Int) {
     Log.w(TAG, "Download service reached the dataSync time limit; stopping")
     synchronized(DownloadService) {
-      startRequested = false
       finish()
     }
   }
@@ -116,11 +127,17 @@ class DownloadService : Service() {
 
   override fun onBind(intent: Intent?): IBinder? = null
 
-  /** Called with the lock held. Detaches first so a later [show] starts a fresh service. */
+  /**
+   * Called with the lock held. Detaches first so a later [show] starts a fresh service.
+   *
+   * Stops only for the latest delivered start: if a newer start is still pending, Android keeps the
+   * service for it, and its onStartCommand promotes the service before stopping or showing it.
+   * Stopping outright with a start pending would crash (startForeground never called for it).
+   */
   private fun finish() {
     if (instance === this) instance = null
     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-    stopSelf()
+    stopSelf(lastStartId)
   }
 
   @SuppressLint("MissingPermission") // Denied permission is caught below.
