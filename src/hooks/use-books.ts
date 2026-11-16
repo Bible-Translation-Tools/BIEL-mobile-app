@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { fetchBooksForLanguage, loadBooksForLanguage } from '@/features/catalog';
 import { fetchLanguageAudioBooks } from '@/features/downloads';
 import { loadDownloadedBookSlugsByKind } from '@/features/library';
-import { useForceOffline } from '@/stores/force-offline-store';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
 
@@ -55,7 +54,6 @@ async function applyDownloadStatus(items: BookItem[], languageCode: string): Pro
 
 export function useBooks(languageCode: string | undefined) {
   const { t } = useTranslation('books');
-  const forceOffline = useForceOffline();
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +133,7 @@ export function useBooks(languageCode: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [forceOffline, languageCode, t]);
+  }, [languageCode, t]);
 
   useEffect(() => {
     refetch();

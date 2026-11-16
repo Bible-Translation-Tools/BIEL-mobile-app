@@ -14,7 +14,7 @@ Each row is a claim about one commit. Re-verify and update the row (do not add a
 | [Read a chapter](./read-chapter.md) | `read-chapter` | ⚠️ last clean pass `d4e0bdc` (#4 base); not re-verified on #5 (harness failures) | ✅ `41ec62e` 2026-10-06 |
 | [Chapter audio](./chapter-audio.md) | `chapter-audio`, `audio-panel-gestures` | ✅ `41ec62e` 2026-10-06 | ✅ `41ec62e` 2026-10-06 |
 | [Download a book](./downloads.md) | `download-book`, `downloads-library` | ✅ `41ec62e` 2026-10-06 | ✅ `f9a73c9` 2026-10-06 |
-| [Read offline](./offline-read.md) | `offline-read`, `offline-read-forced` | ⚠️ `41ec62e` partial: offline read passed (airplane mode); 3 John control not reached (harness) | ✅ `f9a73c9` 2026-10-06 (Force Offline Mode, simulated) |
+| [Read offline](./offline-read.md) | `offline-read` | ⚠️ `41ec62e` partial: offline read passed (airplane mode); 3 John control not reached (harness) | ➖ not verifiable (simulator shares the Mac's network) |
 
 Platforms: Android = Pixel_8_Pro_API_33 (API 33) emulator; iOS = iPhone 17 Pro, iOS 26.2 simulator, built with Xcode 27.
 Evidence for a row lives at `.verify/evidence/<sha>/<flow>/` on the machine that ran it.
@@ -40,7 +40,7 @@ Evidence for a row lives at `.verify/evidence/<sha>/<flow>/` on the machine that
 
 - UI proof = named screenshot(s) from the flow + the PASS line with its evidence path.
 - Mutation proof = `bv files` and `bv db` output before and after, next to the UI proof.
-- Offline proof states which mechanism was used: `bv net off` (real) or Force Offline Mode (in-app, in-memory).
+- Offline proof uses `bv net off` (Android airplane mode).
 - Record the feature, entry point, platform and SHA with every artifact (the evidence path already encodes SHA + platform).
 - An unreachable path is reported with the attempted command and the unmet precondition, never as verified through another path.
 
@@ -54,7 +54,7 @@ name user paths, stable handles, required state, commands, and observable proof.
 
 Real user surfaces with no recipe yet (sources cited so the next pass can add them):
 
-- System settings: theme Automatic/Light/Dark, Force Offline Mode. `src/components/home/system-settings-menu.tsx`
+- System settings: theme Automatic/Light/Dark. `src/components/home/system-settings-menu.tsx`
 - Interface language picker (10 locales), Menu → App Language. `src/components/locale/locale-menu.tsx`
 - Whole-language download from the Home card (text and audio). `src/components/home/language-card-row.tsx`
 - Single-chapter download from the reader header Download button. `src/components/reading/chapter-download-menu.tsx`

@@ -185,10 +185,6 @@
         "title": "Dunkler Modus",
         "subtitle": "Systemeinstellungen ignorieren"
       }
-    },
-    "offline": {
-      "title": "Offline-Modus erzwingen",
-      "subtitle": "Keine Internetverbindung simulieren"
     }
   },
   "locale": {

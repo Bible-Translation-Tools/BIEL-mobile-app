@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { getChaptersForBook } from '@/features/catalog';
 import { getAudioChaptersForBook } from '@/features/playback';
-import { useForceOffline } from '@/stores/force-offline-store';
 import type { ChapterItem } from '@/types/book';
 
 export function useBookChapters(languageCode: string, audioOnly: boolean) {
-  const forceOffline = useForceOffline();
   const cacheRef = useRef<Record<string, ChapterItem[]>>({});
   const [chaptersByBook, setChaptersByBook] = useState<Record<string, ChapterItem[]>>({});
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -18,10 +16,6 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
     setLoadingSlug(null);
     setErrorSlug(null);
   }, []);
-
-  useEffect(() => {
-    clearCache();
-  }, [clearCache, forceOffline]);
 
   const loadChapters = useCallback(
     async (bookSlug: string) => {
@@ -55,7 +49,7 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
         setLoadingSlug(null);
       }
     },
-    [audioOnly, forceOffline, languageCode],
+    [audioOnly, languageCode],
   );
 
   const getChapters = useCallback((bookSlug: string) => chaptersByBook[bookSlug], [chaptersByBook]);
