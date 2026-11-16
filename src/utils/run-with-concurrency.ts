@@ -10,6 +10,25 @@ export function createAbortError(): Error {
   return error;
 }
 
+/**
+ * Settles like `promise`, but rejects with an `AbortError` as soon as `signal` aborts, whether or
+ * not `promise` ever settles. Use around work that may not report its own cancellation.
+ */
+export function rejectOnAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) {
+    return promise;
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(createAbortError());
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+    if (signal.aborted) {
+      onAbort();
+    }
+  });
+}
+
 export async function runWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,
