@@ -1,5 +1,3 @@
-import { assertNetworkAvailable } from '@/api/network';
-
 const GRAPHQL_ENDPOINT = 'https://api.bibleineverylanguage.org/v1/graphql';
 const USER_AGENT = 'Mozilla/5.0'; // required by the API
 
@@ -12,8 +10,6 @@ export async function graphqlRequest<T>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  assertNetworkAvailable();
-
   const response = await fetch(GRAPHQL_ENDPOINT, {
     method: 'POST',
     headers: {

@@ -81,7 +81,7 @@ bv reset                               # wipe app data (DB, downloads, prefs) an
 Flows select by **visible text or accessibility label** (on Android, Maestro's plain-text selector
 also matches `contentDescription`). Stable handles come from `src/locales/en.json`, e.g.
 `"Open English"`, `"Expand 2 John"`, `"Chapter 1.*"`, `"Download All Text"`, `"Delete downloaded All Text"`,
-`"Force Offline Mode"`, `"Menu"`. The app has no `testID`s. Ad-hoc exploration: write a scratch flow
+`"Menu"`. The app has no `testID`s. Ad-hoc exploration: write a scratch flow
 and run `maestro test`, then `bv snapshot` to see what the screen exposes.
 
 Fixtures: **English (`en`)**, which has text and audio, and **2 John (`2JN`)**, one chapter, 3.8 KB text
@@ -94,7 +94,7 @@ Recommended order for a full pass (each step's preconditions come from the one b
 bv reset
 bv flow browse-languages && bv flow browse-books && bv flow read-chapter && bv flow chapter-audio && bv flow audio-panel-gestures
 bv flow download-book && bv files && bv db "select language_code,book_slug,byte_size,content_hash from books"
-bv net off && bv flow offline-read; bv net on          # iOS: bv flow offline-read-forced ios
+bv net off && bv flow offline-read; bv net on          # Android only
 bv flow downloads-library && bv files && bv db "select count(*) from books"
 ```
 
@@ -113,8 +113,8 @@ Proof standards:
   (e.g. `".*From the elder to the chosen lady.*"`), not just a title that also appears elsewhere.
 - Prove side effects alongside the UI. Downloads and deletes need `bv files` + `bv db` output
   before and after; paste it into the report next to the evidence path.
-- Offline claims are proven with `bv net off` (real airplane mode) on Android. Force Offline Mode
-  (Menu → System Settings, flow `offline-read-forced`) is in-memory only and resets on relaunch. Use it on iOS, and say which one you used.
+- Offline claims are proven with `bv net off` (real airplane mode) on Android. iOS simulators share the
+  Mac's network, so report offline behaviour as not verified on iOS.
 - Report every feature-map entry point you could not reach, with the command tried and the unmet precondition.
   Do not report a skipped path as verified through a different one.
 

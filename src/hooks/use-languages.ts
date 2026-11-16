@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -8,7 +8,7 @@ import {
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
 } from '@/features/catalog';
-import { useForceOffline } from '@/stores/force-offline-store';
+import { useOnReconnect } from '@/hooks/use-on-reconnect';
 
 function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
   const preloaded = getLanguageCatalogSnapshot();
@@ -21,8 +21,6 @@ function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
 
 export function useLanguages() {
   const { t } = useTranslation('home');
-  const forceOffline = useForceOffline();
-  const prevForceOfflineRef = useRef(forceOffline);
   const [state, setState] = useState(readInitialState);
 
   const refreshDownloadStatus = useCallback(async () => {
@@ -47,20 +45,21 @@ export function useLanguages() {
     }
   }, [t]);
 
+  // Back online: reload from the network in place. A failure keeps what is on screen.
+  useOnReconnect(async () => {
+    try {
+      const next = await getLanguageCatalog({ force: true });
+      setState({ ...next, loading: false });
+    } catch {
+      // Still unreachable; the next reconnect or a pull to refresh tries again.
+    }
+  });
+
   useEffect(() => {
     let cancelled = false;
-    const forceReload = prevForceOfflineRef.current !== forceOffline;
-    prevForceOfflineRef.current = forceOffline;
-
     setState((current) => ({ ...current, loading: true, error: null }));
 
-    const load = forceReload
-      ? getLanguageCatalog({ force: true })
-      : getLanguageCatalogSnapshot()
-        ? Promise.resolve(getLanguageCatalogSnapshot()!)
-        : getLanguageCatalog();
-
-    load
+    getLanguageCatalog()
       .then((next) => {
         if (!cancelled) {
           setState({ ...next, loading: false });
@@ -79,7 +78,7 @@ export function useLanguages() {
     return () => {
       cancelled = true;
     };
-  }, [forceOffline, t]);
+  }, [t]);
 
   return {
     languages: state.languages,

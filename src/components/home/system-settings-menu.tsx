@@ -1,12 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SETTINGS_ICON_NAME, IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import type { ThemePreference } from '@/constants/appearance';
 import { DownloadMenuLayout, SystemSettingsLayout, Typography } from '@/constants/theme';
 import { useAppearance } from '@/contexts/appearance-context';
 import { useTheme } from '@/hooks/use-theme';
-import { setForceOffline, useForceOffline } from '@/stores/force-offline-store';
 
 type ThemeOption = {
   value: ThemePreference;
@@ -47,7 +46,6 @@ type SystemSettingsMenuProps = {
 export function SystemSettingsMenu({ embedded = false }: SystemSettingsMenuProps) {
   const theme = useTheme();
   const { themePreference, setThemePreference } = useAppearance();
-  const forceOffline = useForceOffline();
   const { t } = useTranslation('settings');
 
   const themeOptions = THEME_OPTION_CONFIG.map((option) => ({
@@ -99,36 +97,6 @@ export function SystemSettingsMenu({ embedded = false }: SystemSettingsMenuProps
           </Pressable>
         );
       })}
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.option,
-          styles.offlineOption,
-          {
-            backgroundColor: theme.backgroundElement,
-            borderColor: theme.border,
-            opacity: pressed ? 0.85 : 1,
-          },
-        ]}
-        onPress={() => setForceOffline(!forceOffline)}
-        accessibilityRole="switch"
-        accessibilityLabel={t('offline.title')}
-        accessibilityHint={t('offline.subtitle')}
-        accessibilityState={{ checked: forceOffline }}>
-        <View style={styles.optionText}>
-          <Text style={[styles.optionTitle, { color: theme.text }]}>{t('offline.title')}</Text>
-          <Text style={[styles.optionSubtitle, { color: theme.textSecondary }]}>
-            {t('offline.subtitle')}
-          </Text>
-        </View>
-        <Switch
-          value={forceOffline}
-          onValueChange={setForceOffline}
-          trackColor={{ false: theme.borderSecondary, true: theme.tabActive }}
-          thumbColor={theme.backgroundElement}
-          pointerEvents="none"
-        />
-      </Pressable>
     </View>
   );
 }
@@ -176,8 +144,5 @@ const styles = StyleSheet.create({
   },
   optionSubtitle: {
     ...Typography.bodyXs,
-  },
-  offlineOption: {
-    marginTop: 24,
   },
 });

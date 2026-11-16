@@ -1,6 +1,5 @@
 import { File } from 'expo-file-system';
 
-import { assertNetworkAvailable } from '@/api/network';
 import { moveTempFileIntoPlace, tempFileFor } from '@/api/offline-storage';
 import { rejectOnAbort } from '@/utils/run-with-concurrency';
 
@@ -17,8 +16,6 @@ const CONTENT_FETCH_HEADERS = {
 } as const;
 
 export async function fetchRenderedContent(url: string, init?: RequestInit): Promise<Response> {
-  assertNetworkAvailable();
-
   return fetch(url, {
     ...init,
     headers: {
@@ -48,8 +45,6 @@ export async function downloadRenderedContentToFile(
   targetFile: File,
   options?: { signal?: AbortSignal; onProgress?: (fraction: number) => void },
 ): Promise<number> {
-  assertNetworkAvailable();
-
   let lastReported = 0;
   const onProgress = options?.onProgress;
 
