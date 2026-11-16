@@ -2,14 +2,14 @@
   "expo": {
     "name": "BIEL",
     "slug": "biel-mobile-app",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bielmobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "org.bibletranslationtools.biel",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "icon": "./assets/images/icon.png",
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
@@ -26,7 +26,7 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "org.bibletranslationtools.biel",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "output": "static",
