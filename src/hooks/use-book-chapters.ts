@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { getChaptersForBook } from '@/features/catalog';
 import { getAudioChaptersForBook } from '@/features/playback';
+import { useOnReconnect } from '@/hooks/use-on-reconnect';
 import type { ChapterItem } from '@/types/book';
 
 export function useBookChapters(languageCode: string, audioOnly: boolean) {
@@ -51,6 +52,18 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
     },
     [audioOnly, languageCode],
   );
+
+  // Lists loaded offline may be empty or partial (local chapters only). Once back online, reload
+  // every book opened so far, one at a time since only one book shows as loading.
+  const reloadAfterReconnect = useCallback(async () => {
+    const loadedSlugs = Object.keys(cacheRef.current);
+    cacheRef.current = {};
+    for (const slug of loadedSlugs) {
+      await loadChapters(slug);
+    }
+  }, [loadChapters]);
+
+  useOnReconnect(reloadAfterReconnect);
 
   const getChapters = useCallback((bookSlug: string) => chaptersByBook[bookSlug], [chaptersByBook]);
 

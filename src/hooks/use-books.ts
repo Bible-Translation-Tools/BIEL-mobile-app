@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchBooksForLanguage, loadBooksForLanguage } from '@/features/catalog';
 import { fetchLanguageAudioBooks } from '@/features/downloads';
 import { loadDownloadedBookSlugsByKind } from '@/features/library';
+import { useOnReconnect } from '@/hooks/use-on-reconnect';
 import type { BookItem } from '@/types/book';
 import type { DownloadStatus } from '@/types/download';
 
@@ -138,6 +139,9 @@ export function useBooks(languageCode: string | undefined) {
   useEffect(() => {
     refetch();
   }, [refetch]);
+
+  // Offline the list may hold only downloaded books; fetch the full one once back online.
+  useOnReconnect(refetch);
 
   return { books, loading, error, refetch, refreshDownloadStatus };
 }

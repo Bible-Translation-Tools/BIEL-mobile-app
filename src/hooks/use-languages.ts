@@ -8,6 +8,7 @@ import {
   refreshLanguageCatalogDownloadStatus,
   type LanguageCatalogSnapshot,
 } from '@/features/catalog';
+import { useOnReconnect } from '@/hooks/use-on-reconnect';
 
 function readInitialState(): LanguageCatalogSnapshot & { loading: boolean } {
   const preloaded = getLanguageCatalogSnapshot();
@@ -44,14 +45,23 @@ export function useLanguages() {
     }
   }, [t]);
 
+  // Back online: reload from the network in place. A failure keeps what is on screen.
+  const refreshAfterReconnect = useCallback(async () => {
+    try {
+      const next = await getLanguageCatalog({ force: true });
+      setState({ ...next, loading: false });
+    } catch {
+      // Still unreachable; the next reconnect or a pull to refresh tries again.
+    }
+  }, []);
+
+  useOnReconnect(refreshAfterReconnect);
+
   useEffect(() => {
     let cancelled = false;
     setState((current) => ({ ...current, loading: true, error: null }));
 
-    const snapshot = getLanguageCatalogSnapshot();
-    const load = snapshot ? Promise.resolve(snapshot) : getLanguageCatalog();
-
-    load
+    getLanguageCatalog()
       .then((next) => {
         if (!cancelled) {
           setState({ ...next, loading: false });
