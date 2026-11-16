@@ -42,6 +42,10 @@ app-example
 /ios
 /android
 
+# build output of local Expo modules (their sources stay tracked)
+modules/*/android/build/
+modules/*/android/.cxx/
+
 # verify-biel evidence and run state
 .verify/
 .fallow/
