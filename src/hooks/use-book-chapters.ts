@@ -55,15 +55,13 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
 
   // Lists loaded offline may be empty or partial (local chapters only). Once back online, reload
   // every book opened so far, one at a time since only one book shows as loading.
-  const reloadAfterReconnect = useCallback(async () => {
+  useOnReconnect(async () => {
     const loadedSlugs = Object.keys(cacheRef.current);
     cacheRef.current = {};
     for (const slug of loadedSlugs) {
       await loadChapters(slug);
     }
-  }, [loadChapters]);
-
-  useOnReconnect(reloadAfterReconnect);
+  });
 
   const getChapters = useCallback((bookSlug: string) => chaptersByBook[bookSlug], [chaptersByBook]);
 

@@ -46,16 +46,14 @@ export function useLanguages() {
   }, [t]);
 
   // Back online: reload from the network in place. A failure keeps what is on screen.
-  const refreshAfterReconnect = useCallback(async () => {
+  useOnReconnect(async () => {
     try {
       const next = await getLanguageCatalog({ force: true });
       setState({ ...next, loading: false });
     } catch {
       // Still unreachable; the next reconnect or a pull to refresh tries again.
     }
-  }, []);
-
-  useOnReconnect(refreshAfterReconnect);
+  });
 
   useEffect(() => {
     let cancelled = false;
