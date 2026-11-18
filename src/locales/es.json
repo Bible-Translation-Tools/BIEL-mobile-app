@@ -53,7 +53,7 @@
     "scripture": "Texto",
     "audio": "Audio",
     "downloadChapterText": "{{passage}} Texto",
-    "downloadChapterAudio": "Descargar audio del capítulo",
+    "downloadChapterAudio": "{{passage}} Audio",
     "textSettings": "Ajustes de texto",
     "textSize": "Tamaño de texto",
     "lineHeight": "Interlineado",

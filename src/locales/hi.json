@@ -53,7 +53,7 @@
     "scripture": "पाठ",
     "audio": "ऑडियो",
     "downloadChapterText": "{{passage}} पाठ",
-    "downloadChapterAudio": "अध्याय ऑडियो डाउनलोड करें",
+    "downloadChapterAudio": "{{passage}} ऑडियो",
     "textSettings": "पाठ सेटिंग",
     "textSize": "पाठ का आकार",
     "lineHeight": "पंक्ति की ऊँचाई",

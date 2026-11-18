@@ -53,7 +53,7 @@
     "scripture": "Текст",
     "audio": "Аудио",
     "downloadChapterText": "{{passage}} Текст",
-    "downloadChapterAudio": "Загрузить аудио главы",
+    "downloadChapterAudio": "{{passage}} Аудио",
     "textSettings": "Настройки текста",
     "textSize": "Размер текста",
     "lineHeight": "Межстрочный интервал",
