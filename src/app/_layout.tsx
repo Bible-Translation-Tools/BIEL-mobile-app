@@ -23,6 +23,7 @@ import { setupPlaybackEngine } from '@/services/playback-engine';
 import { initAudioVolumeStore } from '@/stores/audio-volume-store';
 import { initReadingCheckpointStore } from '@/stores/reading-checkpoint-store';
 import { initReadingTextSettingsStore } from '@/stores/reading-text-settings-store';
+import { initRecentLanguageStore } from '@/stores/recent-language-store';
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -75,6 +76,7 @@ export default function RootLayout() {
           initReadingTextSettingsStore(),
           initAudioVolumeStore(),
           initReadingCheckpointStore(),
+          initRecentLanguageStore(),
           initDownloadNotifications(),
           Platform.OS !== 'web' ? setupPlaybackEngine() : Promise.resolve(),
         ]);

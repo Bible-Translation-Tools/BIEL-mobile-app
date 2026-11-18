@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type LayoutChangeEvent,
   type ListRenderItem,
 } from 'react-native';
 
@@ -17,6 +18,7 @@ import type { LanguageItem } from '@/types/language';
 
 import { LanguageCardRow } from './language-card-row';
 import { OfflineScreen } from './offline-screen';
+import { RecentLanguageSection } from './recent-language-section';
 
 /** Row height (70px download card) + gap between rows */
 const ROW_HEIGHT = HomeLayout.downloadButtonSize;
@@ -31,6 +33,10 @@ type LanguageListProps = {
   onDownloadStatusChange?: () => void;
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
+  /** Shown above the list under a "Recent" heading; omit to hide the section. */
+  recentLanguage?: LanguageItem | null;
+  recentExpanded?: boolean;
+  onToggleRecent?: () => void;
 };
 
 type LanguageListEmptyProps = {
@@ -72,30 +78,46 @@ export function LanguageList({
   onDownloadStatusChange,
   onRefresh,
   refreshing = false,
+  recentLanguage = null,
+  recentExpanded = true,
+  onToggleRecent,
 }: LanguageListProps) {
   const theme = useTheme();
+  const showRecent = recentLanguage != null && languages.length > 0;
+  // Rows sit below the Recent section, so their offsets start after its measured height.
+  const [recentHeight, setRecentHeight] = useState(0);
+  const headerHeight = showRecent ? recentHeight : 0;
+
+  const handleRecentLayout = useCallback((event: LayoutChangeEvent) => {
+    setRecentHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  const handleLanguagePress = useCallback(
+    (language: LanguageItem) => {
+      Keyboard.dismiss();
+      onLanguagePress?.(language);
+    },
+    [onLanguagePress],
+  );
 
   const renderItem: ListRenderItem<LanguageItem> = useCallback(
     ({ item }) => (
       <LanguageCardRow
         language={item}
-        onPress={() => {
-          Keyboard.dismiss();
-          onLanguagePress?.(item);
-        }}
+        onPress={() => handleLanguagePress(item)}
         onDownloadStatusChange={onDownloadStatusChange}
       />
     ),
-    [onDownloadStatusChange, onLanguagePress],
+    [handleLanguagePress, onDownloadStatusChange],
   );
 
   const getItemLayout = useCallback(
     (_data: ArrayLike<LanguageItem> | null | undefined, index: number) => ({
       length: ITEM_STRIDE,
-      offset: ITEM_STRIDE * index,
+      offset: headerHeight + ITEM_STRIDE * index,
       index,
     }),
-    [],
+    [headerHeight],
   );
 
   return (
@@ -105,6 +127,18 @@ export function LanguageList({
       renderItem={renderItem}
       keyExtractor={(item) => item.code}
       getItemLayout={getItemLayout}
+      ListHeaderComponent={
+        showRecent ? (
+          <RecentLanguageSection
+            language={recentLanguage}
+            expanded={recentExpanded}
+            onToggle={() => onToggleRecent?.()}
+            onLanguagePress={handleLanguagePress}
+            onDownloadStatusChange={onDownloadStatusChange}
+            onLayout={handleRecentLayout}
+          />
+        ) : undefined
+      }
       ListEmptyComponent={
         <LanguageListEmpty
           loading={loading}

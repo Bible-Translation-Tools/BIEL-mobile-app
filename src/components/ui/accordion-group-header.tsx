@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, type StyleProp, type TextStyle } from 'react-native';
 
 import { COLLAPSE_ICON_NAME, EXPAND_ICON_NAME, IconSymbol } from '@/components/ui/icon-symbol';
 import { AccordionLayout, HomeLayout } from '@/constants/theme';
@@ -11,6 +11,8 @@ type AccordionGroupHeaderProps = {
   onPress: () => void;
   /** Shown but not toggleable, e.g. while a search forces every group open. */
   disabled?: boolean;
+  /** Overrides the title's default bold style, e.g. a lighter weight for Home's Recent heading. */
+  titleStyle?: StyleProp<TextStyle>;
 };
 
 /** Bold title and chevron that toggles a group of rows, e.g. a language or a testament. */
@@ -19,6 +21,7 @@ export function AccordionGroupHeader({
   expanded,
   onPress,
   disabled = false,
+  titleStyle,
 }: AccordionGroupHeaderProps) {
   const theme = useTheme();
   const { t } = useTranslation('books');
@@ -35,7 +38,7 @@ export function AccordionGroupHeader({
           : t('accessibility.expand', { name: title })
       }
       accessibilityState={{ expanded, disabled }}>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      <Text style={[styles.title, { color: theme.text }, titleStyle]}>{title}</Text>
       <IconSymbol
         name={expanded ? COLLAPSE_ICON_NAME : EXPAND_ICON_NAME}
         size={28}

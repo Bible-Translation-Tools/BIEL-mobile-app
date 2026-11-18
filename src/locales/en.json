@@ -16,6 +16,7 @@
     "searchPlaceholder": "Search language here...",
     "searchAccessibility": "Search languages",
     "noLanguagesFound": "No languages found",
+    "recent": "Recent",
     "failedToLoadLanguages": "Failed to load languages",
     "offlineTitle": "You Are Offline",
     "offlineMessage": "Connect to the internet to access the Bible in your language, or access downloaded content anytime from your Downloads Library.",
