@@ -342,6 +342,7 @@ const styles = StyleSheet.create({
     ...Typography.bodySm,
     marginTop: 'auto',
     padding: MenuDrawerLayout.itemPadding,
+    textAlign: 'center',
   },
   settingsContent: {
     flex: 1,
