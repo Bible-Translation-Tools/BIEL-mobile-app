@@ -54,7 +54,7 @@
     "scripture": "Texte",
     "audio": "Audio",
     "downloadChapterText": "{{passage}} Texte",
-    "downloadChapterAudio": "Télécharger l'audio du chapitre",
+    "downloadChapterAudio": "{{passage}} Audio",
     "textSettings": "Paramètres de texte",
     "textSize": "Taille du texte",
     "lineHeight": "Interligne",

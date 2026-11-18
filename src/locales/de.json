@@ -54,7 +54,7 @@
     "scripture": "Text",
     "audio": "Audio",
     "downloadChapterText": "{{passage}} Text",
-    "downloadChapterAudio": "Kapitel-Audio herunterladen",
+    "downloadChapterAudio": "{{passage}} Audio",
     "textSettings": "Texteinstellungen",
     "textSize": "Textgröße",
     "lineHeight": "Zeilenhöhe",
