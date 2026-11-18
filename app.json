@@ -50,6 +50,7 @@
         }
       ],
       "./plugins/withTrackPlayerService",
+      "./plugins/withOptionalHardwareFeatures",
       "expo-font",
       "expo-status-bar",
       "./plugins/withPodsDeploymentTarget",
