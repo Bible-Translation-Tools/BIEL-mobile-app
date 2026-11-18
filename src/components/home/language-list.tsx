@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Text,
   View,
-  type LayoutChangeEvent,
   type ListRenderItem,
 } from 'react-native';
 
@@ -88,27 +87,23 @@ export function LanguageList({
   const [recentHeight, setRecentHeight] = useState(0);
   const headerHeight = showRecent ? recentHeight : 0;
 
-  const handleRecentLayout = useCallback((event: LayoutChangeEvent) => {
-    setRecentHeight(event.nativeEvent.layout.height);
-  }, []);
-
-  const handleLanguagePress = useCallback(
-    (language: LanguageItem) => {
-      Keyboard.dismiss();
-      onLanguagePress?.(language);
-    },
-    [onLanguagePress],
-  );
+  const handleLanguagePress = (language: LanguageItem) => {
+    Keyboard.dismiss();
+    onLanguagePress?.(language);
+  };
 
   const renderItem: ListRenderItem<LanguageItem> = useCallback(
     ({ item }) => (
       <LanguageCardRow
         language={item}
-        onPress={() => handleLanguagePress(item)}
+        onPress={() => {
+          Keyboard.dismiss();
+          onLanguagePress?.(item);
+        }}
         onDownloadStatusChange={onDownloadStatusChange}
       />
     ),
-    [handleLanguagePress, onDownloadStatusChange],
+    [onDownloadStatusChange, onLanguagePress],
   );
 
   const getItemLayout = useCallback(
@@ -135,7 +130,7 @@ export function LanguageList({
             onToggle={() => onToggleRecent?.()}
             onLanguagePress={handleLanguagePress}
             onDownloadStatusChange={onDownloadStatusChange}
-            onLayout={handleRecentLayout}
+            onLayout={(event) => setRecentHeight(event.nativeEvent.layout.height)}
           />
         ) : undefined
       }

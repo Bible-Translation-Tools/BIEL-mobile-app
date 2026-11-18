@@ -125,12 +125,10 @@ function HomeScreen() {
   }, [languages, searchQuery]);
 
   // Hidden while searching, and when the remembered language is no longer in the catalog.
-  const recentLanguage = useMemo(() => {
-    if (recentLanguageCode == null || searchQuery.trim()) return null;
-    return languages.find((language) => language.code === recentLanguageCode) ?? null;
-  }, [languages, recentLanguageCode, searchQuery]);
-
-  const toggleRecent = useCallback(() => setRecentExpanded((current) => !current), []);
+  const recentLanguage =
+    recentLanguageCode == null || searchQuery.trim()
+      ? null
+      : (languages.find((language) => language.code === recentLanguageCode) ?? null);
 
   const handleLanguagePress = useCallback(
     (language: LanguageItem) => {
@@ -168,7 +166,7 @@ function HomeScreen() {
           onDownloadStatusChange={refreshDownloadStatus}
           recentLanguage={recentLanguage}
           recentExpanded={recentExpanded}
-          onToggleRecent={toggleRecent}
+          onToggleRecent={() => setRecentExpanded((current) => !current)}
         />
       </SafeAreaView>
     </View>
