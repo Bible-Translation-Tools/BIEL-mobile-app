@@ -171,7 +171,8 @@
       "download": "Unduh",
       "systemSettings": "Pengaturan sistem",
       "textSettings": "Pengaturan teks",
-      "back": "Kembali"
+      "back": "Kembali",
+      "version": "Versi {{version}}"
     },
     "theme": {
       "system": {

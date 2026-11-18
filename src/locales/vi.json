@@ -171,7 +171,8 @@
       "download": "Tải xuống",
       "systemSettings": "Cài đặt hệ thống",
       "textSettings": "Cài đặt văn bản",
-      "back": "Quay lại"
+      "back": "Quay lại",
+      "version": "Phiên bản {{version}}"
     },
     "theme": {
       "system": {

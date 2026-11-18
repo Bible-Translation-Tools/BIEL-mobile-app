@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +32,8 @@ type DrawerHeaderProps = {
   onClose: () => void;
   onBack?: () => void;
 };
+
+const APP_VERSION = Constants.expoConfig?.version;
 
 const DOWNLOADS_LIBRARY_ICON: IconSymbolName = {
   ios: 'books.vertical.fill',
@@ -239,6 +242,11 @@ export function SettingsDrawer({
                 iconSize={MenuDrawerLayout.settingsIconSize}
                 onPress={() => setView('system-settings')}
               />
+              {APP_VERSION ? (
+                <Text style={[styles.version, { color: theme.textSecondary }]}>
+                  {t('menu.version', { version: APP_VERSION })}
+                </Text>
+              ) : null}
             </>
           ) : (
             <>
@@ -329,6 +337,11 @@ const styles = StyleSheet.create({
     ...Typography.headingH6,
     flex: 1,
     fontWeight: '400',
+  },
+  version: {
+    ...Typography.bodySm,
+    marginTop: 'auto',
+    padding: MenuDrawerLayout.itemPadding,
   },
   settingsContent: {
     flex: 1,

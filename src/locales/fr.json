@@ -171,7 +171,8 @@
       "download": "Télécharger",
       "systemSettings": "Paramètres système",
       "textSettings": "Paramètres de texte",
-      "back": "Retour"
+      "back": "Retour",
+      "version": "Version {{version}}"
     },
     "theme": {
       "system": {

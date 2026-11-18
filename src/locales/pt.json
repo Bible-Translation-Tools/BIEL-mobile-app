@@ -171,7 +171,8 @@
       "download": "Baixar",
       "systemSettings": "Configurações do sistema",
       "textSettings": "Configurações de texto",
-      "back": "Voltar"
+      "back": "Voltar",
+      "version": "Versão {{version}}"
     },
     "theme": {
       "system": {
