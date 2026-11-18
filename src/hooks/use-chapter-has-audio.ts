@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { getChapterAudioTotalBytes } from '@/features/downloads';
-import { useForceOffline } from '@/stores/force-offline-store';
 
 type UseChapterHasAudioParams = {
   languageCode?: string;
@@ -11,7 +10,6 @@ type UseChapterHasAudioParams = {
 
 /** Whether a chapter has audio available (offline manifest or online). */
 export function useChapterHasAudio({ languageCode, bookSlug, chapter }: UseChapterHasAudioParams) {
-  const forceOffline = useForceOffline();
   const [hasAudio, setHasAudio] = useState(false);
 
   useEffect(() => {
@@ -33,7 +31,7 @@ export function useChapterHasAudio({ languageCode, bookSlug, chapter }: UseChapt
     return () => {
       cancelled = true;
     };
-  }, [languageCode, bookSlug, chapter, forceOffline]);
+  }, [languageCode, bookSlug, chapter]);
 
   return hasAudio;
 }

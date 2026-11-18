@@ -1,5 +1,5 @@
 diff --git a/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt b/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt
-index b2409a09939164c49c0f7a16bb6d3284e8eab8fb..4a80897ad9ef4bf61cce55f33a213692a7336a81 100644
+index b2409a09939164c49c0f7a16bb6d3284e8eab8fb..7c23bb66f433f8447f7c3836a359856168d5e03a 100644
 --- a/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt
 +++ b/android/src/main/java/com/doublesymmetry/trackplayer/module/MusicModule.kt
 @@ -251,7 +251,8 @@ class MusicModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
@@ -439,7 +439,7 @@ index b2409a09939164c49c0f7a16bb6d3284e8eab8fb..4a80897ad9ef4bf61cce55f33a213692
 +    }
  }
 diff --git a/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt b/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
-index afa6b0f335714de0cc8741d5bbdd51b4e04bb3bb..c417e7b46c1286ccf4eecc0f0775676f297b66fe 100644
+index afa6b0f335714de0cc8741d5bbdd51b4e04bb3bb..72baef37359c230ffe30da3e86603de0c58d7d45 100644
 --- a/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
 +++ b/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
 @@ -741,7 +741,7 @@ class MusicService : HeadlessJsTaskService() {
@@ -460,3 +460,33 @@ index afa6b0f335714de0cc8741d5bbdd51b4e04bb3bb..c417e7b46c1286ccf4eecc0f0775676f
              ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
              ?.emit(event, payload)
      }
+@@ -770,6 +770,7 @@ class MusicService : HeadlessJsTaskService() {
+         super.onTaskRemoved(rootIntent)
+ 
+         if (!::player.isInitialized) return
++        if (!isAppTask(rootIntent)) return
+ 
+         when (appKilledPlaybackBehavior) {
+             AppKilledPlaybackBehavior.PAUSE_PLAYBACK -> player.pause()
+@@ -791,6 +792,21 @@ class MusicService : HeadlessJsTaskService() {
+         }
+     }
+ 
++    /**
++     * Android calls [onTaskRemoved] for every task of this app that goes away, not only when the
++     * user swipes the app away. A notification tap opens a short-lived task (expo-notifications'
++     * NotificationForwarderActivity) that starts the app and finishes at once; treating its removal
++     * as "app killed" exited the process the moment the app was being opened.
++     *
++     * Only the task rooted in the launcher activity counts as the app. With no root intent, keep the
++     * library's behavior.
++     */
++    private fun isAppTask(rootIntent: Intent?): Boolean {
++        val removed = rootIntent?.component ?: return true
++        val launcher = packageManager.getLaunchIntentForPackage(packageName)?.component ?: return true
++        return removed.className == launcher.className
++    }
++
+     @MainThread
+     override fun onHeadlessJsTaskFinish(taskId: Int) {
+         // This is empty so ReactNative doesn't kill this service

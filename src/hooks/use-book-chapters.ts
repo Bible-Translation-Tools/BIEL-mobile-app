@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { getChaptersForBook } from '@/features/catalog';
 import { getAudioChaptersForBook } from '@/features/playback';
-import { useForceOffline } from '@/stores/force-offline-store';
+import { useOnReconnect } from '@/hooks/use-on-reconnect';
 import type { ChapterItem } from '@/types/book';
 
 export function useBookChapters(languageCode: string, audioOnly: boolean) {
-  const forceOffline = useForceOffline();
   const cacheRef = useRef<Record<string, ChapterItem[]>>({});
   const [chaptersByBook, setChaptersByBook] = useState<Record<string, ChapterItem[]>>({});
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -18,10 +17,6 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
     setLoadingSlug(null);
     setErrorSlug(null);
   }, []);
-
-  useEffect(() => {
-    clearCache();
-  }, [clearCache, forceOffline]);
 
   const loadChapters = useCallback(
     async (bookSlug: string) => {
@@ -55,8 +50,18 @@ export function useBookChapters(languageCode: string, audioOnly: boolean) {
         setLoadingSlug(null);
       }
     },
-    [audioOnly, forceOffline, languageCode],
+    [audioOnly, languageCode],
   );
+
+  // Lists loaded offline may be empty or partial (local chapters only). Once back online, reload
+  // every book opened so far, one at a time since only one book shows as loading.
+  useOnReconnect(async () => {
+    const loadedSlugs = Object.keys(cacheRef.current);
+    cacheRef.current = {};
+    for (const slug of loadedSlugs) {
+      await loadChapters(slug);
+    }
+  });
 
   const getChapters = useCallback((bookSlug: string) => chaptersByBook[bookSlug], [chaptersByBook]);
 

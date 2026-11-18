@@ -3,7 +3,7 @@
 # Usage: run-maestro-flows.sh <apk> <output-dir>
 # Order matters: later flows depend on state from earlier ones (see .agents/skills/verify-biel/SKILL.md).
 # Each flow starts from _home, whose _ready backs out of any screen the reading checkpoint restored.
-# offline-read (real airplane mode) is left out; the in-app Force Offline flow covers offline reading.
+# offline-read is left out: it needs airplane mode, which this script does not toggle yet.
 set -uo pipefail
 
 APK="$1"
@@ -18,7 +18,6 @@ FLOWS=(
   chapter-audio
   audio-panel-gestures
   download-book
-  offline-read-forced
   downloads-library
 )
 

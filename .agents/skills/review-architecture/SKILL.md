@@ -95,11 +95,10 @@ Red flags (each one was fixed somewhere in #5):
 - **UI talking to adapters.** Components, screens, hooks, stores, or contexts importing `@/api`,
   `@/db`, or `@/services` directly → go through a feature. Lint doesn't catch this, so grep for it.
   It's allowed only for the rows in the doc's **Exceptions** table (bootstrap in `_layout.tsx`,
-  `db/*-preferences.ts` from their store or context, system volume, force-offline). A new
+  `db/*-preferences.ts` from their store or context, system volume). A new
   crossing needs either a feature or a new row in that table with a reason.
 - **Store owning state a feature needs.** State that a feature or adapter reads lives in that
-  layer, and the store only wraps it in a hook. The only allowed exception is force-offline
-  (store → `api/network.ts` via `setNetworkBlocked`).
+  layer, and the store only wraps it in a hook.
 - **Server shapes leaking.** GraphQL field names (`scriptural_rendering_metadata`, `CONTENTS`,
   upper-case file types) anywhere outside `src/api/graphql/` → map to `src/types/catalog.ts` types in
   `catalog-api.ts`.

@@ -185,10 +185,6 @@
         "title": "Modo oscuro",
         "subtitle": "Ignorar ajustes del sistema"
       }
-    },
-    "offline": {
-      "title": "Forzar modo sin conexión",
-      "subtitle": "Simular que no hay internet"
     }
   },
   "locale": {

@@ -185,10 +185,6 @@
         "title": "Mode gelap",
         "subtitle": "Abaikan pengaturan sistem"
       }
-    },
-    "offline": {
-      "title": "Paksa mode offline",
-      "subtitle": "Simulasikan tanpa internet"
     }
   },
   "locale": {

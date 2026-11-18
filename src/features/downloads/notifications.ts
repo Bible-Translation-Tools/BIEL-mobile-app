@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { i18n } from '@/i18n';
 import type { DownloadProgressTask } from '@/types/download-progress';
 
+import { showDownloadService, stopDownloadService } from '../../../modules/download-service';
 import { listActiveDownloadTasks } from './task-registry';
 
 const DOWNLOAD_CHANNEL_ID = 'book-downloads';
@@ -73,12 +74,12 @@ function buildNotificationContent(active: DownloadProgressTask[]) {
   };
 }
 
-async function presentNotification(
-  content: Notifications.NotificationContentInput,
-  kind: (typeof NOTIFICATION_KIND)[keyof typeof NOTIFICATION_KIND],
-) {
-  const isProgress = kind === NOTIFICATION_KIND.progress;
-
+/**
+ * Download notifications are quiet on both platforms: they land in the notification list / tray
+ * without a banner or sound. On Android the LOW-importance channel does this; on iOS the passive
+ * interruption level (background) and the handler below (foreground) do.
+ */
+async function presentNotification(content: Notifications.NotificationContentInput) {
   await Notifications.scheduleNotificationAsync({
     identifier: ACTIVE_DOWNLOAD_NOTIFICATION_ID,
     content: {
@@ -86,11 +87,7 @@ async function presentNotification(
       sticky: Platform.OS === 'android',
       autoDismiss: false,
       sound: false,
-      ...(Platform.OS === 'ios'
-        ? {
-            interruptionLevel: isProgress ? 'passive' : 'active',
-          }
-        : {}),
+      ...(Platform.OS === 'ios' ? { interruptionLevel: 'passive' } : {}),
     },
     trigger: null,
   });
@@ -100,16 +97,12 @@ export async function initDownloadNotifications(): Promise<void> {
   if (initialized || Platform.OS === 'web') return;
 
   Notifications.setNotificationHandler({
-    handleNotification: async (notification) => {
-      const isProgress = notification.request.content.data?.kind === NOTIFICATION_KIND.progress;
-
-      return {
-        shouldShowBanner: !isProgress,
-        shouldShowList: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      };
-    },
+    handleNotification: async () => ({
+      shouldShowBanner: false,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
   });
 
   if (Platform.OS === 'android') {
@@ -138,6 +131,7 @@ export async function syncDownloadNotification(): Promise<void> {
 
   if (!content) {
     resetProgressSyncState();
+    stopDownloadService();
     await Notifications.dismissNotificationAsync(ACTIVE_DOWNLOAD_NOTIFICATION_ID).catch(() => {});
     return;
   }
@@ -149,15 +143,23 @@ export async function syncDownloadNotification(): Promise<void> {
   lastProgressPercent = content.percent;
   lastProgressSyncAt = Date.now();
 
-  await presentNotification(
-    {
+  // Android: the progress notification belongs to the foreground service, which also keeps the
+  // app (and the download) running while the user is in another app.
+  if (Platform.OS === 'android') {
+    showDownloadService({
+      channelId: DOWNLOAD_CHANNEL_ID,
       title: content.title,
       body: content.body,
-      data: content.data,
-      ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
-    },
-    NOTIFICATION_KIND.progress,
-  );
+      percent: content.percent,
+    });
+    return;
+  }
+
+  await presentNotification({
+    title: content.title,
+    body: content.body,
+    data: content.data,
+  });
 }
 
 export async function showDownloadFinishedNotification(
@@ -176,15 +178,17 @@ export async function showDownloadFinishedNotification(
 
   resetProgressSyncState();
 
-  await presentNotification(
-    {
-      title,
-      body,
-      data: { taskId: task.id, kind: NOTIFICATION_KIND.finished },
-      ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
-    },
-    NOTIFICATION_KIND.finished,
-  );
+  // The finished task is no longer active; stop the Android service once nothing else is downloading.
+  if (listActiveDownloadTasks().length === 0) {
+    stopDownloadService();
+  }
+
+  await presentNotification({
+    title,
+    body,
+    data: { taskId: task.id, kind: NOTIFICATION_KIND.finished },
+    ...(Platform.OS === 'android' ? { channelId: DOWNLOAD_CHANNEL_ID } : {}),
+  });
 
   dismissTimer = setTimeout(() => {
     dismissTimer = null;

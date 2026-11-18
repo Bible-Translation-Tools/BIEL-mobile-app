@@ -192,7 +192,6 @@ Every allowed boundary crossing, with its reason:
 | `app/_layout.tsx` | imports `api/offline-storage`, `db`, `db/locale-preferences`, `services/playback-engine` | app bootstrap (composition root): runs once before any screen |
 | `stores/*-store.ts`, `contexts/*-context.tsx` | import `db/*-preferences.ts` | persisted preferences have no feature logic; a feature wrapper would only pass the call through |
 | `stores/audio-volume-store.ts`, `hooks/use-system-volume-sync.ts` | import `services/system-audio-volume` | device volume is UI state with no app logic |
-| `stores/force-offline-store.ts` | calls `api/network.ts` `setNetworkBlocked` | force-offline is a temporary testing switch, not a product feature; `api/` never imports the store |
 | `features/downloads/notifications.ts` | imports `i18n` | it renders OS notifications outside React |
 
 Lint doesn't block the store, context, and hook rows yet (see [Lint boundaries](#lint-boundaries)), so

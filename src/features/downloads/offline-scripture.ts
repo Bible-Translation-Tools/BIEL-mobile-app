@@ -1,11 +1,12 @@
 import { File } from 'expo-file-system';
 
 import { catalogApi } from '@/api/catalog';
-import { fetchRenderedContent } from '@/api/content-fetch';
+import { downloadRenderedContentToFile } from '@/api/content-fetch';
 import {
   ensureOfflineRootExists,
   ensureOfflineScriptureDirectory,
   getChapterHtmlFile,
+  getWholeJsonDownloadFile,
   getWholeJsonFile,
   removeBookScriptureDirectory,
   writeFileAtomically,
@@ -252,28 +253,16 @@ export async function downloadChapterScripture(
 
   options?.onProgress?.(0.1);
 
-  const response = await fetchRenderedContent(rendering.url, {
-    signal: options?.signal,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to download chapter (${response.status})`);
-  }
-
-  const html = await response.text();
-  if (options?.signal?.aborted) {
-    throw createAbortError();
-  }
-
-  options?.onProgress?.(0.8);
-
   const canonicalSlug = normalizeBookSlug(bookSlug);
   ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
 
   const htmlFile = getChapterHtmlFile(languageCode, canonicalSlug, chapter);
-  await writeFileAtomically(htmlFile, html);
+  const byteSize = await downloadRenderedContentToFile(rendering.url, htmlFile, {
+    signal: options?.signal,
+    onProgress: (fraction) => options?.onProgress?.(0.1 + fraction * 0.7),
+  });
 
-  const byteSize = new TextEncoder().encode(html).length;
+  options?.onProgress?.(0.8);
 
   await upsertScriptureChapter({
     languageCode,
@@ -339,15 +328,17 @@ export async function downloadBookScripture(
 
     options?.onProgress?.(0.1);
 
-    const response = await fetchRenderedContent(resolved.url, {
+    ensureOfflineScriptureDirectory(languageCode, canonicalSlug);
+
+    // Downloaded natively (an iOS background transfer survives the app being suspended), then
+    // read back to validate it; the stored copy is the trimmed text written below.
+    const stagingFile = getWholeJsonDownloadFile(languageCode, canonicalSlug);
+    await downloadRenderedContentToFile(resolved.url, stagingFile, {
       signal: options?.signal,
+      onProgress: (fraction) => options?.onProgress?.(0.1 + fraction * 0.5),
     });
-
-    if (!response.ok) {
-      throw new Error(`Failed to download book (${response.status})`);
-    }
-
-    const jsonText = (await response.text()).trim();
+    const jsonText = (await stagingFile.text()).trim();
+    stagingFile.delete();
     if (options?.signal?.aborted) {
       throw createAbortError();
     }

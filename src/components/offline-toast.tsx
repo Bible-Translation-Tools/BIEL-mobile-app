@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/hooks/use-theme';
-import { useForceOffline } from '@/stores/force-offline-store';
 
 /** How long the toast stays up before hiding itself. */
 const TOAST_DURATION_MS = 6000;
@@ -24,10 +23,8 @@ export function OfflineToast() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation('common');
-  const forceOffline = useForceOffline();
   const netInfo = useNetInfo();
-  const offline =
-    forceOffline || netInfo.isConnected === false || netInfo.isInternetReachable === false;
+  const offline = netInfo.isConnected === false || netInfo.isInternetReachable === false;
   const wasOffline = useRef(false);
   const [visible, setVisible] = useState(false);
   const remaining = useSharedValue(1);

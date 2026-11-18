@@ -13,7 +13,6 @@ whose text was downloaded, from local storage. Undownloaded content is unavailab
 ## How to get to it (user POV)
 
 - Turn on airplane mode, open the app.
-- Or, in-app: Menu → System Settings → `Force Offline Mode` (simulated; resets on relaunch).
 
 ## Driving it with biel-verify
 
@@ -26,13 +25,12 @@ Preconditions:
 - **Local read.** The flow taps `Chapter 1.*`; verse text `From the elder to the chosen lady…` renders with the network off (`03-2john-read-offline.png`).
 - **Not downloaded.** The flow expands `3 John`; no chapter buttons appear (`04-3john-not-downloaded.png`).
 - **Restore.** Run `bv net on` (cleanup also does this).
-- **iOS / simulated.** Run `bv flow offline-read-forced ios` instead (same precondition, network left on). It opens Menu → `System Settings` → `Force Offline Mode`, waits for `You are in offline mode.`, then repeats the local read and the 3 John control without relaunching.
+- **iOS.** There is no way to take an iOS simulator offline from `bv` (simulators share the Mac's network). Report offline read as not verified on iOS.
 - **Proof.** PASS line, `bv net` output showing `airplane-mode: 1` during the run, and the `bv files` listing showing the file the text came from.
 
 ## Gotchas
 
 - Offline cold start shows a black screen for ~20 s before Home; `_ready` waits up to 120 s. Don't misread it as a crash.
 - The offline toast floats at the bottom for 6 s, over the list or the reader's play button. Assert it right after launch; it is gone a few steps later.
-- Force Offline Mode lives in memory. `bv reset`, `_home` (relaunch) or any app restart turns it off silently. Prefer `bv net off` on Android.
 - `bv net off` does not break Metro (adb reverse), but it does break anything else that needs the network, including the language catalog on a fresh `bv reset`. Download fixtures before going offline.
-- iOS simulators share the Mac's network. Use Force Offline Mode there and report it as simulated.
+- iOS simulators share the Mac's network, so offline can only be proven on Android.
