@@ -6,16 +6,12 @@ appId: ${APP_ID}
 - tapOn: "Menu"
 - tapOn: "Downloads Library"
 - extendedWaitUntil:
-    visible: "Old Testament"
-    timeout: 20000
-# Current behavior @eebc86c: the default OT tab says "No downloads yet" even when NT books are downloaded.
-- assertVisible: "No downloads yet"
-- takeScreenshot: 01-library-ot-tab
-- tapOn: "New Testament"
-- extendedWaitUntil:
     visible: ".*1 book downloaded.*"
     timeout: 20000
-- takeScreenshot: 01b-library-nt-tab
+# Testaments are plain section titles (#22): only the ones with downloads show.
+- assertVisible: "New Testament"
+- assertNotVisible: "Old Testament"
+- takeScreenshot: 01-library-nt-section
 - tapOn:
     text: "Expand English"
     optional: true
