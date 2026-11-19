@@ -5,4 +5,5 @@ export const PreferenceKeys = {
   theme: 'theme',
   uiLocale: 'ui_locale',
   readingCheckpoint: 'reading_checkpoint',
+  recentLanguage: 'recent_language',
 } as const;

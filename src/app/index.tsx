@@ -18,6 +18,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguages } from '@/hooks/use-languages';
 import { useTheme } from '@/hooks/use-theme';
 import { getReadingCheckpointSnapshot } from '@/stores/reading-checkpoint-store';
+import { setRecentLanguage, useRecentLanguageCode } from '@/stores/recent-language-store';
 import type { LanguageItem } from '@/types/language';
 import type { ReadingCheckpoint } from '@/types/reading-checkpoint';
 
@@ -81,6 +82,7 @@ function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [listKey, setListKey] = useState(0);
   const { languages, loading, error, refetch, refreshDownloadStatus } = useLanguages();
+  const recentLanguageCode = useRecentLanguageCode();
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -121,8 +123,15 @@ function HomeScreen() {
     return exactMatch ? [exactMatch, ...rest] : rest;
   }, [languages, searchQuery]);
 
+  // Hidden while searching, and when the remembered language is no longer in the catalog.
+  const recentLanguage =
+    recentLanguageCode == null || searchQuery.trim()
+      ? null
+      : (languages.find((language) => language.code === recentLanguageCode) ?? null);
+
   const handleLanguagePress = useCallback(
     (language: LanguageItem) => {
+      setRecentLanguage(language.code);
       router.push({
         pathname: '/books',
         params: {
@@ -154,6 +163,7 @@ function HomeScreen() {
           refreshing={refreshing}
           onLanguagePress={handleLanguagePress}
           onDownloadStatusChange={refreshDownloadStatus}
+          recentLanguage={recentLanguage}
         />
       </SafeAreaView>
     </View>
