@@ -1,12 +1,3 @@
-<!--
-Title: imperative for features ("Keep Android downloads running in the background"),
-"Bug: <what was broken>" for bug fixes.
-
-Write each section as short bullets with a bold label, not paragraphs.
-"Why this PR" is required. The other sections are optional: delete any that don't add something.
--->
-
-## Why this PR <does what it does>
 
 <!-- Required. -->
 
