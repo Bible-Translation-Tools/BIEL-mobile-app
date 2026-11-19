@@ -83,7 +83,6 @@ function HomeScreen() {
   const [listKey, setListKey] = useState(0);
   const { languages, loading, error, refetch, refreshDownloadStatus } = useLanguages();
   const recentLanguageCode = useRecentLanguageCode();
-  const [recentExpanded, setRecentExpanded] = useState(true);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -165,8 +164,6 @@ function HomeScreen() {
           onLanguagePress={handleLanguagePress}
           onDownloadStatusChange={refreshDownloadStatus}
           recentLanguage={recentLanguage}
-          recentExpanded={recentExpanded}
-          onToggleRecent={() => setRecentExpanded((current) => !current)}
         />
       </SafeAreaView>
     </View>

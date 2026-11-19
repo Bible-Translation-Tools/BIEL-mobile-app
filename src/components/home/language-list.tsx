@@ -34,8 +34,6 @@ type LanguageListProps = {
   refreshing?: boolean;
   /** Shown above the list under a "Recent" heading; omit to hide the section. */
   recentLanguage?: LanguageItem | null;
-  recentExpanded?: boolean;
-  onToggleRecent?: () => void;
 };
 
 type LanguageListEmptyProps = {
@@ -78,8 +76,6 @@ export function LanguageList({
   onRefresh,
   refreshing = false,
   recentLanguage = null,
-  recentExpanded = true,
-  onToggleRecent,
 }: LanguageListProps) {
   const theme = useTheme();
   const showRecent = recentLanguage != null && languages.length > 0;
@@ -126,8 +122,6 @@ export function LanguageList({
         showRecent ? (
           <RecentLanguageSection
             language={recentLanguage}
-            expanded={recentExpanded}
-            onToggle={() => onToggleRecent?.()}
             onLanguagePress={handleLanguagePress}
             onDownloadStatusChange={onDownloadStatusChange}
             onLayout={(event) => setRecentHeight(event.nativeEvent.layout.height)}

@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
-import { AccordionGroupHeader } from '@/components/ui/accordion-group-header';
-import { HomeLayout } from '@/constants/theme';
+import { AccordionLayout, HomeLayout } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { LanguageItem } from '@/types/language';
 
@@ -10,8 +9,6 @@ import { LanguageCardRow } from './language-card-row';
 
 type RecentLanguageSectionProps = {
   language: LanguageItem;
-  expanded: boolean;
-  onToggle: () => void;
   onLanguagePress: (language: LanguageItem) => void;
   onDownloadStatusChange?: () => void;
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -20,8 +17,6 @@ type RecentLanguageSectionProps = {
 /** "Recent" heading over the last language picked on Home, then a divider before the full list. */
 export function RecentLanguageSection({
   language,
-  expanded,
-  onToggle,
   onLanguagePress,
   onDownloadStatusChange,
   onLayout,
@@ -32,19 +27,15 @@ export function RecentLanguageSection({
   return (
     <View style={styles.container} onLayout={onLayout}>
       <View style={styles.group}>
-        <AccordionGroupHeader
-          title={t('recent')}
-          expanded={expanded}
-          onPress={onToggle}
-          titleStyle={styles.title}
+        {/* Plain heading, not an accordion: the section never holds more than one row. */}
+        <Text style={[styles.title, { color: theme.text }]} accessibilityRole="header">
+          {t('recent')}
+        </Text>
+        <LanguageCardRow
+          language={language}
+          onPress={() => onLanguagePress(language)}
+          onDownloadStatusChange={onDownloadStatusChange}
         />
-        {expanded ? (
-          <LanguageCardRow
-            language={language}
-            onPress={() => onLanguagePress(language)}
-            onDownloadStatusChange={onDownloadStatusChange}
-          />
-        ) : null}
       </View>
       <View style={[styles.divider, { backgroundColor: theme.border }]} />
     </View>
@@ -60,6 +51,8 @@ const styles = StyleSheet.create({
     gap: HomeLayout.headerGap,
   },
   title: {
+    fontSize: AccordionLayout.titleSize,
+    lineHeight: AccordionLayout.titleLineHeight,
     fontWeight: '500',
   },
   divider: {
