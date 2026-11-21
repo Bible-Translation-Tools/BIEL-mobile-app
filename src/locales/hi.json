@@ -171,7 +171,8 @@
       "download": "डाउनलोड",
       "systemSettings": "सिस्टम सेटिंग",
       "textSettings": "पाठ सेटिंग",
-      "back": "वापस"
+      "back": "वापस",
+      "version": "संस्करण {{version}}"
     },
     "theme": {
       "system": {

@@ -171,7 +171,8 @@
       "download": "Download",
       "systemSettings": "System Settings",
       "textSettings": "Text Settings",
-      "back": "Back"
+      "back": "Back",
+      "version": "Version {{version}}"
     },
     "theme": {
       "system": {

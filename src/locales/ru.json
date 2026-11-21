@@ -175,7 +175,8 @@
       "download": "Загрузить",
       "systemSettings": "Системные настройки",
       "textSettings": "Настройки текста",
-      "back": "Назад"
+      "back": "Назад",
+      "version": "Версия {{version}}"
     },
     "theme": {
       "system": {
