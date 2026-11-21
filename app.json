@@ -53,6 +53,7 @@
       "expo-font",
       "expo-status-bar",
       "./plugins/withPodsDeploymentTarget",
+      "./plugins/withWindowsCmakeVersion",
       [
         "expo-build-properties",
         {
