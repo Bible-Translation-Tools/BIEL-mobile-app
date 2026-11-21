@@ -1,6 +1,7 @@
 import { catalogApi } from '@/api/catalog';
 import { fetchRenderedContent } from '@/api/content-fetch';
 import { loadChapterCatalog, saveChapterCatalog } from '@/db';
+import { pickChapterAudioFiles } from '@/domain/audio-manifest';
 import { normalizeBookSlug } from '@/domain/book-slug';
 import { getVerseTimingParser } from '@/domain/verse-timing';
 import {
@@ -54,7 +55,7 @@ export async function getChapterAudioUrl(
     async () => {
       try {
         const files = await catalogApi.getChapterAudioFiles(languageCode, bookSlug, chapter, 'mp3');
-        return files[0]?.url ?? null;
+        return pickChapterAudioFiles(files).mp3Url ?? null;
       } catch {
         throw new Error('Audio is not available offline');
       }
@@ -69,7 +70,7 @@ async function fetchChapterTimingUrl(
 ): Promise<string | null> {
   try {
     const files = await catalogApi.getChapterAudioFiles(languageCode, bookSlug, chapter, 'cue');
-    return files[0]?.url ?? null;
+    return pickChapterAudioFiles(files).cueUrl ?? null;
   } catch {
     return null;
   }

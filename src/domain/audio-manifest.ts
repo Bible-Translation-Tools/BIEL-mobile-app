@@ -10,15 +10,19 @@ export type ChapterAudioFiles = {
   cueByteSize?: number;
 };
 
-/** Picks the mp3 and cue entries from one chapter's catalog files; later files win. */
+/**
+ * Picks the mp3 and cue entries from one chapter's catalog files; the first of each type wins,
+ * the same rendering chapter playback uses. A chapter can list several renderings (e.g. `reg` and
+ * `ulb`), and not all of them are served.
+ */
 export function pickChapterAudioFiles(files: readonly AudioFile[]): ChapterAudioFiles {
   const entry: ChapterAudioFiles = {};
 
   for (const file of files) {
-    if (file.fileType === 'mp3') {
+    if (file.fileType === 'mp3' && entry.mp3Url == null) {
       entry.mp3Url = file.url;
       entry.mp3ByteSize = file.fileSizeBytes ?? 0;
-    } else if (file.fileType === 'cue') {
+    } else if (file.fileType === 'cue' && entry.cueUrl == null) {
       entry.cueUrl = file.url;
       entry.cueByteSize = file.fileSizeBytes ?? 0;
     }
